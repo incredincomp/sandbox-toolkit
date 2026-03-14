@@ -1,0 +1,86 @@
+name: Validate
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  lint-powershell:
+    name: PSScriptAnalyzer
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install PSScriptAnalyzer
+        shell: pwsh
+        run: Install-Module PSScriptAnalyzer -Force -Scope CurrentUser
+
+      - name: Analyse PowerShell scripts
+        shell: pwsh
+        run: |
+          $results = Get-ChildItem -Recurse -Filter '*.ps1' |
+            ForEach-Object {
+              Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning
+            }
+          if ($results) {
+            $results | Format-Table -AutoSize
+            exit 1
+          }
+          Write-Host "PSScriptAnalyzer: no issues found." -ForegroundColor Green
+
+  validate-manifest:
+    name: Manifest Integrity
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate tools.json
+        run: |
+          pip install jsonschema --quiet
+          python - <<'PYEOF'
+          import json, jsonschema, sys
+
+          with open('tools.json') as f:
+              manifest = json.load(f)
+          with open('schemas/tools.schema.json') as f:
+              schema = json.load(f)
+
+          # Remove $schema so jsonschema doesn't try to fetch it as a URI
+          schema.pop('$schema', None)
+
+          # 1. Schema validation
+          try:
+              jsonschema.validate(instance=manifest, schema=schema)
+              print("Schema validation passed.")
+          except jsonschema.ValidationError as e:
+              print(f"Schema validation error: {e.message}", file=sys.stderr)
+              sys.exit(1)
+
+          # 2. Duplicate IDs
+          ids = [t['id'] for t in manifest['tools']]
+          dupes = {i for i in ids if ids.count(i) > 1}
+          if dupes:
+              print(f"Duplicate tool IDs: {dupes}", file=sys.stderr)
+              sys.exit(1)
+          print(f"All {len(ids)} tool IDs are unique.")
+
+          # 3. Source field completeness
+          errors = []
+          for tool in manifest['tools']:
+              if tool.get('source_type') == 'github_release':
+                  for field in ('github_repo', 'asset_pattern'):
+                      if not tool.get(field):
+                          errors.append(f"{tool['id']}: missing '{field}'")
+              elif tool.get('source_type') != 'manual' and not tool.get('source_url'):
+                  errors.append(f"{tool['id']}: missing 'source_url' for source_type={tool['source_type']}")
+          if errors:
+              print('\n'.join(errors), file=sys.stderr)
+              sys.exit(1)
+          print("All source fields validated.")
+          PYEOF

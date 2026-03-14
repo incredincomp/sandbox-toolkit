@@ -1,0 +1,17 @@
+# Downloaded installers — populated by Start-Sandbox.ps1
+scripts/setups/*
+!scripts/setups/.gitkeep
+
+# Generated session files — created at runtime
+scripts/install-manifest.json
+sandbox.wsb
+
+# Installer file types (belt-and-suspenders in case setups/ is not enough)
+*.exe
+*.msi
+*.zip
+
+# Editor artifacts
+.vscode/
+*.suo
+*.user

@@ -1,0 +1,64 @@
+# Changelog
+
+All notable changes to this project will be documented here.
+
+---
+
+## [2.0.0] — 2026-03-14
+
+### Architecture
+
+- **Complete rewrite** from manual scripts to a manifest-driven, profile-aware toolkit.
+- Introduced `tools.json` as the single source of truth for all tool metadata: versions,
+  download URLs, install arguments, and profile membership.
+- Added `schemas/tools.schema.json` for manifest validation.
+- Replaced `downloadFiles.ps1` and `createSandboxConfig.ps1` with `Start-Sandbox.ps1`,
+  a single entry point that handles prerequisites, downloads, config generation, and launch.
+- Replaced the monolithic `scripts/autostart.cmd` install chain with a PowerShell-based
+  `scripts/Install-Tools.ps1` that reads the session manifest and installs tools in order.
+- Added `src/Manifest.ps1`, `src/Download.ps1`, `src/SandboxConfig.ps1` as reusable modules.
+
+### Tools
+
+- **Added FLARE FLOSS** — MANDIANT obfuscated string extraction tool.
+- **Replaced dnSpy** with **dnSpyEx** — the actively maintained fork (dnSpy archived 2022).
+- **Updated 7-Zip** 19.0 → 24.09.
+- **Updated Notepad++** 8.1.1 → latest (GitHub release resolution).
+- **Updated Ghidra** 9.2 → latest (GitHub release resolution). Now requires JDK 21.
+- **Updated Corretto JDK** 11 → 21 (required for Ghidra 11.x).
+- **Updated Python 3** 3.9.1 → 3.13.2.
+- **Updated UPX** 3.96 → latest (GitHub release resolution).
+- **Updated Detect-It-Easy** 3.02 → latest (GitHub release resolution).
+- **Updated PE-bear** 0.5.4 → latest (GitHub release resolution).
+- **Updated Wireshark** 3.4.6 → 4.4.6.
+- **Updated npcap** 1.10 → 1.82.
+- **Updated vcredist** VS2019 → VS2022 URL.
+- **Removed Python 2** — EOL January 2020.
+- **Removed DosBox** — not relevant to malware analysis workflows.
+- **Removed Sublime Text** — redundant with VSCode and Notepad++.
+- **Removed AutoIT Extractor** — sourced from unverified GitLab CI artifact, no stable release.
+
+### Profiles
+
+- Added install profiles: `minimal`, `reverse-engineering` (default), `network-analysis`, `full`.
+
+### Safety
+
+- **Networking disabled by default** (was enabled). Only `network-analysis` and `full` enable it.
+- Host folder mapped read-only (was already the case; now enforced in generated .wsb).
+- `.wsb` is now generated programmatically, not by brittle string replacement.
+
+### Developer experience
+
+- Added GitHub Actions CI: PSScriptAnalyzer linting + manifest schema validation.
+- Added `.editorconfig`.
+- Added `scripts/setups/` to `.gitignore` (populated at runtime, not committed).
+- Added `README.md`, `QUICKSTART.md`, `PROFILES.md`, `TROUBLESHOOTING.md`, `SAFETY.md`.
+- Install log written to `%USERPROFILE%\Desktop\install-log.txt` inside sandbox.
+- Downloads use retry logic (3 attempts) and skip already-cached files.
+
+---
+
+## [1.x] — Prior to 2026-03-14
+
+Legacy single-script approach. See git history for details.

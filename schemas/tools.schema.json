@@ -1,0 +1,129 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/incredincomp/sandbox-toolkit/schemas/tools.schema.json",
+  "title": "Sandbox Toolkit Tools Manifest",
+  "description": "Schema for tools.json — the manifest driving tool downloads and sandbox installation.",
+  "type": "object",
+  "required": ["schema_version", "tools"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "schema_version": {
+      "type": "string",
+      "description": "Manifest format version.",
+      "pattern": "^\\d+\\.\\d+$"
+    },
+    "tools": {
+      "type": "array",
+      "description": "List of tools to download and install.",
+      "items": { "$ref": "#/definitions/Tool" }
+    },
+    "removed_tools": {
+      "type": "array",
+      "description": "Documentation of tools that were intentionally removed.",
+      "items": { "$ref": "#/definitions/RemovedTool" }
+    }
+  },
+  "definitions": {
+    "Tool": {
+      "type": "object",
+      "required": ["id", "display_name", "category", "profiles", "source_type", "version", "filename", "installer_type", "install_order"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Machine-readable unique identifier.",
+          "pattern": "^[a-z0-9_-]+$"
+        },
+        "display_name": { "type": "string" },
+        "category": {
+          "type": "string",
+          "enum": ["utility", "editor", "runtime", "reversing", "sysanalysis", "network"]
+        },
+        "profiles": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["minimal", "reverse-engineering", "network-analysis", "full"]
+          },
+          "minItems": 1
+        },
+        "source_type": {
+          "type": "string",
+          "enum": ["vendor", "github_release", "sourceforge", "manual"]
+        },
+        "source_url": {
+          "type": "string",
+          "description": "Direct download URL (required for vendor/sourceforge source types)."
+        },
+        "github_repo": {
+          "type": "string",
+          "description": "GitHub owner/repo (required for github_release source type).",
+          "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"
+        },
+        "asset_pattern": {
+          "type": "string",
+          "description": "Glob pattern to match the desired release asset (for github_release)."
+        },
+        "version": {
+          "type": "string",
+          "description": "Pinned version string or 'latest'."
+        },
+        "filename": {
+          "type": "string",
+          "description": "Local filename saved to scripts/setups/."
+        },
+        "installer_type": {
+          "type": "string",
+          "enum": ["exe", "msi", "zip", "zip_then_exe", "manual"]
+        },
+        "install_args": {
+          "type": "string",
+          "description": "Silent install arguments for exe/msi installers."
+        },
+        "inner_exe": {
+          "type": "string",
+          "description": "Executable inside zip to run (for zip_then_exe)."
+        },
+        "inner_args": {
+          "type": "string",
+          "description": "Arguments for inner_exe (for zip_then_exe)."
+        },
+        "extract_dest": {
+          "type": "string",
+          "description": "Extraction destination for zip installers. Supports %USERPROFILE% etc."
+        },
+        "install_order": {
+          "type": "integer",
+          "description": "Execution order inside the sandbox (lower runs first).",
+          "minimum": 1
+        },
+        "dependencies": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "IDs of tools that must be installed before this one. Informational only — enforced implicitly via install_order values."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Human-readable notes about version pinning, caveats, or manual steps."
+        }
+      },
+      "if": { "properties": { "source_type": { "const": "github_release" } } },
+      "then": { "required": ["github_repo", "asset_pattern"] },
+      "else": {
+        "if": { "properties": { "source_type": { "const": "manual" } } },
+        "then": {},
+        "else": { "required": ["source_url"] }
+      }
+    },
+    "RemovedTool": {
+      "type": "object",
+      "required": ["id", "reason"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "reason": { "type": "string" }
+      }
+    }
+  }
+}
