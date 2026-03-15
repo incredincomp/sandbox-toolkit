@@ -4,6 +4,30 @@ All notable changes to this project will be documented here.
 
 ---
 
+## [2.0.3] — 2026-03-14
+
+### Features
+
+- Added sandbox lifecycle selection with `-SessionMode Fresh|Warm`:
+  - `Fresh` remains default and disposable.
+  - `Warm` uses Windows Sandbox CLI surfaces (`wsb`) to reuse running sessions when available, otherwise creates CLI-managed sessions on supported hosts.
+- Added optional bounded WSL helper sidecar workflow:
+  - `-UseWslHelper`
+  - `-WslDistro`
+  - `-WslHelperStagePath`
+  - helper-side staging + metadata artifacts only (no trust-boundary escalation claims).
+- Extended `-Validate`, `-DryRun`, and `-Audit` (including JSON output) with additive lifecycle/helper context:
+  - session mode request/effective state and warm-support visibility.
+  - WSL helper request/effective state and helper hardening guidance checks.
+
+### Documentation
+
+- Documented fresh vs warm lifecycle tradeoffs and host support boundaries.
+- Documented WSL helper scope and explicit trust-boundary wording (helper layer vs sandbox execution boundary).
+- Added WSL helper hardening recommendations for `/etc/wsl.conf` (`automount`, `interop`, `appendWindowsPath`).
+
+---
+
 ## [2.0.2] — 2026-03-14
 
 ### Features

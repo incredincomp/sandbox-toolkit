@@ -633,3 +633,50 @@ Estimated size: Small (1–2 files)
 |-------|--------|--------|------|
 | Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
 | PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-14 |
+
+### Scope (fresh/warm lifecycle + WSL helper sidecar pass)
+- Add bounded session lifecycle selection (`Fresh` default, opt-in `Warm`) with deterministic support handling.
+- Add bounded optional WSL helper sidecar (`-UseWslHelper`, distro/stage-path options) for helper staging/metadata only.
+- Extend validate/dry-run/audit and JSON surfaces additively with lifecycle/helper state.
+- Preserve explicit trust boundaries: WSL helper convenience layer vs Windows Sandbox execution boundary.
+
+### Decisions made (fresh/warm + WSL helper pass)
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Add `src/Workflow.ps1` as centralized lifecycle/helper state and execution seam | Keep launch backend, helper state, and command execution wrappers testable and non-duplicated | Scatter warm/helper booleans and shell invocations across `Start-Sandbox.ps1` |
+| Keep `Fresh` as default and require explicit opt-in for `Warm` (`-SessionMode Warm`) | Preserve cleanliness-first default posture | Auto-select warm behavior |
+| Gate warm mode on detected Windows Sandbox CLI (`wsb`) support and fail deterministically when unsupported | Avoid pretending warm reuse exists on unsupported hosts | Silent fallback to fresh when warm is explicitly requested |
+| Keep WSL helper bounded to optional staging/metadata tasks (no direct distro mutation) | Maintain scope discipline and avoid invasive host-side changes | Automatic in-place edits to live `/etc/wsl.conf` |
+| Validate/audit helper hardening as configured/requested evidence only | Prevent overclaiming runtime enforcement | Treat helper config checks as runtime proof |
+
+### External references consulted
+- Microsoft Learn: Windows Sandbox CLI (`windows-sandbox-cli`) — command surface and Windows 11 24H2 availability note.
+- Microsoft Learn: Windows Sandbox `.wsb` configuration (`windows-sandbox-configure-using-wsb-file`) — supported config schema.
+- Microsoft Learn: WSL advanced settings (`wsl-config`) — supported `wsl.conf` sections/keys (`automount`, `interop`, `appendWindowsPath`).
+
+### Files modified (fresh/warm + WSL helper pass)
+- `Start-Sandbox.ps1`
+- `src/Cli.ps1`
+- `src/Validation.ps1`
+- `src/Audit.ps1`
+- `src/Output.ps1`
+- `src/Workflow.ps1` (new)
+- `tests/Cli.Tests.ps1`
+- `tests/Validation.Tests.ps1`
+- `tests/Output.Tests.ps1`
+- `tests/Audit.Tests.ps1`
+- `tests/Workflow.Tests.ps1` (new)
+- `README.md`
+- `docs/QUICKSTART.md`
+- `CHANGELOG.md`
+- `IMPLEMENTATION_TRACKER.md`
+
+### Deferred items
+- Direct mutation of existing WSL distro `/etc/wsl.conf` was deferred to avoid surprising/invasive host changes in this pass.
+- Warm-mode compatibility checks are intentionally bounded to host CLI support + running-session discoverability; deep runtime compatibility probing is deferred.
+
+### Validation (fresh/warm + WSL helper pass)
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
+| PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-14 |

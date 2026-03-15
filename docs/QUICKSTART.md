@@ -85,6 +85,16 @@ See [PROFILES.md](PROFILES.md) for what each profile includes.
 .\Start-Sandbox.ps1 -DryRun -Profile reverse-engineering -SkipPrereqCheck
 .\Start-Sandbox.ps1 -DryRun -Profile net-re-lite -AddTools floss -OutputJson
 
+# Session lifecycle modes
+.\Start-Sandbox.ps1 -Profile minimal -SessionMode Fresh
+.\Start-Sandbox.ps1 -Profile minimal -SessionMode Warm
+.\Start-Sandbox.ps1 -Validate -SessionMode Warm
+
+# Optional WSL helper sidecar
+.\Start-Sandbox.ps1 -Validate -UseWslHelper
+.\Start-Sandbox.ps1 -Validate -UseWslHelper -WslDistro Ubuntu
+.\Start-Sandbox.ps1 -DryRun -UseWslHelper -WslDistro Ubuntu -WslHelperStagePath ~/.sandbox-toolkit-helper
+
 # Audit generated artifacts/configured request without downloading or launching
 .\Start-Sandbox.ps1 -Audit -Profile minimal
 .\Start-Sandbox.ps1 -Audit -Profile minimal -SharedFolder "C:\Lab\Ingress"
@@ -124,7 +134,7 @@ Follow this compact sequence:
 4. Run `.\Start-Sandbox.ps1 -Validate -Profile <name>` (`-Validate` checks preflight readiness only).
 5. Run `.\Start-Sandbox.ps1 -DryRun -Profile <name>` (`-DryRun` shows effective selection/artifact generation only).
 6. Run `.\Start-Sandbox.ps1 -Audit -Profile <name>` (`-Audit` checks host-side/config-side evidence, not runtime enforcement).
-7. Run actual execution with `.\Start-Sandbox.ps1 -Profile <name>`.
+7. Run actual execution with `.\Start-Sandbox.ps1 -Profile <name>` (default fresh lifecycle).
 
 For automation, add `-OutputJson` to `-Validate`, `-DryRun`, or `-Audit`.
 
@@ -138,6 +148,21 @@ Audit trust boundary:
 - Audit findings are based on configured/requested settings and generated artifact contents.
 - Audit does not prove runtime behavior inside Windows Sandbox unless explicitly stated.
 - For automation-facing `-Audit -OutputJson` field guarantees, see the "Audit JSON contract" section in [README.md](../README.md).
+
+Fresh vs warm session mode:
+- `Fresh` is the default and provides cleaner start hygiene.
+- `Warm` is opt-in and reuses an existing session when discoverable via Windows Sandbox CLI support, otherwise creates a CLI-managed session.
+- Warm mode is a convenience tradeoff, not a stronger security guarantee.
+- Windows Sandbox CLI warm control surfaces are documented by Microsoft starting with Windows 11 24H2.
+
+WSL helper boundary:
+- `-UseWslHelper` enables optional helper staging/metadata tasks only.
+- WSL is not the primary malware isolation boundary in this workflow.
+- Windows Sandbox remains the execution/isolation boundary for untrusted Windows samples.
+- Recommended helper distro `/etc/wsl.conf` hardening:
+  - `[automount] enabled=false`
+  - `[interop] enabled=false`
+  - `[interop] appendWindowsPath=false`
 
 Host-interaction policy controls:
 - `-DisableClipboard` requests disabled clipboard redirection in generated `sandbox.wsb`.

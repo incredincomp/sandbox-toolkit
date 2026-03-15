@@ -11,7 +11,7 @@ A manifest-driven, profile-aware Windows Sandbox environment for **defensive mal
 
 This repository is maintained as a standalone project under `incredincomp/sandbox-toolkit`.
 It is manifest-driven (`tools.json`), profile-aware (`minimal`, `reverse-engineering`, `network-analysis`, `full`), and built for defensive malware analysis, reverse engineering, and sample triage.
-The default posture is safer-by-default: disposable sandbox sessions, read-only mapped scripts, and networking disabled unless a networked profile is explicitly selected.
+The default posture is safer-by-default: disposable fresh sandbox sessions, read-only mapped scripts, and networking disabled unless a networked profile is explicitly selected.
 
 ---
 
@@ -64,6 +64,52 @@ Quick safety verification workflow:
 Trust boundary reminder:
 - `-DryRun` and `-Audit` confirm configured/requested policy state in generated artifacts.
 - This does not prove runtime enforcement inside Windows Sandbox unless explicitly stated.
+
+---
+
+## Session lifecycle modes (fresh vs warm)
+
+- `-SessionMode Fresh` (default): launches a clean disposable sandbox session via generated `.wsb`.
+- `-SessionMode Warm`: uses Windows Sandbox CLI (`wsb`) to reuse a running session when discoverable, otherwise creates a new CLI-managed session.
+
+Important boundaries:
+- Warm mode is an operational speed/convenience tradeoff, not a stronger security mode.
+- Fresh mode is the cleaner default for isolation hygiene.
+- Warm mode support depends on Windows Sandbox CLI availability (documented by Microsoft for Windows 11 24H2+).
+
+Examples:
+
+```powershell
+.\Start-Sandbox.ps1 -SessionMode Fresh -Profile minimal
+.\Start-Sandbox.ps1 -SessionMode Warm -Profile minimal
+.\Start-Sandbox.ps1 -Validate -SessionMode Warm
+.\Start-Sandbox.ps1 -DryRun -SessionMode Warm -OutputJson
+```
+
+---
+
+## Optional WSL helper sidecar
+
+`-UseWslHelper` enables bounded helper-side tasks (staging + metadata artifacts) in a WSL distro. This is optional and does not replace Windows Sandbox as the execution boundary.
+
+- Helper layer: speed/convenience for prep/orchestration tasks.
+- Execution/isolation boundary: Windows Sandbox.
+- No claim that WSL preprocessing makes unknown samples safe.
+
+Recommended hardening targets for a dedicated helper distro (`/etc/wsl.conf`):
+- `[automount] enabled=false`
+- `[interop] enabled=false`
+- `[interop] appendWindowsPath=false`
+
+Use a dedicated helper distro/profile and narrow staging paths.
+
+Examples:
+
+```powershell
+.\Start-Sandbox.ps1 -DryRun -UseWslHelper
+.\Start-Sandbox.ps1 -Validate -UseWslHelper -WslDistro Ubuntu
+.\Start-Sandbox.ps1 -Profile minimal -UseWslHelper -WslDistro Ubuntu -WslHelperStagePath ~/.sandbox-toolkit-helper
+```
 
 ---
 
@@ -128,6 +174,12 @@ Automation note: use `-OutputJson` with `-Validate`, `-DryRun`, or `-Audit` in C
 # Simulate profile selection + config generation without downloading or launching
 .\Start-Sandbox.ps1 -DryRun -Profile network-analysis -SkipPrereqCheck
 
+# Warm session flow (requires Windows Sandbox CLI support on host)
+.\Start-Sandbox.ps1 -DryRun -Profile minimal -SessionMode Warm
+
+# Optional WSL helper sidecar
+.\Start-Sandbox.ps1 -Validate -UseWslHelper -WslDistro Ubuntu
+
 # Audit generated artifacts and configured/requested settings without launching
 .\Start-Sandbox.ps1 -Audit -Profile minimal -SharedFolder "C:\Lab\Ingress"
 
@@ -163,6 +215,8 @@ If nothing exists yet, cleanup succeeds and reports "Nothing to clean."
 - Shared-folder safety using the same hardened path rules.
 - Host prerequisite checks (PowerShell version, Windows Sandbox feature state when detectable).
 - Host-interaction policy readiness (including explicit warning when startup command automation is disabled).
+- Session lifecycle mode readiness (`Fresh`/`Warm`, warm-support detection and reuse visibility).
+- Optional WSL helper readiness and helper-distro hardening guidance checks.
 
 `-Validate` does not check:
 - In-sandbox runtime behavior (installer success, clipboard/audio policy behavior, sample behavior).
@@ -188,6 +242,8 @@ Exit behavior:
 - Generated artifact presence and parseability (`scripts/install-manifest.json`, `sandbox.wsb`).
 - Requested vs generated `sandbox.wsb` settings (networking, clipboard redirection, audio input, logon command, mapped folder/read-only state).
 - Shared-folder mapping intent versus generated mapping.
+- Session lifecycle request evidence (`Fresh`/`Warm`) and warm-support visibility.
+- Optional WSL helper request/config evidence, including helper hardening status when detectable.
 
 `-Audit` does not prove runtime enforcement:
 - Checks are host-side/config-side evidence only.
@@ -222,6 +278,7 @@ JSON stability notes:
 - Validate JSON includes stable `checks[]` records (`id`, `status`, `summary`, `remediation`) plus overall status and `exit_code`.
 - Audit JSON includes effective request context, generated artifact paths, and audit checks over configured/requested artifact evidence.
 - Dry-run JSON includes profile resolution, runtime overrides, final effective tool list, effective networking, stage skip details, and generated artifact paths.
+- Validate/DryRun/Audit JSON includes additive `session` and `wsl_helper` context/effective state fields.
 - List-tools JSON includes `command.mode` and `tools[]` with stable catalog fields (`id`, `display_name`, `installer_type`, `install_order`, `category`, `profiles`).
 - List-profiles JSON includes `command.mode` and `profiles[]` with explicit `type` (`built-in` or `custom`) and `base_profile`.
 
@@ -468,7 +525,8 @@ sandbox-toolkit/
 ├── src/
 │   ├── Manifest.ps1           # Manifest loading and profile filtering
 │   ├── Download.ps1           # Download with retry and GitHub release resolution
-│   └── SandboxConfig.ps1      # .wsb generation
+│   ├── SandboxConfig.ps1      # .wsb generation
+│   └── Workflow.ps1           # Session lifecycle + optional WSL helper sidecar
 ├── scripts/
 │   ├── autostart.cmd          # Thin launcher (runs on sandbox startup)
 │   ├── Install-Tools.ps1      # In-sandbox install orchestrator
@@ -498,7 +556,8 @@ sandbox-toolkit/
    - Downloads missing tool installers to `scripts/setups/` (with retry).
    - Writes `scripts/install-manifest.json` (ephemeral session file).
    - Generates `sandbox.wsb` with profile-appropriate settings (networking, etc.).
-   - Launches Windows Sandbox.
+   - Launches Windows Sandbox using selected lifecycle mode (`Fresh` default, optional `Warm` via CLI when supported).
+   - Optionally runs bounded WSL helper staging/metadata tasks when `-UseWslHelper` is requested.
 
 2. **`scripts/autostart.cmd`** runs automatically on sandbox startup, invoking
    **`scripts/Install-Tools.ps1`** (in-sandbox):
