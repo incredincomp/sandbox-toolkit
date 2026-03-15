@@ -1250,3 +1250,28 @@ Estimated size: Small (1–2 files)
 | Manifest integrity | ✅ | local replay of `validate-manifest` Python/jsonschema checks from `.github/workflows/validate.yml` | 2026-03-15 |
 | CLI smoke matrix | ✅ | local replay of all `cli-smoke` matrix cases from `.github/workflows/validate.yml` | 2026-03-15 |
 | Exit-code contract | ✅ | local replay of all `exit-code-contract` cases from `.github/workflows/validate.yml` | 2026-03-15 |
+
+---
+
+## 2026-03-15 Session log (release workflow stabilization pass)
+
+### Scope
+- Intentionally simplify and stabilize `.github/workflows/release.yml` so GitHub Actions accepts and executes release runs consistently.
+- Keep release publishing behavior bounded to tag pushes (`v*`) with deterministic release-note fallback handling.
+
+### Decisions made
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Replace PowerShell-heavy release workflow with a smaller Bash implementation | Reduce parser/runtime ambiguity and keep release logic auditable and minimal in CI | Continue iterating on mixed `workflow_dispatch` + PowerShell workflow shape |
+| Remove `workflow_dispatch` from release workflow | GitHub API/runner behavior was inconsistent (`workflow_dispatch` appeared in YAML but dispatch endpoint rejected it), while immediate need is reliable tag-based releases | Keep manual dispatch path while release parser behavior remained unstable |
+| Keep idempotent release behavior (`gh release edit` if exists, otherwise `gh release create`) | Preserves rerun safety for existing tags while retaining normal new-tag release creation | Fail reruns when a release already exists |
+
+### Files modified
+- `.github/workflows/release.yml`
+- `IMPLEMENTATION_TRACKER.md`
+
+### Validation
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Pester tests (full suite) | ✅ | `Import-Module Pester -RequiredVersion 4.10.1 -Force; Invoke-Pester -Path tests -EnableExit` | 2026-03-15 |
+| PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' \| ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-15 |

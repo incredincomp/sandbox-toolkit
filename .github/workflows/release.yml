@@ -4,18 +4,9 @@ on:
   push:
     tags:
       - "v*"
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: "Tag to publish (for manual reruns, e.g. v2.1.1)"
-        required: false
 
 permissions:
   contents: write
-
-concurrency:
-  group: release-${{ github.ref }}
-  cancel-in-progress: false
 
 jobs:
   publish-release:
@@ -28,71 +19,54 @@ jobs:
 
       - name: Resolve release metadata
         id: meta
-        shell: pwsh
+        shell: bash
         run: |
-          $tag = $env:GITHUB_REF_NAME
-          if ($env:GITHUB_EVENT_NAME -eq 'workflow_dispatch' -and -not [string]::IsNullOrWhiteSpace('${{ github.event.inputs.tag }}')) {
-            $tag = '${{ github.event.inputs.tag }}'
-          }
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME}"
+          if [[ ! "$tag" =~ ^v ]]; then
+            echo "Expected a version tag ref (v*). Found: '$tag'" >&2
+            exit 1
+          fi
 
-          if (-not $tag -or -not $tag.StartsWith('v')) {
-            throw "Expected a version tag ref (v*). Found: '$tag'"
-          }
+          version="${tag#v}"
+          preferred_notes_path="artifacts/releases/${version}.md"
+          notes_path="$preferred_notes_path"
 
-          $version = $tag.Substring(1)
-          $preferredNotesPath = Join-Path 'artifacts/releases' "$version.md"
-          $notesPath = $preferredNotesPath
+          if [[ ! -f "$preferred_notes_path" ]]; then
+            mkdir -p artifacts/releases
+            notes_path="artifacts/releases/${version}.generated.md"
+            {
+              printf '# sandbox-toolkit %s\n\n' "$tag"
+              printf "Automated release generated from tag '%s'.\n\n" "$tag"
+              printf "Prepared release notes file '%s' was not found.\n" "$preferred_notes_path"
+              printf 'See CHANGELOG.md for detailed release notes.\n'
+            } > "$notes_path"
+          fi
 
-          if (-not (Test-Path -LiteralPath $preferredNotesPath -PathType Leaf)) {
-            New-Item -ItemType Directory -Path 'artifacts/releases' -Force | Out-Null
-            $notesPath = Join-Path 'artifacts/releases' "$version.generated.md"
-            $releaseNotes = @"
-# sandbox-toolkit $tag
-
-Automated release generated from tag '$tag'.
-
-Prepared release notes file '$preferredNotesPath' was not found.
-See CHANGELOG.md for detailed release notes.
-"@
-
-            $releaseNotes | Set-Content -Path $notesPath -Encoding UTF8
-          }
-
-          "tag=$tag" >> $env:GITHUB_OUTPUT
-          "title=$tag" >> $env:GITHUB_OUTPUT
-          "notes_path=$notesPath" >> $env:GITHUB_OUTPUT
-          "is_prerelease=$([bool]($tag -match '-'))" >> $env:GITHUB_OUTPUT
+          {
+            echo "tag=$tag"
+            echo "title=$tag"
+            echo "notes_path=$notes_path"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Create or update GitHub release
-        shell: pwsh
+        shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.meta.outputs.tag }}
           TITLE: ${{ steps.meta.outputs.title }}
           NOTES_PATH: ${{ steps.meta.outputs.notes_path }}
-          IS_PRERELEASE: ${{ steps.meta.outputs.is_prerelease }}
         run: |
-          $tag = $env:TAG
-          $title = $env:TITLE
-          $notesPath = $env:NOTES_PATH
-          $isPrerelease = $env:IS_PRERELEASE -eq 'True'
+          set -euo pipefail
 
-          gh release view $tag --json tagName *> $null
-          $exists = $LASTEXITCODE -eq 0
+          prerelease_args=()
+          if [[ "$TAG" == *-* ]]; then
+            prerelease_args+=(--prerelease)
+          fi
 
-          if ($exists) {
-            $args = @('release', 'edit', $tag, '--title', $title, '--notes-file', $notesPath)
-            if ($isPrerelease) { $args += '--prerelease' }
-            & gh @args
-            if ($LASTEXITCODE -ne 0) {
-              throw "Failed to edit release for tag '$tag'."
-            }
+          if gh release view "$TAG" --json tagName >/dev/null 2>&1; then
+            gh release edit "$TAG" --title "$TITLE" --notes-file "$NOTES_PATH" "${prerelease_args[@]}"
             exit 0
-          }
+          fi
 
-          $createArgs = @('release', 'create', $tag, '--title', $title, '--notes-file', $notesPath, '--verify-tag')
-          if ($isPrerelease) { $createArgs += '--prerelease' }
-          & gh @createArgs
-          if ($LASTEXITCODE -ne 0) {
-            throw "Failed to create release for tag '$tag'."
-          }
+          gh release create "$TAG" --title "$TITLE" --notes-file "$NOTES_PATH" --verify-tag "${prerelease_args[@]}"
