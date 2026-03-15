@@ -139,3 +139,16 @@ Estimated size: Small (1–2 files)
 |-------|--------|--------|------|
 | Pester tests | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
 | PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer ... }` | 2026-03-14 |
+
+### Scope (docs pass)
+- Document `-ListTools`, `-ListProfiles`, and `-DryRun` in user-facing quick workflows.
+
+### Files modified (docs pass)
+- `README.md`
+- `docs/QUICKSTART.md`
+
+### Validation (docs pass)
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Pester tests | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
+| PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer ... }` | 2026-03-14 |

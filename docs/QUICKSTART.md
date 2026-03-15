@@ -70,6 +70,13 @@ See [PROFILES.md](PROFILES.md) for what each profile includes.
 ## Common options
 
 ```powershell
+# Print discoverability lists from current manifest
+.\Start-Sandbox.ps1 -ListProfiles
+.\Start-Sandbox.ps1 -ListTools
+
+# Simulate selection/config generation without downloading or launching
+.\Start-Sandbox.ps1 -DryRun -Profile reverse-engineering -SkipPrereqCheck
+
 # Download tools without launching (prepare cache for offline use)
 .\Start-Sandbox.ps1 -NoLaunch
 

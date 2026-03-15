@@ -55,6 +55,17 @@ cd sandbox-toolkit
 
 See [QUICKSTART.md](docs/QUICKSTART.md) for a step-by-step guide including prerequisites.
 
+### Discoverability and dry-run
+
+```powershell
+# Show built-in profiles/tools from current tools.json
+.\Start-Sandbox.ps1 -ListProfiles
+.\Start-Sandbox.ps1 -ListTools
+
+# Simulate profile selection + config generation without downloading or launching
+.\Start-Sandbox.ps1 -DryRun -Profile network-analysis -SkipPrereqCheck
+```
+
 ---
 
 ## Profiles
