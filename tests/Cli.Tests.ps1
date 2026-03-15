@@ -70,6 +70,18 @@ Describe 'Resolve-StartSandboxCommandMode' {
         $message | Should Match 'Host-interaction policy options cannot be combined'
     }
 
+    It 'rejects -NoLaunch with list mode' {
+        $message = Get-ErrorMessage { Resolve-StartSandboxCommandMode -ListProfiles:$true -NoLaunch:$true }
+        $message | Should Not BeNullOrEmpty
+        $message | Should Match '-NoLaunch cannot be combined with -ListTools or -ListProfiles'
+    }
+
+    It 'rejects -SkipPrereqCheck with list mode' {
+        $message = Get-ErrorMessage { Resolve-StartSandboxCommandMode -ListTools:$true -SkipPrereqCheck:$true }
+        $message | Should Not BeNullOrEmpty
+        $message | Should Match '-SkipPrereqCheck cannot be combined with -ListTools or -ListProfiles'
+    }
+
     It 'rejects -Force with -DryRun' {
         $message = Get-ErrorMessage { Resolve-StartSandboxCommandMode -DryRun:$true -Force:$true }
         $message | Should Not BeNullOrEmpty

@@ -149,6 +149,12 @@ function Resolve-StartSandboxCommandMode {
         if ($Force) {
             throw (Get-StartSandboxParameterCombinationError -Message '-Force cannot be combined with -ListTools or -ListProfiles.')
         }
+        if ($NoLaunch) {
+            throw (Get-StartSandboxParameterCombinationError -Message '-NoLaunch cannot be combined with -ListTools or -ListProfiles.')
+        }
+        if ($SkipPrereqCheck) {
+            throw (Get-StartSandboxParameterCombinationError -Message '-SkipPrereqCheck cannot be combined with -ListTools or -ListProfiles.')
+        }
         if ($SharedFolder -or $UseDefaultSharedFolder -or $SharedFolderWritable -or $SharedFolderValidationDiagnostics) {
             throw (Get-StartSandboxParameterCombinationError -Message 'Shared-folder options cannot be combined with -ListTools or -ListProfiles.')
         }
