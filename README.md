@@ -78,6 +78,36 @@ Important boundaries:
 - Warm mode support depends on Windows Sandbox CLI availability (documented by Microsoft for Windows 11 24H2+).
 - Warm mode discovery also depends on parsable `wsb list --raw` output; unsupported/malformed raw output is surfaced deterministically (validation warns, warm launch fails).
 
+### Warm raw parser contract
+
+Current supported `wsb list --raw` envelope shapes:
+
+| Shape | Expected location of records |
+|---|---|
+| top-level array | root array elements |
+| object with `sessions` | `sessions[]` |
+| object with `items` | `items[]` |
+| single session object | root object |
+
+Required source fields per record:
+- `id` or `ID`
+- `status` or `State`
+
+Normalized internal fields currently used by warm discovery:
+- `Id`
+- `Status`
+- `Uptime`
+
+Deterministic failure categories:
+- blank raw output: returns empty warm-session inventory.
+- malformed JSON: parse error.
+- unsupported envelope shape: unsupported-shape error.
+- recognized record missing required fields: missing-field error.
+
+Contract note:
+- This is the current supported parser contract only.
+- New upstream `wsb` raw JSON shapes are not implicitly accepted until explicitly implemented and tested.
+
 Examples:
 
 ```powershell

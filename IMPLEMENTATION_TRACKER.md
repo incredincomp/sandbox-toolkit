@@ -710,3 +710,24 @@ Estimated size: Small (1–2 files)
 |-------|--------|--------|------|
 | Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
 | PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-14 |
+
+### Scope (warm-session parser contract docs pass)
+- Add a compact maintainer-facing parser contract note for accepted `wsb list --raw` shapes and normalization mapping.
+- Keep this pass documentation-only with no runtime/parser behavior changes.
+
+### Decisions made (warm-session parser contract docs pass)
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Make README the authoritative home for raw-shape parser contract details | README already hosts warm-mode lifecycle behavior and trust-boundary statements | Duplicate full parser contract details in QUICKSTART |
+| Add only a short QUICKSTART cross-reference to README section | Preserve discoverability without doc duplication drift | Repeat full shape/field table in QUICKSTART |
+
+### Files modified (warm-session parser contract docs pass)
+- `README.md`
+- `docs/QUICKSTART.md`
+- `IMPLEMENTATION_TRACKER.md`
+
+### Validation (warm-session parser contract docs pass)
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
+| PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-14 |
