@@ -105,9 +105,58 @@ Describe 'Get-SandboxAuditJsonResult' {
 
         $result.command.mode | Should Be 'audit'
         $result.overall_status | Should Be 'WARN'
+        $result.exit_code | Should Be 0
         $result.profile.selected | Should Be 'minimal'
+        $normalized = ($result | ConvertTo-Json -Depth 20 | ConvertFrom-Json)
+        $topLevel = @($normalized.psobject.Properties.Name)
+        (($topLevel -contains 'command')) | Should Be $true
+        (($topLevel -contains 'overall_status')) | Should Be $true
+        (($topLevel -contains 'exit_code')) | Should Be $true
+        (($topLevel -contains 'profile')) | Should Be $true
+        (($topLevel -contains 'overrides')) | Should Be $true
+        (($topLevel -contains 'effective')) | Should Be $true
+        (($topLevel -contains 'artifacts')) | Should Be $true
+        (($topLevel -contains 'checks')) | Should Be $true
+        (($topLevel -contains 'context')) | Should Be $true
+        $result.effective.networking_requested | Should Be 'Disable'
+        $result.context.runtime_verification | Should Be 'not_performed'
         $result.checks.Count | Should Be 2
         @($result.checks | Where-Object { $_.id -eq 'wsb-shared-folder' -and $_.status -eq 'WARN' }).Count | Should Be 1
+        $checkFields = @($normalized.checks[0].psobject.Properties.Name)
+        (($checkFields -contains 'id')) | Should Be $true
+        (($checkFields -contains 'status')) | Should Be $true
+        (($checkFields -contains 'summary')) | Should Be $true
+        (($checkFields -contains 'remediation')) | Should Be $true
+    }
+
+    It 'keeps outcome fields deterministic for failure status' {
+        $selection = [pscustomobject]@{
+            Profile = 'minimal'
+            ProfileType = 'built-in'
+            BaseProfile = 'minimal'
+            RuntimeAddTools = @()
+            RuntimeRemoveTools = @()
+            Tools = @()
+        }
+        $auditResult = [pscustomobject]@{
+            Checks = @(
+                [pscustomobject]@{ Name = 'wsb-networking'; Status = 'FAIL'; Message = 'mismatch'; Remediation = 'regenerate' }
+            )
+        }
+        $artifacts = [pscustomobject]@{
+            InstallManifestPath = 'C:\repo\scripts\install-manifest.json'
+            WsbPath = 'C:\repo\sandbox.wsb'
+        }
+
+        $result = Get-SandboxAuditJsonResult `
+            -AuditResult $auditResult `
+            -Selection $selection `
+            -NetworkingMode 'Disable' `
+            -Artifacts $artifacts `
+            -ExitCode 1
+
+        $result.overall_status | Should Be 'FAIL'
+        $result.exit_code | Should Be 1
     }
 }
 

@@ -31,6 +31,32 @@ function Invoke-StartSandboxAuditJson {
     }
 }
 
+function Assert-AuditJsonContractShape {
+    param(
+        [Parameter(Mandatory)][object]$Json
+    )
+
+    $topLevel = @($Json.psobject.Properties.Name)
+    (($topLevel -contains 'command')) | Should Be $true
+    (($topLevel -contains 'overall_status')) | Should Be $true
+    (($topLevel -contains 'exit_code')) | Should Be $true
+    (($topLevel -contains 'profile')) | Should Be $true
+    (($topLevel -contains 'overrides')) | Should Be $true
+    (($topLevel -contains 'effective')) | Should Be $true
+    (($topLevel -contains 'artifacts')) | Should Be $true
+    (($topLevel -contains 'checks')) | Should Be $true
+    (($topLevel -contains 'context')) | Should Be $true
+
+    $Json.command.mode | Should Be 'audit'
+    $Json.context.runtime_verification | Should Be 'not_performed'
+    $Json.checks | Should Not BeNullOrEmpty
+    $checkFields = @($Json.checks[0].psobject.Properties.Name)
+    (($checkFields -contains 'id')) | Should Be $true
+    (($checkFields -contains 'status')) | Should Be $true
+    (($checkFields -contains 'summary')) | Should Be $true
+    (($checkFields -contains 'remediation')) | Should Be $true
+}
+
 Describe 'Start-Sandbox audit mode' {
     AfterEach {
         if (Test-Path -LiteralPath $manifestOut -PathType Leaf) {
@@ -69,8 +95,10 @@ Describe 'Start-Sandbox audit mode' {
             )
 
             $result.ExitCode | Should Be 0
-            $result.Json.command.mode | Should Be 'audit'
+            $result.Output.TrimStart() | Should Match '^\{'
+            Assert-AuditJsonContractShape -Json $result.Json
             $result.Json.overall_status | Should Be 'WARN'
+            $result.Json.exit_code | Should Be $result.ExitCode
             (($result.Json.checks | Where-Object { $_.id -eq 'wsb-shared-folder' -and $_.status -eq 'WARN' }).Count) | Should Be 1
             (($result.Json.checks | Where-Object { $_.id -eq 'wsb-networking' })[0].summary) | Should Match 'configured/requested'
             (($result.Json.checks | Where-Object { $_.id -eq 'wsb-networking' })[0].summary) | Should Match 'not runtime-verified'
