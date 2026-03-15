@@ -10,6 +10,12 @@
       "source_type": "vendor",
       "source_url": "https://www.7-zip.org/a/7z2409-x64.msi",
       "version": "24.09",
+      "update": {
+        "strategy": "static",
+        "static_latest_version": "24.09",
+        "source_confidence": "medium",
+        "notes": "Maintainer-updated pinned vendor version."
+      },
       "filename": "7zip.msi",
       "installer_type": "msi",
       "install_args": "/qn /norestart",
@@ -39,6 +45,10 @@
       "github_repo": "notepad-plus-plus/notepad-plus-plus",
       "asset_pattern": "npp.*.Installer.x64.exe",
       "version": "latest",
+      "update": {
+        "strategy": "github_release",
+        "source_confidence": "high"
+      },
       "filename": "notepadpp.exe",
       "installer_type": "exe",
       "install_args": "/S",
@@ -52,6 +62,12 @@
       "source_type": "vendor",
       "source_url": "https://www.python.org/ftp/python/3.13.2/python-3.13.2-amd64.exe",
       "version": "3.13.2",
+      "update": {
+        "strategy": "static",
+        "static_latest_version": "3.13.2",
+        "source_confidence": "medium",
+        "notes": "Pinned Python runtime version is maintainer-managed."
+      },
       "filename": "python3.exe",
       "installer_type": "exe",
       "install_args": "/quiet InstallAllUsers=1 PrependPath=1",
@@ -109,6 +125,10 @@
       "github_repo": "NationalSecurityAgency/ghidra",
       "asset_pattern": "ghidra_*_PUBLIC_*.zip",
       "version": "latest",
+      "update": {
+        "strategy": "github_release",
+        "source_confidence": "high"
+      },
       "filename": "ghidra.zip",
       "installer_type": "zip",
       "extract_dest": "%USERPROFILE%\\Desktop\\Ghidra",
@@ -139,6 +159,10 @@
       "github_repo": "dnSpyEx/dnSpy",
       "asset_pattern": "dnSpy-net-win64.zip",
       "version": "latest",
+      "update": {
+        "strategy": "github_release",
+        "source_confidence": "high"
+      },
       "filename": "dnspyex.zip",
       "installer_type": "zip",
       "extract_dest": "%USERPROFILE%\\Desktop\\dnSpyEx",
@@ -154,6 +178,10 @@
       "github_repo": "horsicq/DIE-engine",
       "asset_pattern": "die_win64_portable_*.zip",
       "version": "latest",
+      "update": {
+        "strategy": "github_release",
+        "source_confidence": "high"
+      },
       "filename": "detectiteasy.zip",
       "installer_type": "zip",
       "extract_dest": "%USERPROFILE%\\Desktop\\DetectItEasy",
@@ -169,6 +197,10 @@
       "github_repo": "upx/upx",
       "asset_pattern": "upx-*-win64.zip",
       "version": "latest",
+      "update": {
+        "strategy": "github_release",
+        "source_confidence": "high"
+      },
       "filename": "upx.zip",
       "installer_type": "zip",
       "extract_dest": "%USERPROFILE%\\Desktop\\upx",
@@ -184,6 +216,10 @@
       "github_repo": "hasherezade/pe-bear",
       "asset_pattern": "PE-bear_*_x64_win_*.zip",
       "version": "latest",
+      "update": {
+        "strategy": "github_release",
+        "source_confidence": "high"
+      },
       "filename": "pebear.zip",
       "installer_type": "zip",
       "extract_dest": "%USERPROFILE%\\Desktop\\PE-bear",
@@ -229,6 +265,10 @@
       "github_repo": "mandiant/flare-floss",
       "asset_pattern": "floss-v*-windows.zip",
       "version": "latest",
+      "update": {
+        "strategy": "github_release",
+        "source_confidence": "high"
+      },
       "filename": "floss.zip",
       "installer_type": "zip",
       "extract_dest": "%USERPROFILE%\\Desktop\\floss",
@@ -243,6 +283,12 @@
       "source_type": "vendor",
       "source_url": "https://2.na.dl.wireshark.org/win64/Wireshark-4.4.6-x64.exe",
       "version": "4.4.6",
+      "update": {
+        "strategy": "static",
+        "static_latest_version": "4.4.6",
+        "source_confidence": "medium",
+        "notes": "Pinned Wireshark version is maintainer-managed."
+      },
       "filename": "wireshark.exe",
       "installer_type": "exe",
       "install_args": "/S /desktopicon=yes",
@@ -257,6 +303,12 @@
       "source_type": "vendor",
       "source_url": "https://npcap.com/dist/npcap-1.82.exe",
       "version": "1.82",
+      "update": {
+        "strategy": "static",
+        "static_latest_version": "1.82",
+        "source_confidence": "medium",
+        "notes": "Pinned Npcap version is maintainer-managed."
+      },
       "filename": "npcap.exe",
       "installer_type": "manual",
       "install_order": 31,

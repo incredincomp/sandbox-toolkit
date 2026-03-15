@@ -31,6 +31,99 @@ Describe 'Test-ManifestIntegrity dependency reference checks' {
     }
 }
 
+Describe 'Test-ManifestIntegrity update metadata checks' {
+    It 'fails when github update strategy has no repository reference' {
+        $manifest = [pscustomobject]@{
+            schema_version = '1.0'
+            tools = @(
+                [pscustomobject]@{
+                    id = 'tool-github'
+                    source_type = 'vendor'
+                    source_url = 'https://example.com/tool.exe'
+                    version = '1.0.0'
+                    filename = 'tool.exe'
+                    installer_type = 'exe'
+                    install_order = 1
+                    update = [pscustomobject]@{
+                        strategy = 'github_release'
+                    }
+                }
+            )
+        }
+
+        $message = $null
+        try {
+            Test-ManifestIntegrity -Manifest $manifest
+        } catch {
+            $message = $_.Exception.Message
+        }
+
+        $message | Should Not BeNullOrEmpty
+        $message | Should Match "requires update.github_repo or tool.github_repo"
+    }
+
+    It 'fails when rss update strategy is missing required fields' {
+        $manifest = [pscustomobject]@{
+            schema_version = '1.0'
+            tools = @(
+                [pscustomobject]@{
+                    id = 'tool-rss'
+                    source_type = 'vendor'
+                    source_url = 'https://example.com/tool.zip'
+                    version = '1.0.0'
+                    filename = 'tool.zip'
+                    installer_type = 'zip'
+                    install_order = 1
+                    update = [pscustomobject]@{
+                        strategy = 'rss'
+                    }
+                }
+            )
+        }
+
+        $message = $null
+        try {
+            Test-ManifestIntegrity -Manifest $manifest
+        } catch {
+            $message = $_.Exception.Message
+        }
+
+        $message | Should Not BeNullOrEmpty
+        $message | Should Match "requires 'rss_url'"
+        $message | Should Match "requires 'version_regex'"
+    }
+
+    It 'fails when static update strategy is missing latest marker' {
+        $manifest = [pscustomobject]@{
+            schema_version = '1.0'
+            tools = @(
+                [pscustomobject]@{
+                    id = 'tool-static'
+                    source_type = 'vendor'
+                    source_url = 'https://example.com/tool.msi'
+                    version = '1.0.0'
+                    filename = 'tool.msi'
+                    installer_type = 'msi'
+                    install_order = 1
+                    update = [pscustomobject]@{
+                        strategy = 'static'
+                    }
+                }
+            )
+        }
+
+        $message = $null
+        try {
+            Test-ManifestIntegrity -Manifest $manifest
+        } catch {
+            $message = $_.Exception.Message
+        }
+
+        $message | Should Not BeNullOrEmpty
+        $message | Should Match "requires 'static_latest_version'"
+    }
+}
+
 Describe 'Custom profile config integrity' {
     $manifest = Import-ToolManifest -ManifestPath (Join-Path $repoRoot 'tools.json')
     $fixtureDir = Join-Path $PSScriptRoot 'fixtures'

@@ -188,6 +188,51 @@ function Test-ManifestIntegrity {
         if ($tool.installer_type -eq 'zip_then_exe' -and -not $tool.inner_exe) {
             $errors += "Tool '$($tool.id)': installer_type=zip_then_exe requires 'inner_exe'."
         }
+
+        $updateProperty = $tool.PSObject.Properties['update']
+        if ($updateProperty -and $updateProperty.Value) {
+            $update = $updateProperty.Value
+            $strategyProperty = $update.PSObject.Properties['strategy']
+            $strategy = if ($strategyProperty) { [string]$strategyProperty.Value } else { '' }
+            if ([string]::IsNullOrWhiteSpace($strategy)) {
+                $errors += "Tool '$($tool.id)': update metadata requires non-empty 'strategy'."
+            } else {
+                switch ($strategy) {
+                    'github_release' {
+                        $updateRepoProperty = $update.PSObject.Properties['github_repo']
+                        $toolRepoProperty = $tool.PSObject.Properties['github_repo']
+                        $updateRepo = if ($updateRepoProperty) { [string]$updateRepoProperty.Value } else { '' }
+                        $toolRepo = if ($toolRepoProperty) { [string]$toolRepoProperty.Value } else { '' }
+                        if ([string]::IsNullOrWhiteSpace($updateRepo) -and [string]::IsNullOrWhiteSpace($toolRepo)) {
+                            $errors += "Tool '$($tool.id)': update strategy 'github_release' requires update.github_repo or tool.github_repo."
+                        }
+                    }
+                    'rss' {
+                        $rssUrlProperty = $update.PSObject.Properties['rss_url']
+                        $versionRegexProperty = $update.PSObject.Properties['version_regex']
+                        $rssUrl = if ($rssUrlProperty) { [string]$rssUrlProperty.Value } else { '' }
+                        $versionRegex = if ($versionRegexProperty) { [string]$versionRegexProperty.Value } else { '' }
+                        if ([string]::IsNullOrWhiteSpace($rssUrl)) {
+                            $errors += "Tool '$($tool.id)': update strategy 'rss' requires 'rss_url'."
+                        }
+                        if ([string]::IsNullOrWhiteSpace($versionRegex)) {
+                            $errors += "Tool '$($tool.id)': update strategy 'rss' requires 'version_regex'."
+                        }
+                    }
+                    'static' {
+                        $latestProperty = $update.PSObject.Properties['static_latest_version']
+                        $latestVersion = if ($latestProperty) { [string]$latestProperty.Value } else { '' }
+                        if ([string]::IsNullOrWhiteSpace($latestVersion)) {
+                            $errors += "Tool '$($tool.id)': update strategy 'static' requires 'static_latest_version'."
+                        }
+                    }
+                    'unsupported' { }
+                    default {
+                        $errors += "Tool '$($tool.id)': update strategy '$strategy' is unsupported."
+                    }
+                }
+            }
+        }
     }
 
     foreach ($tool in $Manifest.tools) {

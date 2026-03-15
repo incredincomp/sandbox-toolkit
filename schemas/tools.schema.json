@@ -106,6 +106,9 @@
         "notes": {
           "type": "string",
           "description": "Human-readable notes about version pinning, caveats, or manual steps."
+        },
+        "update": {
+          "$ref": "#/definitions/ToolUpdate"
         }
       },
       "if": { "properties": { "source_type": { "const": "github_release" } } },
@@ -115,6 +118,64 @@
         "then": {},
         "else": { "required": ["source_url"] }
       }
+    },
+    "ToolUpdate": {
+      "type": "object",
+      "required": ["strategy"],
+      "additionalProperties": false,
+      "properties": {
+        "strategy": {
+          "type": "string",
+          "enum": ["github_release", "rss", "static", "unsupported"]
+        },
+        "source_confidence": {
+          "type": "string",
+          "enum": ["high", "medium", "low"]
+        },
+        "github_repo": {
+          "type": "string",
+          "description": "Optional override repository for github_release update checks.",
+          "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"
+        },
+        "asset_pattern": {
+          "type": "string",
+          "description": "Optional asset selector to validate release applicability."
+        },
+        "rss_url": {
+          "type": "string",
+          "description": "RSS/Atom feed URL for version discovery."
+        },
+        "version_regex": {
+          "type": "string",
+          "description": "Regex with first capture group representing the discovered version."
+        },
+        "static_latest_version": {
+          "type": "string",
+          "description": "Maintainer-provided latest version marker for static/manual tracking."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Update-check notes for maintainers and operators."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "strategy": { "const": "rss" } }
+          },
+          "then": {
+            "required": ["rss_url", "version_regex"]
+          }
+        },
+        {
+          "if": {
+            "properties": { "strategy": { "const": "static" } }
+          },
+          "then": {
+            "required": ["static_latest_version"]
+          }
+        }
+      ]
     },
     "RemovedTool": {
       "type": "object",
