@@ -27,6 +27,8 @@ function Resolve-SandboxSessionSelection {
         [Parameter(Mandatory)][PSCustomObject]$Manifest,
         [Parameter(Mandatory)][string]$SandboxProfile,
         [PSCustomObject]$CustomProfileConfig,
+        [string[]]$TemplateAddTools,
+        [string[]]$TemplateRemoveTools,
         [string[]]$AddTools,
         [string[]]$RemoveTools
     )
@@ -41,6 +43,8 @@ function Resolve-SandboxSessionSelection {
     $resolvedProfileType = 'built-in'
     $baseProfile = $SandboxProfile
     $customProfile = $null
+    $templateAddToolIds = Resolve-SandboxKnownToolIdList -Manifest $Manifest -ToolIds $TemplateAddTools -ArgumentName 'TemplateAddTools'
+    $templateRemoveToolIds = Resolve-SandboxKnownToolIdList -Manifest $Manifest -ToolIds $TemplateRemoveTools -ArgumentName 'TemplateRemoveTools'
     $runtimeAddToolIds = Resolve-SandboxKnownToolIdList -Manifest $Manifest -ToolIds $AddTools -ArgumentName 'AddTools'
     $runtimeRemoveToolIds = Resolve-SandboxKnownToolIdList -Manifest $Manifest -ToolIds $RemoveTools -ArgumentName 'RemoveTools'
 
@@ -68,7 +72,7 @@ function Resolve-SandboxSessionSelection {
         $effectiveToolIds.Add($toolId)
     }
 
-    # Precedence: base profile -> custom add/remove -> runtime add/remove.
+    # Precedence: base profile -> custom add/remove -> template add/remove -> runtime add/remove.
     if ($customProfile) {
         foreach ($toolId in @($customProfile.add_tools)) {
             $effectiveToolIds.Add($toolId)
@@ -83,6 +87,20 @@ function Resolve-SandboxSessionSelection {
             }
             $effectiveToolIds = $filteredToolIds
         }
+    }
+
+    foreach ($toolId in $templateAddToolIds) {
+        $effectiveToolIds.Add($toolId)
+    }
+
+    foreach ($toolId in $templateRemoveToolIds) {
+        $filteredToolIds = [System.Collections.Generic.List[string]]::new()
+        foreach ($effectiveToolId in $effectiveToolIds) {
+            if ($effectiveToolId -ine $toolId) {
+                $filteredToolIds.Add($effectiveToolId)
+            }
+        }
+        $effectiveToolIds = $filteredToolIds
     }
 
     foreach ($toolId in $runtimeAddToolIds) {
@@ -105,6 +123,8 @@ function Resolve-SandboxSessionSelection {
         Profile = $SandboxProfile
         BaseProfile = $baseProfile
         ProfileType = $resolvedProfileType
+        TemplateAddTools = @($templateAddToolIds)
+        TemplateRemoveTools = @($templateRemoveToolIds)
         RuntimeAddTools = @($runtimeAddToolIds)
         RuntimeRemoveTools = @($runtimeRemoveToolIds)
         Tools   = @($tools)

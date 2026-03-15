@@ -101,6 +101,21 @@ Describe 'Resolve-SandboxSessionSelection' {
         ($selectionIds -join ',') | Should Match 'ghidra'
     }
 
+    It 'applies template deltas before runtime overrides' {
+        $manifest = Import-ToolManifest -ManifestPath (Join-Path $repoRoot 'tools.json')
+        $selection = Resolve-SandboxSessionSelection `
+            -Manifest $manifest `
+            -SandboxProfile 'minimal' `
+            -TemplateAddTools @('ghidra') `
+            -TemplateRemoveTools @('notepadpp') `
+            -AddTools @('notepadpp') `
+            -RemoveTools @('ghidra')
+        $selectionIds = @($selection.Tools | Select-Object -ExpandProperty id)
+
+        (($selectionIds -contains 'notepadpp')) | Should Be $true
+        (($selectionIds -contains 'ghidra')) | Should Be $false
+    }
+
     It 'fails clearly when runtime overrides reference unknown tool IDs' {
         $manifest = Import-ToolManifest -ManifestPath (Join-Path $repoRoot 'tools.json')
         $message = $null
@@ -112,6 +127,19 @@ Describe 'Resolve-SandboxSessionSelection' {
 
         $message | Should Not BeNullOrEmpty
         $message | Should Match "Unknown tool id 'does-not-exist' in -AddTools"
+    }
+
+    It 'fails clearly when template deltas reference unknown tool IDs' {
+        $manifest = Import-ToolManifest -ManifestPath (Join-Path $repoRoot 'tools.json')
+        $message = $null
+        try {
+            Resolve-SandboxSessionSelection -Manifest $manifest -SandboxProfile 'minimal' -TemplateAddTools @('does-not-exist') | Out-Null
+        } catch {
+            $message = $_.Exception.Message
+        }
+
+        $message | Should Not BeNullOrEmpty
+        $message | Should Match "Unknown tool id 'does-not-exist' in -TemplateAddTools"
     }
 }
 
