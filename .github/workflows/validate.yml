@@ -125,13 +125,28 @@ jobs:
             expect_exit: 0
             expect_json: true
             expected_mode: validate
+          - name: validate-custom-json
+            args: "-Validate -SkipPrereqCheck -Profile net-re-lite -OutputJson"
+            expect_exit: 0
+            expect_json: true
+            expected_mode: validate
           - name: dry-run-custom-json
             args: "-DryRun -SkipPrereqCheck -Profile net-re-lite -AddTools floss -RemoveTools pestudio -OutputJson"
             expect_exit: 0
             expect_json: true
             expected_mode: dry-run
+          - name: dry-run-built-in-remove-json
+            args: "-DryRun -SkipPrereqCheck -Profile minimal -RemoveTools notepadpp -OutputJson"
+            expect_exit: 0
+            expect_json: true
+            expected_mode: dry-run
           - name: validate-invalid-profile-json
             args: "-Validate -OutputJson -Profile not-a-profile"
+            expect_exit: 1
+            expect_json: true
+            expected_mode: validate
+          - name: validate-invalid-tool-json
+            args: "-Validate -SkipPrereqCheck -Profile minimal -AddTools not-a-real-tool -OutputJson"
             expect_exit: 1
             expect_json: true
             expected_mode: validate

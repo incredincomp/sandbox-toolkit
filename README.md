@@ -15,6 +15,29 @@ The default posture is safer-by-default: disposable fresh sandbox sessions, read
 
 ---
 
+## What changed (2.0.7)
+
+- Hardened integrated command-surface characterization for:
+  - `-DryRun` with built-in/custom profiles plus runtime add/remove combinations.
+  - `-Validate` with built-in/custom profiles plus invalid profile/tool inputs.
+  - list-mode reflection against live manifest + custom profile state.
+  - cleanup scope boundaries for `-CleanDownloads`.
+- Tightened CLI parameter-combination validation for list mode:
+  - `-NoLaunch` and `-SkipPrereqCheck` are now rejected with `-ListTools`/`-ListProfiles`.
+- Expanded CI smoke coverage with deterministic non-launch combinations:
+  - validate custom profile success
+  - validate invalid tool failure
+  - dry-run built-in remove-only flow
+
+Release guidance:
+- Precedence remains explicit and unchanged for profile selection:
+  1. base profile
+  2. custom-profile deltas
+  3. runtime `-AddTools` / `-RemoveTools`
+- Use `-Validate` for readiness checks and `-DryRun` for effective selection + artifact-generation preview.
+
+---
+
 ## What changed (2.0.5)
 
 - Hardened integrated CLI surfaces for:

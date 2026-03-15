@@ -988,3 +988,33 @@ Estimated size: Small (1–2 files)
 | Pester tests (targeted affected suites) | ✅ | `Invoke-Pester -Path tests/Cli.Tests.ps1,tests/Session.Tests.ps1,tests/Templates.Tests.ps1,tests/Validation.Tests.ps1,tests/StartSandboxJson.Tests.ps1,tests/StartSandboxCliIntegration.Tests.ps1` | 2026-03-15 |
 | Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-15 |
 | PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' \| ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-15 |
+
+### Scope (release hardening pass: integrated CLI/config coherence)
+- Re-characterize integrated non-destructive command surfaces for release confidence (`-DryRun`, `-Validate`, list modes, cleanup scope).
+- Tighten remaining parameter-combination drift in list mode.
+- Expand deterministic CI smoke coverage and align release-facing docs/changelog for tag readiness.
+
+### Decisions made (release hardening pass: integrated CLI/config coherence)
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Add a dedicated release-hardening integration characterization suite | Keeps required combinations explicit and reviewable without coupling to existing broad suites | Continue relying only on previously accumulated integration tests |
+| Reject `-NoLaunch` / `-SkipPrereqCheck` in list mode | Aligns list-mode contract with other irrelevant-switch rejections and removes ambiguous no-op flags | Continue accepting irrelevant list-mode switches silently |
+| Expand CI smoke matrix only with deterministic dry-run/validate seams | Increases confidence without introducing environment-dependent launch flakiness | Add real sandbox-launch checks in CI |
+
+### Files modified (release hardening pass: integrated CLI/config coherence)
+- `tests/StartSandboxReleaseHardening.Tests.ps1` (new)
+- `src/Cli.ps1`
+- `tests/Cli.Tests.ps1`
+- `.github/workflows/validate.yml`
+- `README.md`
+- `docs/QUICKSTART.md`
+- `CHANGELOG.md`
+- `IMPLEMENTATION_TRACKER.md`
+
+### Validation (release hardening pass: integrated CLI/config coherence)
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Pester tests (new hardening suite) | ✅ | `Invoke-Pester -Path tests/StartSandboxReleaseHardening.Tests.ps1` | 2026-03-15 |
+| Pester tests (CLI + hardening suite) | ✅ | `Invoke-Pester -Path tests/Cli.Tests.ps1,tests/StartSandboxReleaseHardening.Tests.ps1` | 2026-03-15 |
+| Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-15 |
+| PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' \| ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-15 |

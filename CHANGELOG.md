@@ -4,6 +4,26 @@ All notable changes to this project will be documented here.
 
 ---
 
+## [2.0.7] — 2026-03-15
+
+### Hardening
+
+- Added bounded integration characterization coverage for release readiness:
+  - `-DryRun` with built-in/custom profiles plus add/remove runtime override combinations.
+  - `-Validate` with built-in/custom profiles plus invalid profile/tool combinations.
+  - list-mode reflection against current manifest/custom profile state.
+  - cleanup-scope behavior ensuring `-CleanDownloads` does not mutate non-cache surfaces.
+- Tightened list-mode parameter validation:
+  - `-NoLaunch` now fails with `-ListTools` / `-ListProfiles`.
+  - `-SkipPrereqCheck` now fails with `-ListTools` / `-ListProfiles`.
+
+### CI / Release readiness
+
+- Expanded deterministic Windows CI smoke matrix with:
+  - validate custom-profile success path.
+  - validate invalid-tool failure path.
+  - dry-run built-in remove-only path.
+
 ## [2.0.6] — 2026-03-15
 
 ### Features

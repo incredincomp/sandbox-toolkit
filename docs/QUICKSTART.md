@@ -145,11 +145,12 @@ Follow this compact sequence:
 
 For automation, add `-OutputJson` to `-Validate`, `-DryRun`, or `-Audit`.
 
-Release-hardening summary (2.0.5):
+Release-hardening summary (2.0.7):
 - Discoverability: `-ListTools`, `-ListProfiles` align to current manifest/custom profile state.
 - Non-destructive seams: `-Validate` (readiness), `-DryRun` (selection + generated artifacts), `-Audit` (artifact evidence).
 - Runtime overrides: `-AddTools` / `-RemoveTools` applied deterministically after base/custom profile resolution.
 - Maintenance seam: `-CleanDownloads` removes only toolkit-owned disposable cache/session artifacts.
+- List-mode parameter consistency: `-NoLaunch` and `-SkipPrereqCheck` are invalid with `-ListTools` / `-ListProfiles`.
 
 `-Validate` vs `-DryRun` vs `-Audit`:
 - `-Validate` answers: "Can I safely/run this on this host now?" It does not download, generate artifacts, or launch.
