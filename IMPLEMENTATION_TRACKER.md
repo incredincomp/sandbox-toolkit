@@ -489,3 +489,22 @@ Estimated size: Small (1–2 files)
 |-------|--------|--------|------|
 | Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
 | PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-14 |
+
+### Scope (contributor guardrail pass)
+- Add a minimal contributor/reviewer checklist guardrail for breaking documented JSON contract changes.
+
+### Decisions made (contributor guardrail pass)
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Add `.github/pull_request_template.md` with a focused JSON-contract checklist | No existing PR template or `CONTRIBUTING.md` surface was present; this is the smallest conventional review hook | Create a larger `CONTRIBUTING.md` process guide (unnecessary scope expansion) |
+| Keep checklist wording narrow to breaking documented contract fields/shapes and additive-vs-breaking distinction | Avoid overclassifying all JSON changes as breaking while preserving changelog discipline | Generic “update changelog for all JSON changes” wording (too broad) |
+
+### Files modified (contributor guardrail pass)
+- `.github/pull_request_template.md` (new)
+- `IMPLEMENTATION_TRACKER.md`
+
+### Validation (contributor guardrail pass)
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
+| PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-14 |
