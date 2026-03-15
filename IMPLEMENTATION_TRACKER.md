@@ -293,3 +293,21 @@ Estimated size: Small (1–2 files)
 |-------|--------|--------|------|
 | Pester tests | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
 | PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer ... }` | 2026-03-14 |
+
+### Scope (json output refactor pass)
+- Centralize machine-readable projection for validate/dry-run into thin output helpers.
+
+### Decisions made (json output refactor pass)
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Add `src/Output.ps1` projection helpers instead of serializing inline in `Start-Sandbox.ps1` | Keeps rendering separate from selection/validation business logic and reusable in tests | Build JSON dictionaries directly in command handlers |
+
+### Files modified (json output refactor pass)
+- `src/Output.ps1` (new)
+- `tests/Output.Tests.ps1` (new)
+
+### Validation (json output refactor pass)
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Pester tests | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
+| PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer ... }` | 2026-03-14 |
