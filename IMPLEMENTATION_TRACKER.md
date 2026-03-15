@@ -573,3 +573,22 @@ Estimated size: Small (1–2 files)
 |-------|--------|--------|------|
 | Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
 | PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-14 |
+
+### Scope (workflow drift guardrail pass)
+- Add a PR-template reminder to review workflow docs when user-facing command-mode flow changes.
+
+### Decisions made (workflow drift guardrail pass)
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Extend existing `.github/pull_request_template.md` with a narrow workflow-doc impact checklist | Existing PR template is the primary contributor-review surface; smallest change with highest coverage | Add separate contributor doc surface or automation |
+| Keep wording scoped to user-facing command-mode behavior/ordering changes only | Prevent checklist noise for internal-only changes | Broad “always update docs” guidance |
+
+### Files modified (workflow drift guardrail pass)
+- `.github/pull_request_template.md`
+- `IMPLEMENTATION_TRACKER.md`
+
+### Validation (workflow drift guardrail pass)
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
+| PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-14 |
