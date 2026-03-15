@@ -7,6 +7,7 @@ function Resolve-StartSandboxCommandMode {
         Resolves Start-Sandbox invocation mode and validates incompatible combinations.
     #>
     param(
+        [switch]$CleanDownloads,
         [switch]$ListTools,
         [switch]$ListProfiles,
         [switch]$Validate,
@@ -16,12 +17,46 @@ function Resolve-StartSandboxCommandMode {
         [switch]$OutputJson,
         [string[]]$AddTools,
         [string[]]$RemoveTools,
+        [switch]$SkipPrereqCheck,
         [string]$SharedFolder,
         [switch]$UseDefaultSharedFolder,
         [switch]$SharedFolderWritable,
         [switch]$SharedFolderValidationDiagnostics,
         [switch]$ExplicitSandboxProfile
     )
+
+    if ($CleanDownloads) {
+        if ($ListTools -or $ListProfiles) {
+            throw "-CleanDownloads cannot be combined with -ListTools or -ListProfiles."
+        }
+        if ($Validate) {
+            throw "-CleanDownloads cannot be combined with -Validate."
+        }
+        if ($DryRun) {
+            throw "-CleanDownloads cannot be combined with -DryRun."
+        }
+        if ($Force) {
+            throw "-Force cannot be combined with -CleanDownloads."
+        }
+        if ($NoLaunch) {
+            throw "-NoLaunch cannot be combined with -CleanDownloads."
+        }
+        if ($OutputJson) {
+            throw "-OutputJson cannot be combined with -CleanDownloads."
+        }
+        if ($AddTools -or $RemoveTools) {
+            throw "-AddTools and -RemoveTools cannot be combined with -CleanDownloads."
+        }
+        if ($SkipPrereqCheck) {
+            throw "-SkipPrereqCheck cannot be combined with -CleanDownloads."
+        }
+        if ($SharedFolder -or $UseDefaultSharedFolder -or $SharedFolderWritable -or $SharedFolderValidationDiagnostics) {
+            throw "Shared-folder options cannot be combined with -CleanDownloads."
+        }
+        if ($ExplicitSandboxProfile) {
+            throw "-SandboxProfile cannot be specified with -CleanDownloads."
+        }
+    }
 
     $isListMode = $ListTools -or $ListProfiles
     if ($isListMode) {
@@ -65,6 +100,9 @@ function Resolve-StartSandboxCommandMode {
         throw "-OutputJson is supported only with -Validate, -DryRun, -ListTools, or -ListProfiles."
     }
 
+    if ($CleanDownloads) {
+        return 'CleanDownloads'
+    }
     if ($isListMode) {
         return 'List'
     }
@@ -83,10 +121,19 @@ function Get-StartSandboxModePlan {
         Returns stage execution flags for each command mode.
     #>
     param(
-        [Parameter(Mandatory)][ValidateSet('List', 'Validate', 'DryRun', 'Run')][string]$CommandMode
+        [Parameter(Mandatory)][ValidateSet('CleanDownloads', 'List', 'Validate', 'DryRun', 'Run')][string]$CommandMode
     )
 
     switch ($CommandMode) {
+        'CleanDownloads' {
+            return [pscustomobject]@{
+                CheckPrerequisites = $false
+                ResolveSharedFolder = $false
+                DownloadTools = $false
+                GenerateArtifacts = $false
+                LaunchSandbox = $false
+            }
+        }
         'List' {
             return [pscustomobject]@{
                 CheckPrerequisites = $false

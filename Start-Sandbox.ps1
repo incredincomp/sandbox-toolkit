@@ -33,6 +33,9 @@
 .PARAMETER Validate
     Run non-destructive preflight checks and report PASS/WARN/FAIL readiness.
 
+.PARAMETER CleanDownloads
+    Remove repo-owned disposable download/session artifacts and exit.
+
 .PARAMETER ListTools
     Print all available tools from tools.json and exit.
 
@@ -93,6 +96,10 @@
     # Emits preflight validation as JSON for automation.
 
 .EXAMPLE
+    .\Start-Sandbox.ps1 -CleanDownloads
+    # Removes repo-owned setup cache and generated session artifacts.
+
+.EXAMPLE
     .\Start-Sandbox.ps1 -ListProfiles
     # Prints supported profiles from the current manifest.
 
@@ -121,6 +128,7 @@ param(
     [switch]$NoLaunch,
     [switch]$DryRun,
     [switch]$Validate,
+    [switch]$CleanDownloads,
     [switch]$ListTools,
     [switch]$ListProfiles,
     [string[]]$AddTools,
@@ -164,11 +172,12 @@ $resolvedSharedFolder = $null
 
 # -- Load helper modules -------------------------------------------------------
 
-foreach ($module in @('Manifest.ps1', 'Download.ps1', 'SandboxConfig.ps1', 'SharedFolderValidation.ps1', 'Session.ps1', 'Validation.ps1', 'Output.ps1', 'Cli.ps1')) {
+foreach ($module in @('Manifest.ps1', 'Download.ps1', 'SandboxConfig.ps1', 'SharedFolderValidation.ps1', 'Session.ps1', 'Validation.ps1', 'Output.ps1', 'Maintenance.ps1', 'Cli.ps1')) {
     . (Join-Path $srcDir $module)
 }
 
 $commandMode = Resolve-StartSandboxCommandMode `
+    -CleanDownloads:$CleanDownloads `
     -ListTools:$ListTools `
     -ListProfiles:$ListProfiles `
     -Validate:$Validate `
@@ -178,6 +187,7 @@ $commandMode = Resolve-StartSandboxCommandMode `
     -OutputJson:$OutputJson `
     -AddTools $AddTools `
     -RemoveTools $RemoveTools `
+    -SkipPrereqCheck:$SkipPrereqCheck `
     -SharedFolder $SharedFolder `
     -UseDefaultSharedFolder:$UseDefaultSharedFolder `
     -SharedFolderWritable:$SharedFolderWritable `
@@ -245,6 +255,32 @@ if ($commandMode -eq 'List') {
     }
 
     Write-StatusLine ''
+    return
+}
+
+if ($commandMode -eq 'CleanDownloads') {
+    $cleanupPlan = Get-SandboxDownloadCleanupPlan -RepoRoot $repoRoot
+    $cleanupResult = Invoke-SandboxDownloadCleanup -CleanupPlan $cleanupPlan
+    $summaryLines = @(Get-SandboxDownloadCleanupSummaryLines -CleanupResult $cleanupResult)
+
+    Write-StatusLine ''
+    foreach ($line in $summaryLines) {
+        $color = [ConsoleColor]::White
+        if ($line -match 'Failures:') {
+            $color = [ConsoleColor]::Red
+        } elseif ($line -match 'Nothing to clean|Completed without deletion failures') {
+            $color = [ConsoleColor]::Green
+        } elseif ($line -match 'Inspected locations|Removed:|Skipped:') {
+            $color = [ConsoleColor]::Cyan
+        }
+
+        Write-StatusLine $line -ForegroundColor $color
+    }
+    Write-StatusLine ''
+
+    if (-not $cleanupResult.Success) {
+        exit 1
+    }
     return
 }
 

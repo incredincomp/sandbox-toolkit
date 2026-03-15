@@ -32,6 +32,10 @@ Describe 'Resolve-StartSandboxCommandMode' {
         Resolve-StartSandboxCommandMode -ListTools | Should Be 'List'
     }
 
+    It 'returns CleanDownloads when -CleanDownloads is specified' {
+        Resolve-StartSandboxCommandMode -CleanDownloads | Should Be 'CleanDownloads'
+    }
+
     It 'rejects -DryRun with list mode' {
         $message = Get-ErrorMessage { Resolve-StartSandboxCommandMode -ListTools:$true -DryRun:$true }
         $message | Should Not BeNullOrEmpty
@@ -93,6 +97,22 @@ Describe 'Resolve-StartSandboxCommandMode' {
         $message | Should Not BeNullOrEmpty
         $message | Should Match '-OutputJson is supported only with -Validate, -DryRun, -ListTools, or -ListProfiles'
     }
+
+    It 'rejects -Validate with -CleanDownloads' {
+        $message = Get-ErrorMessage { Resolve-StartSandboxCommandMode -CleanDownloads:$true -Validate:$true }
+        $message | Should Not BeNullOrEmpty
+        $message | Should Match '-CleanDownloads cannot be combined with -Validate'
+    }
+
+    It 'rejects -OutputJson with -CleanDownloads' {
+        $message = Get-ErrorMessage { Resolve-StartSandboxCommandMode -CleanDownloads:$true -OutputJson:$true }
+        $message | Should Not BeNullOrEmpty
+        $message | Should Match '-OutputJson cannot be combined with -CleanDownloads'
+    }
+
+    It 'keeps existing dry-run mode unaffected' {
+        Resolve-StartSandboxCommandMode -DryRun:$true -SkipPrereqCheck:$true | Should Be 'DryRun'
+    }
 }
 
 Describe 'Get-StartSandboxModePlan' {
@@ -110,6 +130,15 @@ Describe 'Get-StartSandboxModePlan' {
 
         $plan.DownloadTools | Should Be $false
         $plan.GenerateArtifacts | Should Be $true
+        $plan.LaunchSandbox | Should Be $false
+    }
+
+    It 'disables all execution stages for CleanDownloads mode' {
+        $plan = Get-StartSandboxModePlan -CommandMode 'CleanDownloads'
+
+        $plan.CheckPrerequisites | Should Be $false
+        $plan.DownloadTools | Should Be $false
+        $plan.GenerateArtifacts | Should Be $false
         $plan.LaunchSandbox | Should Be $false
     }
 }
