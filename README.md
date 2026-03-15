@@ -34,10 +34,6 @@ The default posture is safer-by-default: disposable fresh sandbox sessions, read
   - custom profiles, runtime `-AddTools`/`-RemoveTools`, and saved templates
 - Added explicit manual-source handling for `source_type: manual` so manual/advanced tools are represented honestly without fake automation.
 
-Deferred intentionally in this pass:
-- REMnux bundling (Linux/container-oriented; better fit for later helper/container milestone).
-- VirusTotal Windows uploader as first-class bundled target (official uploader is no longer maintained by VirusTotal).
-
 ---
 
 ## What changed (2.0.9)
