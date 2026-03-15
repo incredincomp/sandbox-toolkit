@@ -136,6 +136,59 @@ function Get-SandboxDryRunJsonResult {
     }
 }
 
+function Get-SandboxListToolsJsonResult {
+    <#
+    .SYNOPSIS
+        Projects list-tools catalog into stable JSON contract shape.
+    #>
+    param(
+        [Parameter(Mandatory)][object[]]$Tools
+    )
+
+    return [ordered]@{
+        command = [ordered]@{
+            mode = 'list-tools'
+        }
+        tools = @(
+            $Tools | ForEach-Object {
+                [ordered]@{
+                    id = $_.id
+                    display_name = $_.display_name
+                    installer_type = $_.installer_type
+                    install_order = $_.install_order
+                    category = $_.category
+                    profiles = @($_.profiles)
+                }
+            }
+        )
+    }
+}
+
+function Get-SandboxListProfilesJsonResult {
+    <#
+    .SYNOPSIS
+        Projects list-profiles catalog into stable JSON contract shape.
+    #>
+    param(
+        [Parameter(Mandatory)][object[]]$Profiles
+    )
+
+    return [ordered]@{
+        command = [ordered]@{
+            mode = 'list-profiles'
+        }
+        profiles = @(
+            $Profiles | ForEach-Object {
+                [ordered]@{
+                    name = $_.name
+                    type = $_.profile_type
+                    base_profile = $_.base_profile
+                }
+            }
+        )
+    }
+}
+
 function Get-SandboxErrorJsonResult {
     <#
     .SYNOPSIS

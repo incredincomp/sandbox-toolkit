@@ -66,3 +66,49 @@ Describe 'Get-SandboxDryRunJsonResult' {
         $result.stages.launch.skipped | Should Be $true
     }
 }
+
+Describe 'Get-SandboxListToolsJsonResult' {
+    It 'projects list-tools catalog entries to stable JSON fields' {
+        $result = Get-SandboxListToolsJsonResult -Tools @(
+            [pscustomobject]@{
+                id = 'ghidra'
+                display_name = 'Ghidra'
+                installer_type = 'zip'
+                install_order = 50
+                category = 'reversing'
+                profiles = @('reverse-engineering', 'network-analysis')
+                source_type = 'github_release'
+                filename = 'ghidra.zip'
+            }
+        )
+
+        $result.command.mode | Should Be 'list-tools'
+        $result.tools.Count | Should Be 1
+        $result.tools[0].id | Should Be 'ghidra'
+        $result.tools[0].installer_type | Should Be 'zip'
+        $result.tools[0].install_order | Should Be 50
+        (($result.tools[0].profiles -contains 'network-analysis')) | Should Be $true
+    }
+}
+
+Describe 'Get-SandboxListProfilesJsonResult' {
+    It 'projects built-in and custom profile entries with explicit type and base_profile' {
+        $result = Get-SandboxListProfilesJsonResult -Profiles @(
+            [pscustomobject]@{
+                name = 'minimal'
+                profile_type = 'built-in'
+                base_profile = 'minimal'
+            },
+            [pscustomobject]@{
+                name = 'net-re-lite'
+                profile_type = 'custom'
+                base_profile = 'reverse-engineering'
+            }
+        )
+
+        $result.command.mode | Should Be 'list-profiles'
+        $result.profiles.Count | Should Be 2
+        @($result.profiles | Where-Object { $_.name -eq 'minimal' -and $_.type -eq 'built-in' }).Count | Should Be 1
+        @($result.profiles | Where-Object { $_.name -eq 'net-re-lite' -and $_.type -eq 'custom' -and $_.base_profile -eq 'reverse-engineering' }).Count | Should Be 1
+    }
+}
