@@ -82,6 +82,20 @@ Describe 'Test-SandboxSharedFolderReadiness' {
 }
 
 Describe 'Invoke-SandboxPreflightValidation' {
+    It 'passes under healthy mocked prerequisites' {
+        Mock Get-WindowsOptionalFeature {
+            [pscustomobject]@{ State = 'Enabled' }
+        }
+
+        $result = Invoke-SandboxPreflightValidation `
+            -RepoRoot $repoRoot `
+            -ManifestPath (Join-Path $repoRoot 'tools.json') `
+            -SandboxProfile 'minimal'
+
+        $result.HasFailures | Should Be $false
+        (@($result.Checks | Where-Object { $_.Status -eq 'PASS' }).Count) | Should BeGreaterThan 0
+    }
+
     It 'fails cleanly when selection prerequisites are invalid' {
         $missingManifest = Join-Path $repoRoot 'does-not-exist-tools.json'
 
@@ -93,6 +107,17 @@ Describe 'Invoke-SandboxPreflightValidation' {
 
         $result.HasFailures | Should Be $true
         (@($result.Checks | Where-Object { $_.Name -eq 'selection' -and $_.Status -eq 'FAIL' }).Count) | Should Be 1
+    }
+}
+
+Describe 'Test-SandboxSelectionReadiness' {
+    It 'surfaces invalid profile references clearly' {
+        $result = Test-SandboxSelectionReadiness `
+            -ManifestPath (Join-Path $repoRoot 'tools.json') `
+            -SandboxProfile 'not-a-profile'
+
+        $result.Check.Status | Should Be 'FAIL'
+        $result.Check.Message | Should Match 'Invalid profile'
     }
 }
 

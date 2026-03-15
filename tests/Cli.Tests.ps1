@@ -24,6 +24,10 @@ Describe 'Resolve-StartSandboxCommandMode' {
         Resolve-StartSandboxCommandMode -DryRun | Should Be 'DryRun'
     }
 
+    It 'returns Validate when -Validate is specified' {
+        Resolve-StartSandboxCommandMode -Validate | Should Be 'Validate'
+    }
+
     It 'returns List when -ListTools is specified' {
         Resolve-StartSandboxCommandMode -ListTools | Should Be 'List'
     }
@@ -44,6 +48,43 @@ Describe 'Resolve-StartSandboxCommandMode' {
         $message = Get-ErrorMessage { Resolve-StartSandboxCommandMode -DryRun:$true -Force:$true }
         $message | Should Not BeNullOrEmpty
         $message | Should Match '-Force cannot be combined with -DryRun'
+    }
+
+    It 'rejects -Validate with -DryRun' {
+        $message = Get-ErrorMessage { Resolve-StartSandboxCommandMode -Validate:$true -DryRun:$true }
+        $message | Should Not BeNullOrEmpty
+        $message | Should Match '-Validate cannot be combined with -DryRun'
+    }
+
+    It 'rejects -Validate with -ListTools' {
+        $message = Get-ErrorMessage { Resolve-StartSandboxCommandMode -Validate:$true -ListTools:$true }
+        $message | Should Not BeNullOrEmpty
+        $message | Should Match '-Validate cannot be combined with -ListTools'
+    }
+
+    It 'rejects -Validate with -NoLaunch' {
+        $message = Get-ErrorMessage { Resolve-StartSandboxCommandMode -Validate:$true -NoLaunch:$true }
+        $message | Should Not BeNullOrEmpty
+        $message | Should Match '-NoLaunch cannot be combined with -Validate'
+    }
+}
+
+Describe 'Get-StartSandboxModePlan' {
+    It 'disables downloads/artifacts/launch for Validate mode' {
+        $plan = Get-StartSandboxModePlan -CommandMode 'Validate'
+
+        $plan.CheckPrerequisites | Should Be $true
+        $plan.DownloadTools | Should Be $false
+        $plan.GenerateArtifacts | Should Be $false
+        $plan.LaunchSandbox | Should Be $false
+    }
+
+    It 'keeps DryRun non-destructive for launch but allows artifact generation' {
+        $plan = Get-StartSandboxModePlan -CommandMode 'DryRun'
+
+        $plan.DownloadTools | Should Be $false
+        $plan.GenerateArtifacts | Should Be $true
+        $plan.LaunchSandbox | Should Be $false
     }
 }
 

@@ -116,11 +116,12 @@ function Test-ManifestIntegrity {
     }
 
     foreach ($tool in $Manifest.tools) {
-        if (-not $tool.dependencies) {
+        $dependencyProperty = $tool.PSObject.Properties['dependencies']
+        if (-not $dependencyProperty -or -not $dependencyProperty.Value) {
             continue
         }
 
-        foreach ($dependencyId in $tool.dependencies) {
+        foreach ($dependencyId in $dependencyProperty.Value) {
             if (-not $ids.ContainsKey($dependencyId)) {
                 $errors += "Tool '$($tool.id)': dependency '$dependencyId' does not reference an existing tool id."
             }

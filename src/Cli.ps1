@@ -9,8 +9,10 @@ function Resolve-StartSandboxCommandMode {
     param(
         [switch]$ListTools,
         [switch]$ListProfiles,
+        [switch]$Validate,
         [switch]$DryRun,
         [switch]$Force,
+        [switch]$NoLaunch,
         [string]$SharedFolder,
         [switch]$UseDefaultSharedFolder,
         [switch]$SharedFolderWritable,
@@ -20,6 +22,9 @@ function Resolve-StartSandboxCommandMode {
 
     $isListMode = $ListTools -or $ListProfiles
     if ($isListMode) {
+        if ($Validate) {
+            throw "-Validate cannot be combined with -ListTools or -ListProfiles."
+        }
         if ($DryRun) {
             throw "-DryRun cannot be combined with -ListTools or -ListProfiles."
         }
@@ -38,13 +43,75 @@ function Resolve-StartSandboxCommandMode {
         throw "-Force cannot be combined with -DryRun."
     }
 
+    if ($Validate -and $DryRun) {
+        throw "-Validate cannot be combined with -DryRun."
+    }
+    if ($Validate -and $Force) {
+        throw "-Force cannot be combined with -Validate."
+    }
+    if ($Validate -and $NoLaunch) {
+        throw "-NoLaunch cannot be combined with -Validate."
+    }
+
     if ($isListMode) {
         return 'List'
+    }
+    if ($Validate) {
+        return 'Validate'
     }
     if ($DryRun) {
         return 'DryRun'
     }
     return 'Run'
+}
+
+function Get-StartSandboxModePlan {
+    <#
+    .SYNOPSIS
+        Returns stage execution flags for each command mode.
+    #>
+    param(
+        [Parameter(Mandatory)][ValidateSet('List', 'Validate', 'DryRun', 'Run')][string]$CommandMode
+    )
+
+    switch ($CommandMode) {
+        'List' {
+            return [pscustomobject]@{
+                CheckPrerequisites = $false
+                ResolveSharedFolder = $false
+                DownloadTools = $false
+                GenerateArtifacts = $false
+                LaunchSandbox = $false
+            }
+        }
+        'Validate' {
+            return [pscustomobject]@{
+                CheckPrerequisites = $true
+                ResolveSharedFolder = $true
+                DownloadTools = $false
+                GenerateArtifacts = $false
+                LaunchSandbox = $false
+            }
+        }
+        'DryRun' {
+            return [pscustomobject]@{
+                CheckPrerequisites = $true
+                ResolveSharedFolder = $true
+                DownloadTools = $false
+                GenerateArtifacts = $true
+                LaunchSandbox = $false
+            }
+        }
+        default {
+            return [pscustomobject]@{
+                CheckPrerequisites = $true
+                ResolveSharedFolder = $true
+                DownloadTools = $true
+                GenerateArtifacts = $true
+                LaunchSandbox = $true
+            }
+        }
+    }
 }
 
 function Get-ManifestToolCatalog {

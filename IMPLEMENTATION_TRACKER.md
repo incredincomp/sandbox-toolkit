@@ -175,3 +175,27 @@ Estimated size: Small (1–2 files)
 |-------|--------|--------|------|
 | Pester tests | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
 | PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer ... }` | 2026-03-14 |
+
+### Scope (validate feature pass)
+- Add `-Validate` as a first-class non-destructive command mode.
+- Ensure validate mode checks readiness but skips downloads, artifact generation, and launch.
+
+### Decisions made (validate feature pass)
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Introduce `Get-StartSandboxModePlan` and `Validate` command mode in `src/Cli.ps1` | Deterministic stage gating makes non-destructive behavior testable | Inline conditional checks scattered in `Start-Sandbox.ps1` |
+| Route `-Validate` through `Invoke-SandboxPreflightValidation` and exit via `Get-SandboxValidationExitCode` | Provides structured PASS/WARN/FAIL output and deterministic exit semantics | Reuse `-DryRun` path (would generate artifacts and blur semantics) |
+| Reuse `Test-SandboxHostPrerequisite` in normal runtime prerequisite stage | Reduces drift between launch-time and validate-time prerequisite checks | Keep separate prerequisite implementations |
+
+### Files modified (validate feature pass)
+- `Start-Sandbox.ps1`
+- `src/Cli.ps1`
+- `src/Manifest.ps1`
+- `tests/Cli.Tests.ps1`
+- `tests/Validation.Tests.ps1`
+
+### Validation (validate feature pass)
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Pester tests | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
+| PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer ... }` | 2026-03-14 |

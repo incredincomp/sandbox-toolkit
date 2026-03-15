@@ -30,6 +30,9 @@
 .PARAMETER DryRun
     Resolve profile/tool selection and generate session artifacts without downloads or launch.
 
+.PARAMETER Validate
+    Run non-destructive preflight checks and report PASS/WARN/FAIL readiness.
+
 .PARAMETER ListTools
     Print all available tools from tools.json and exit.
 
@@ -69,6 +72,10 @@
     # Shows effective network/tool configuration and generated artifact paths without launch.
 
 .EXAMPLE
+    .\Start-Sandbox.ps1 -Validate -Profile minimal
+    # Runs preflight checks without downloading, generating artifacts, or launching.
+
+.EXAMPLE
     .\Start-Sandbox.ps1 -ListProfiles
     # Prints supported profiles from the current manifest.
 
@@ -97,6 +104,7 @@ param(
     [switch]$Force,
     [switch]$NoLaunch,
     [switch]$DryRun,
+    [switch]$Validate,
     [switch]$ListTools,
     [switch]$ListProfiles,
     [switch]$SkipPrereqCheck,
@@ -133,20 +141,23 @@ $resolvedSharedFolder = $null
 
 # -- Load helper modules -------------------------------------------------------
 
-foreach ($module in @('Manifest.ps1', 'Download.ps1', 'SandboxConfig.ps1', 'SharedFolderValidation.ps1', 'Session.ps1', 'Cli.ps1')) {
+foreach ($module in @('Manifest.ps1', 'Download.ps1', 'SandboxConfig.ps1', 'SharedFolderValidation.ps1', 'Session.ps1', 'Validation.ps1', 'Cli.ps1')) {
     . (Join-Path $srcDir $module)
 }
 
 $commandMode = Resolve-StartSandboxCommandMode `
     -ListTools:$ListTools `
     -ListProfiles:$ListProfiles `
+    -Validate:$Validate `
     -DryRun:$DryRun `
     -Force:$Force `
+    -NoLaunch:$NoLaunch `
     -SharedFolder $SharedFolder `
     -UseDefaultSharedFolder:$UseDefaultSharedFolder `
     -SharedFolderWritable:$SharedFolderWritable `
     -SharedFolderValidationDiagnostics:$SharedFolderValidationDiagnostics `
     -ExplicitSandboxProfile:$($PSBoundParameters.ContainsKey('SandboxProfile'))
+$modePlan = Get-StartSandboxModePlan -CommandMode $commandMode
 
 if ($commandMode -eq 'List') {
     $manifest = Import-ToolManifest -ManifestPath $manifestPath
@@ -183,6 +194,27 @@ Write-StatusLine "  Mode    : $commandMode" -ForegroundColor White
 Write-StatusLine "  Repo    : $repoRoot" -ForegroundColor DarkGray
 Write-StatusLine ''
 
+if ($commandMode -eq 'Validate') {
+    $preflightResult = Invoke-SandboxPreflightValidation `
+        -RepoRoot $repoRoot `
+        -ManifestPath $manifestPath `
+        -SandboxProfile $SandboxProfile `
+        -SkipPrereqCheck:$SkipPrereqCheck `
+        -SharedFolder $SharedFolder `
+        -UseDefaultSharedFolder:$UseDefaultSharedFolder `
+        -SharedFolderWritable:$SharedFolderWritable `
+        -SharedFolderValidationDiagnostics:$SharedFolderValidationDiagnostics
+
+    Write-SandboxPreflightReport -PreflightResult $preflightResult
+    Write-StatusLine ''
+
+    $validationExitCode = Get-SandboxValidationExitCode -PreflightResult $preflightResult
+    if ($validationExitCode -ne 0) {
+        exit $validationExitCode
+    }
+    return
+}
+
 $sharedFolderRequest = Resolve-SharedFolderRequest `
     -RepoRoot $repoRoot `
     -SharedFolder $SharedFolder `
@@ -198,32 +230,29 @@ $resolvedSharedFolder = $sharedFolderRequest.SharedHostFolder
 
 # -- [1/5] Prerequisites -------------------------------------------------------
 
-if (-not $SkipPrereqCheck) {
+if ($modePlan.CheckPrerequisites) {
     Write-StatusLine '[1/5] Checking prerequisites...' -ForegroundColor Yellow
 
-    if ($PSVersionTable.PSVersion.Major -lt 5) {
-        throw "PowerShell 5.1 or later is required. Found: $($PSVersionTable.PSVersion)"
-    }
-    Write-StatusLine "  [OK]  PowerShell $($PSVersionTable.PSVersion)" -ForegroundColor Green
-
-    try {
-        $feature = Get-WindowsOptionalFeature -FeatureName 'Containers-DisposableClientVM' -Online -ErrorAction Stop
-        if ($feature.State -ne 'Enabled') {
-            Write-Warning @'
-Windows Sandbox is not enabled.
-Run the following as Administrator and reboot:
-  Enable-WindowsOptionalFeature -FeatureName Containers-DisposableClientVM -Online
-'@
-            exit 1
+    foreach ($check in (Test-SandboxHostPrerequisite -SkipPrereqCheck:$SkipPrereqCheck)) {
+        switch ($check.Status) {
+            'PASS' {
+                Write-StatusLine "  [OK]  $($check.Message)" -ForegroundColor Green
+            }
+            'WARN' {
+                Write-Warning $check.Message
+                if ($check.Remediation) {
+                    Write-Warning $check.Remediation
+                }
+            }
+            'FAIL' {
+                Write-Error $check.Message
+                if ($check.Remediation) {
+                    Write-StatusLine "  Remediation: $($check.Remediation)" -ForegroundColor Yellow
+                }
+                exit 1
+            }
         }
-        Write-StatusLine '  [OK]  Windows Sandbox feature is enabled.' -ForegroundColor Green
-    } catch {
-        # CommandNotFoundException: running in a non-Windows or limited environment.
-        # Access-denied: script was not run as Administrator.
-        Write-Warning "Could not verify Windows Sandbox feature: $($_.Exception.Message)"
-        Write-Warning 'Continuing anyway -- use -SkipPrereqCheck to suppress this warning.'
     }
-
     Write-StatusLine ''
 }
 
