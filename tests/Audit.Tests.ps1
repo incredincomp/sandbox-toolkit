@@ -37,10 +37,13 @@ Describe 'Invoke-SandboxArtifactAudit' {
                 -RepoRoot $repoRoot `
                 -Selection $selection `
                 -NetworkingMode (Get-SandboxNetworkingMode -SandboxProfile $selection.BaseProfile) `
+                -HostInteractionPolicy (Get-SandboxHostInteractionPolicy) `
                 -Artifacts $artifacts
 
             $result.HasFailures | Should Be $false
             @($result.Checks | Where-Object { $_.Name -eq 'wsb-networking' -and $_.Status -eq 'PASS' }).Count | Should Be 1
+            @($result.Checks | Where-Object { $_.Name -eq 'wsb-clipboard-redirection' -and $_.Status -eq 'PASS' }).Count | Should Be 1
+            @($result.Checks | Where-Object { $_.Name -eq 'wsb-audio-input' -and $_.Status -eq 'PASS' }).Count | Should Be 1
             @($result.Checks | Where-Object { $_.Name -eq 'install-manifest-artifact' -and $_.Status -eq 'PASS' }).Count | Should Be 1
             @($result.Checks | Where-Object { $_.Name -eq 'wsb-scripts-mapping' -and $_.Status -eq 'PASS' }).Count | Should Be 1
         } finally {
@@ -71,6 +74,7 @@ Describe 'Invoke-SandboxArtifactAudit' {
                 -RepoRoot $repoRoot `
                 -Selection $selection `
                 -NetworkingMode 'Disable' `
+                -HostInteractionPolicy (Get-SandboxHostInteractionPolicy) `
                 -Artifacts $artifacts
 
             $result.HasFailures | Should Be $true
@@ -103,6 +107,7 @@ Describe 'Invoke-SandboxArtifactAudit' {
                 -RepoRoot $repoRoot `
                 -Selection $selection `
                 -NetworkingMode (Get-SandboxNetworkingMode -SandboxProfile $selection.BaseProfile) `
+                -HostInteractionPolicy (Get-SandboxHostInteractionPolicy) `
                 -Artifacts $artifacts `
                 -SharedHostFolder $sharedRoot `
                 -SharedFolderWritable
@@ -133,11 +138,45 @@ Describe 'Invoke-SandboxArtifactAudit' {
                 -RepoRoot $repoRoot `
                 -Selection $selection `
                 -NetworkingMode (Get-SandboxNetworkingMode -SandboxProfile $selection.BaseProfile) `
+                -HostInteractionPolicy (Get-SandboxHostInteractionPolicy) `
                 -Artifacts $artifacts
 
             $networkingMessage = (@($result.Checks | Where-Object { $_.Name -eq 'wsb-networking' })[0]).Message
             $networkingMessage | Should Match 'configured/requested'
             $networkingMessage | Should Match 'not runtime-verified'
+        } finally {
+            if (Test-Path -LiteralPath $tempRoot) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
+    It 'passes when startup command emission is intentionally suppressed' {
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("sandbox-toolkit-audit-tests-" + [guid]::NewGuid().ToString())
+        New-Item -ItemType Directory -Path $tempRoot -Force | Out-Null
+
+        try {
+            $manifest = Import-ToolManifest -ManifestPath (Join-Path $repoRoot 'tools.json')
+            $selection = Resolve-SandboxSessionSelection -Manifest $manifest -SandboxProfile 'minimal'
+            $policy = Get-SandboxHostInteractionPolicy -DisableStartupCommands
+            $artifacts = Invoke-SandboxSessionArtifactGeneration `
+                -RepoRoot $repoRoot `
+                -SandboxProfile $selection.BaseProfile `
+                -Tools $selection.Tools `
+                -InstallManifestPath (Join-Path $tempRoot 'install-manifest.json') `
+                -WsbPath (Join-Path $tempRoot 'sandbox.wsb') `
+                -HostInteractionPolicy $policy
+
+            $result = Invoke-SandboxArtifactAudit `
+                -RepoRoot $repoRoot `
+                -Selection $selection `
+                -NetworkingMode (Get-SandboxNetworkingMode -SandboxProfile $selection.BaseProfile) `
+                -HostInteractionPolicy $policy `
+                -Artifacts $artifacts
+
+            @($result.Checks | Where-Object { $_.Name -eq 'wsb-logon-command' -and $_.Status -eq 'PASS' }).Count | Should Be 1
+            $logonCheck = @($result.Checks | Where-Object { $_.Name -eq 'wsb-logon-command' })[0]
+            $logonCheck.Message | Should Match 'omitted'
         } finally {
             if (Test-Path -LiteralPath $tempRoot) {
                 Remove-Item -LiteralPath $tempRoot -Recurse -Force

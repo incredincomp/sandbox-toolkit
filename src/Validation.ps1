@@ -213,6 +213,36 @@ function Test-SandboxSharedFolderReadiness {
     }
 }
 
+function Test-SandboxHostInteractionPolicyReadiness {
+    <#
+    .SYNOPSIS
+        Reports readiness implications for requested host-interaction policy.
+    #>
+    param(
+        [Parameter(Mandatory)][PSCustomObject]$HostInteractionPolicy
+    )
+
+    $checks = [System.Collections.Generic.List[object]]::new()
+
+    $checks.Add((Get-SandboxValidationCheck `
+        -Name 'host-interaction-policy' `
+        -Status 'PASS' `
+        -Message ("Host-interaction policy resolved: clipboard={0}; audio_input={1}; startup_commands_enabled={2}." -f `
+                $HostInteractionPolicy.ClipboardRedirection, `
+                $HostInteractionPolicy.AudioInput, `
+                $HostInteractionPolicy.StartupCommandsEnabled)))
+
+    if (-not $HostInteractionPolicy.StartupCommandsEnabled) {
+        $checks.Add((Get-SandboxValidationCheck `
+            -Name 'startup-command-automation' `
+            -Status 'WARN' `
+            -Message 'Startup command injection is disabled; automatic in-sandbox setup via scripts/autostart.cmd will not run.' `
+            -Remediation 'Use this only when you intentionally want to suppress autostart automation.'))
+    }
+
+    return @($checks)
+}
+
 function Invoke-SandboxPreflightValidation {
     <#
     .SYNOPSIS
@@ -229,7 +259,8 @@ function Invoke-SandboxPreflightValidation {
         [string]$SharedFolder,
         [switch]$UseDefaultSharedFolder,
         [switch]$SharedFolderWritable,
-        [switch]$SharedFolderValidationDiagnostics
+        [switch]$SharedFolderValidationDiagnostics,
+        [Parameter(Mandatory)][PSCustomObject]$HostInteractionPolicy
     )
 
     $checks = [System.Collections.Generic.List[object]]::new()
@@ -253,6 +284,9 @@ function Invoke-SandboxPreflightValidation {
         -SharedFolderWritable:$SharedFolderWritable `
         -SharedFolderValidationDiagnostics:$SharedFolderValidationDiagnostics
     $checks.Add($sharedFolderResult.Check)
+    foreach ($policyCheck in (Test-SandboxHostInteractionPolicyReadiness -HostInteractionPolicy $HostInteractionPolicy)) {
+        $checks.Add($policyCheck)
+    }
 
     $hasFailures = @($checks | Where-Object { $_.Status -eq 'FAIL' }).Count -gt 0
     $hasWarnings = @($checks | Where-Object { $_.Status -eq 'WARN' }).Count -gt 0
@@ -265,6 +299,7 @@ function Invoke-SandboxPreflightValidation {
         NetworkingMode = $selectionResult.NetworkingMode
         SharedHostFolder = $sharedFolderResult.ResolvedSharedFolder
         SharedFolderWritable = $sharedFolderResult.SharedFolderWritable
+        HostInteractionPolicy = $HostInteractionPolicy
     }
 }
 

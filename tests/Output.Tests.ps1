@@ -21,12 +21,21 @@ Describe 'Get-SandboxValidateJsonResult' {
             -SandboxProfile 'minimal' `
             -ExitCode 0 `
             -SkipPrereqCheck `
-            -SharedFolder 'C:\Lab\Ingress'
+            -SharedFolder 'C:\Lab\Ingress' `
+            -HostInteractionPolicy ([pscustomobject]@{
+                RequestedDisableClipboard = $false
+                RequestedDisableAudioInput = $false
+                RequestedDisableStartupCommands = $false
+                ClipboardRedirection = 'Enable'
+                AudioInput = 'Disable'
+                StartupCommandsEnabled = $true
+            })
 
         $jsonObject.overall_status | Should Be 'WARN'
         $jsonObject.exit_code | Should Be 0
         $jsonObject.checks.Count | Should Be 2
         $jsonObject.profile.selected | Should Be 'minimal'
+        $jsonObject.context.host_interaction_effective.clipboard_redirection | Should Be 'Enable'
     }
 }
 
@@ -57,11 +66,21 @@ Describe 'Get-SandboxDryRunJsonResult' {
             -NetworkingMode 'Disable' `
             -SetupState @([pscustomobject]@{ id = 'floss'; cached = $false }) `
             -Artifacts $artifacts `
-            -SkipPrereqCheck
+            -SkipPrereqCheck `
+            -HostInteractionPolicy ([pscustomobject]@{
+                RequestedDisableClipboard = $true
+                RequestedDisableAudioInput = $false
+                RequestedDisableStartupCommands = $true
+                ClipboardRedirection = 'Disable'
+                AudioInput = 'Disable'
+                StartupCommandsEnabled = $false
+            })
 
         $result.command.mode | Should Be 'dry-run'
         $result.profile.resolved_type | Should Be 'custom'
         $result.effective.tools.Count | Should Be 1
+        $result.effective.host_interaction.clipboard_redirection | Should Be 'Disable'
+        $result.effective.host_interaction.startup_commands_enabled | Should Be $false
         $result.stages.download.skipped | Should Be $true
         $result.stages.launch.skipped | Should Be $true
     }
@@ -101,7 +120,15 @@ Describe 'Get-SandboxAuditJsonResult' {
             -NetworkingMode 'Disable' `
             -Artifacts $artifacts `
             -ExitCode 0 `
-            -SharedFolder 'C:\Lab\Ingress'
+            -SharedFolder 'C:\Lab\Ingress' `
+            -HostInteractionPolicy ([pscustomobject]@{
+                RequestedDisableClipboard = $true
+                RequestedDisableAudioInput = $true
+                RequestedDisableStartupCommands = $false
+                ClipboardRedirection = 'Disable'
+                AudioInput = 'Disable'
+                StartupCommandsEnabled = $true
+            })
 
         $result.command.mode | Should Be 'audit'
         $result.overall_status | Should Be 'WARN'
@@ -119,6 +146,7 @@ Describe 'Get-SandboxAuditJsonResult' {
         (($topLevel -contains 'checks')) | Should Be $true
         (($topLevel -contains 'context')) | Should Be $true
         $result.effective.networking_requested | Should Be 'Disable'
+        $result.effective.host_interaction_requested.clipboard_redirection | Should Be 'Disable'
         $result.context.runtime_verification | Should Be 'not_performed'
         $result.checks.Count | Should Be 2
         @($result.checks | Where-Object { $_.id -eq 'wsb-shared-folder' -and $_.status -eq 'WARN' }).Count | Should Be 1
@@ -153,7 +181,15 @@ Describe 'Get-SandboxAuditJsonResult' {
             -Selection $selection `
             -NetworkingMode 'Disable' `
             -Artifacts $artifacts `
-            -ExitCode 1
+            -ExitCode 1 `
+            -HostInteractionPolicy ([pscustomobject]@{
+                RequestedDisableClipboard = $false
+                RequestedDisableAudioInput = $false
+                RequestedDisableStartupCommands = $false
+                ClipboardRedirection = 'Enable'
+                AudioInput = 'Disable'
+                StartupCommandsEnabled = $true
+            })
 
         $result.overall_status | Should Be 'FAIL'
         $result.exit_code | Should Be 1

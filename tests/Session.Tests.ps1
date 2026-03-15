@@ -4,6 +4,17 @@ $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Path $PSScriptRoot -Parent
 . (Join-Path $repoRoot 'src\Manifest.ps1')
 . (Join-Path $repoRoot 'src\Session.ps1')
+. (Join-Path $repoRoot 'src\SandboxConfig.ps1')
+
+function Write-StatusLine {
+    param(
+        [Parameter(Mandatory)][AllowEmptyString()][string]$Message,
+        [ConsoleColor]$ForegroundColor = [ConsoleColor]::White
+    )
+
+    $null = $Message
+    $null = $ForegroundColor
+}
 
 Describe 'Get-SandboxSessionManifestData' {
     It 'returns expected profile and tools payload' {
@@ -116,5 +127,34 @@ Describe 'Resolve-SandboxEffectiveToolSelection' {
 
         $tools = Resolve-SandboxEffectiveToolSelection -Manifest $manifest -ToolIds @('c', 'a', 'a')
         ($tools | Select-Object -ExpandProperty id) -join ',' | Should Be 'a,c'
+    }
+}
+
+Describe 'Invoke-SandboxSessionArtifactGeneration' {
+    It 'writes host-interaction policy settings into generated sandbox.wsb' {
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("sandbox-toolkit-session-artifacts-" + [guid]::NewGuid().ToString())
+        New-Item -ItemType Directory -Path $tempRoot -Force | Out-Null
+
+        try {
+            $manifest = Import-ToolManifest -ManifestPath (Join-Path $repoRoot 'tools.json')
+            $selection = Resolve-SandboxSessionSelection -Manifest $manifest -SandboxProfile 'minimal'
+            $policy = Get-SandboxHostInteractionPolicy -DisableClipboard -DisableStartupCommands
+            $artifacts = Invoke-SandboxSessionArtifactGeneration `
+                -RepoRoot $repoRoot `
+                -SandboxProfile $selection.BaseProfile `
+                -Tools $selection.Tools `
+                -InstallManifestPath (Join-Path $tempRoot 'install-manifest.json') `
+                -WsbPath (Join-Path $tempRoot 'sandbox.wsb') `
+                -HostInteractionPolicy $policy
+
+            $wsb = [xml](Get-Content -Raw -Path $artifacts.WsbPath)
+            [string]$wsb.Configuration.ClipboardRedirection | Should Be 'Disable'
+            [string]$wsb.Configuration.AudioInput | Should Be 'Disable'
+            ($wsb.Configuration.PSObject.Properties['LogonCommand']) | Should BeNullOrEmpty
+        } finally {
+            if (Test-Path -LiteralPath $tempRoot) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
     }
 }

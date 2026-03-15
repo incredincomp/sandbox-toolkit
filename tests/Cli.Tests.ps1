@@ -52,6 +52,12 @@ Describe 'Resolve-StartSandboxCommandMode' {
         $message | Should Match 'Shared-folder options cannot be combined'
     }
 
+    It 'rejects host-interaction policy options with list mode' {
+        $message = Get-ErrorMessage { Resolve-StartSandboxCommandMode -ListTools:$true -DisableClipboard:$true }
+        $message | Should Not BeNullOrEmpty
+        $message | Should Match 'Host-interaction policy options cannot be combined'
+    }
+
     It 'rejects -Force with -DryRun' {
         $message = Get-ErrorMessage { Resolve-StartSandboxCommandMode -DryRun:$true -Force:$true }
         $message | Should Not BeNullOrEmpty
@@ -128,6 +134,12 @@ Describe 'Resolve-StartSandboxCommandMode' {
         $message = Get-ErrorMessage { Resolve-StartSandboxCommandMode -CleanDownloads:$true -OutputJson:$true }
         $message | Should Not BeNullOrEmpty
         $message | Should Match '-OutputJson cannot be combined with -CleanDownloads'
+    }
+
+    It 'rejects host-interaction policy options with clean mode' {
+        $message = Get-ErrorMessage { Resolve-StartSandboxCommandMode -CleanDownloads:$true -DisableStartupCommands:$true }
+        $message | Should Not BeNullOrEmpty
+        $message | Should Match 'Host-interaction policy options cannot be combined'
     }
 
     It 'keeps existing dry-run mode unaffected' {

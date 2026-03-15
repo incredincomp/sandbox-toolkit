@@ -32,7 +32,8 @@ function Get-SandboxValidateJsonResult {
         [Parameter(Mandatory)][int]$ExitCode,
         [switch]$SkipPrereqCheck,
         [string]$SharedFolder,
-        [switch]$UseDefaultSharedFolder
+        [switch]$UseDefaultSharedFolder,
+        [PSCustomObject]$HostInteractionPolicy
     )
 
     return [ordered]@{
@@ -61,6 +62,16 @@ function Get-SandboxValidateJsonResult {
             requested_shared_folder = if ($UseDefaultSharedFolder) { 'default' } else { $SharedFolder }
             resolved_shared_folder  = $PreflightResult.SharedHostFolder
             shared_folder_writable  = [bool]$PreflightResult.SharedFolderWritable
+            host_interaction_requested = [ordered]@{
+                disable_clipboard = [bool]$HostInteractionPolicy.RequestedDisableClipboard
+                disable_audio_input = [bool]$HostInteractionPolicy.RequestedDisableAudioInput
+                disable_startup_commands = [bool]$HostInteractionPolicy.RequestedDisableStartupCommands
+            }
+            host_interaction_effective = [ordered]@{
+                clipboard_redirection = $HostInteractionPolicy.ClipboardRedirection
+                audio_input = $HostInteractionPolicy.AudioInput
+                startup_commands_enabled = [bool]$HostInteractionPolicy.StartupCommandsEnabled
+            }
         }
     }
 }
@@ -80,7 +91,8 @@ function Get-SandboxDryRunJsonResult {
         [string]$SharedFolder,
         [switch]$UseDefaultSharedFolder,
         [string]$ResolvedSharedFolder,
-        [switch]$SharedFolderWritable
+        [switch]$SharedFolderWritable,
+        [Parameter(Mandatory)][PSCustomObject]$HostInteractionPolicy
     )
 
     return [ordered]@{
@@ -98,6 +110,11 @@ function Get-SandboxDryRunJsonResult {
         }
         effective = [ordered]@{
             networking = $NetworkingMode
+            host_interaction = [ordered]@{
+                clipboard_redirection = $HostInteractionPolicy.ClipboardRedirection
+                audio_input = $HostInteractionPolicy.AudioInput
+                startup_commands_enabled = [bool]$HostInteractionPolicy.StartupCommandsEnabled
+            }
             tools = @(
                 $Selection.Tools | ForEach-Object {
                     [ordered]@{
@@ -132,6 +149,11 @@ function Get-SandboxDryRunJsonResult {
             requested_shared_folder = if ($UseDefaultSharedFolder) { 'default' } else { $SharedFolder }
             resolved_shared_folder = $ResolvedSharedFolder
             shared_folder_writable = [bool]$SharedFolderWritable
+            host_interaction_requested = [ordered]@{
+                disable_clipboard = [bool]$HostInteractionPolicy.RequestedDisableClipboard
+                disable_audio_input = [bool]$HostInteractionPolicy.RequestedDisableAudioInput
+                disable_startup_commands = [bool]$HostInteractionPolicy.RequestedDisableStartupCommands
+            }
         }
     }
 }
@@ -151,7 +173,8 @@ function Get-SandboxAuditJsonResult {
         [string]$SharedFolder,
         [switch]$UseDefaultSharedFolder,
         [string]$ResolvedSharedFolder,
-        [switch]$SharedFolderWritable
+        [switch]$SharedFolderWritable,
+        [Parameter(Mandatory)][PSCustomObject]$HostInteractionPolicy
     )
 
     return [ordered]@{
@@ -171,6 +194,11 @@ function Get-SandboxAuditJsonResult {
         }
         effective = [ordered]@{
             networking_requested = $NetworkingMode
+            host_interaction_requested = [ordered]@{
+                clipboard_redirection = $HostInteractionPolicy.ClipboardRedirection
+                audio_input = $HostInteractionPolicy.AudioInput
+                startup_commands_enabled = [bool]$HostInteractionPolicy.StartupCommandsEnabled
+            }
             tools = @(
                 $Selection.Tools | ForEach-Object {
                     [ordered]@{
@@ -202,6 +230,11 @@ function Get-SandboxAuditJsonResult {
             resolved_shared_folder = $ResolvedSharedFolder
             shared_folder_writable = [bool]$SharedFolderWritable
             runtime_verification = 'not_performed'
+            host_interaction_requested = [ordered]@{
+                disable_clipboard = [bool]$HostInteractionPolicy.RequestedDisableClipboard
+                disable_audio_input = [bool]$HostInteractionPolicy.RequestedDisableAudioInput
+                disable_startup_commands = [bool]$HostInteractionPolicy.RequestedDisableStartupCommands
+            }
         }
     }
 }

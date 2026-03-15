@@ -74,6 +74,17 @@
     Emit verbose diagnostics for shared-folder ancestry checks.
     Helpful for troubleshooting reparse/junction validation failures.
 
+.PARAMETER DisableClipboard
+    Request `<ClipboardRedirection>Disable</ClipboardRedirection>` in generated sandbox.wsb.
+
+.PARAMETER DisableAudioInput
+    Request audio input disabled in generated sandbox.wsb.
+    Audio input is already disabled by default; this switch is explicit and idempotent.
+
+.PARAMETER DisableStartupCommands
+    Suppress generated `<LogonCommand>` startup automation in sandbox.wsb.
+    When set, scripts/autostart.cmd is not auto-invoked on sandbox startup.
+
 .EXAMPLE
     .\Start-Sandbox.ps1
     # Downloads tools for the default 'reverse-engineering' profile and launches.
@@ -119,8 +130,12 @@
     # Re-downloads all network-analysis tools and launches.
 
 .EXAMPLE
-    .\Start-Sandbox.ps1 -UseDefaultSharedFolder
+.\Start-Sandbox.ps1 -UseDefaultSharedFolder
     # Maps .\shared into sandbox at Desktop\shared (read-only by default).
+
+.EXAMPLE
+.\Start-Sandbox.ps1 -DryRun -Profile minimal -DisableClipboard -DisableStartupCommands
+    # Previews artifact generation with tighter host-interaction policy settings.
 
 .LINK
     QUICKSTART.md, PROFILES.md, SAFETY.md
@@ -146,7 +161,10 @@ param(
     [string]$SharedFolder,
     [switch]$UseDefaultSharedFolder,
     [switch]$SharedFolderWritable,
-    [switch]$SharedFolderValidationDiagnostics
+    [switch]$SharedFolderValidationDiagnostics,
+    [switch]$DisableClipboard,
+    [switch]$DisableAudioInput,
+    [switch]$DisableStartupCommands
 )
 
 Set-StrictMode -Version Latest
@@ -201,9 +219,16 @@ $commandMode = Resolve-StartSandboxCommandMode `
     -UseDefaultSharedFolder:$UseDefaultSharedFolder `
     -SharedFolderWritable:$SharedFolderWritable `
     -SharedFolderValidationDiagnostics:$SharedFolderValidationDiagnostics `
+    -DisableClipboard:$DisableClipboard `
+    -DisableAudioInput:$DisableAudioInput `
+    -DisableStartupCommands:$DisableStartupCommands `
     -ExplicitSandboxProfile:$($PSBoundParameters.ContainsKey('SandboxProfile'))
 $modePlan = Get-StartSandboxModePlan -CommandMode $commandMode
 $script:EmitHumanOutput = -not $OutputJson
+$hostInteractionPolicy = Get-SandboxHostInteractionPolicy `
+    -DisableClipboard:$DisableClipboard `
+    -DisableAudioInput:$DisableAudioInput `
+    -DisableStartupCommands:$DisableStartupCommands
 
 $setupState = @()
 $artifacts = $null
@@ -315,7 +340,8 @@ if ($commandMode -eq 'Validate') {
         -SharedFolder $SharedFolder `
         -UseDefaultSharedFolder:$UseDefaultSharedFolder `
         -SharedFolderWritable:$SharedFolderWritable `
-        -SharedFolderValidationDiagnostics:$SharedFolderValidationDiagnostics
+        -SharedFolderValidationDiagnostics:$SharedFolderValidationDiagnostics `
+        -HostInteractionPolicy $hostInteractionPolicy
 
     $validationExitCode = Get-SandboxValidationExitCode -PreflightResult $preflightResult
     if ($OutputJson) {
@@ -325,7 +351,8 @@ if ($commandMode -eq 'Validate') {
             -ExitCode $validationExitCode `
             -SkipPrereqCheck:$SkipPrereqCheck `
             -SharedFolder $SharedFolder `
-            -UseDefaultSharedFolder:$UseDefaultSharedFolder
+            -UseDefaultSharedFolder:$UseDefaultSharedFolder `
+            -HostInteractionPolicy $hostInteractionPolicy
         Write-SandboxJsonOutput -Data $validateJsonResult
     } else {
         Write-SandboxPreflightReport -PreflightResult $preflightResult
@@ -390,7 +417,8 @@ if ($modePlan.CheckPrerequisites) {
                             -ExitCode 1 `
                             -SkipPrereqCheck:$SkipPrereqCheck `
                             -SharedFolder $SharedFolder `
-                            -UseDefaultSharedFolder:$UseDefaultSharedFolder
+                            -UseDefaultSharedFolder:$UseDefaultSharedFolder `
+                            -HostInteractionPolicy $hostInteractionPolicy
                         Write-SandboxJsonOutput -Data $validateJsonResult
                     }
                 } else {
@@ -443,6 +471,10 @@ if ($selection.RuntimeRemoveTools.Count -gt 0) {
     Write-StatusLine "        Runtime remove: $($selection.RuntimeRemoveTools -join ', ')" -ForegroundColor DarkGray
 }
 Write-StatusLine "        Networking: $networkingMode" -ForegroundColor DarkGray
+Write-StatusLine ("        Host interaction: clipboard={0}; audio_input={1}; startup_commands_enabled={2}" -f `
+        $hostInteractionPolicy.ClipboardRedirection, `
+        $hostInteractionPolicy.AudioInput, `
+        $hostInteractionPolicy.StartupCommandsEnabled) -ForegroundColor DarkGray
 $tools | ForEach-Object {
     $tag = if ($_.installer_type -eq 'manual') { '  [manual]' } else { '' }
     Write-StatusLine "        * $($_.display_name)$tag" -ForegroundColor DarkGray
@@ -492,7 +524,8 @@ $artifacts = Invoke-SandboxSessionArtifactGeneration `
     -InstallManifestPath $installManifestPath `
     -WsbPath $wsbPath `
     -SharedHostFolder $resolvedSharedFolder `
-    -SharedFolderWritable:$SharedFolderWritable
+    -SharedFolderWritable:$SharedFolderWritable `
+    -HostInteractionPolicy $hostInteractionPolicy
 
 Write-StatusLine "  [OK]  Install manifest: $($artifacts.InstallManifestPath)" -ForegroundColor Green
 Write-StatusLine "  [OK]  Sandbox config: $($artifacts.WsbPath)" -ForegroundColor Green
@@ -510,6 +543,7 @@ if ($commandMode -eq 'Audit') {
         -RepoRoot $repoRoot `
         -Selection $selection `
         -NetworkingMode $networkingMode `
+        -HostInteractionPolicy $hostInteractionPolicy `
         -Artifacts $artifacts `
         -SharedHostFolder $resolvedSharedFolder `
         -SharedFolderWritable:$SharedFolderWritable `
@@ -528,7 +562,8 @@ if ($commandMode -eq 'Audit') {
             -SharedFolder $SharedFolder `
             -UseDefaultSharedFolder:$UseDefaultSharedFolder `
             -ResolvedSharedFolder $resolvedSharedFolder `
-            -SharedFolderWritable:$SharedFolderWritable
+            -SharedFolderWritable:$SharedFolderWritable `
+            -HostInteractionPolicy $hostInteractionPolicy
         Write-SandboxJsonOutput -Data $auditJsonResult
     } else {
         Write-SandboxAuditReport -AuditResult $auditResult
@@ -572,7 +607,8 @@ if ($OutputJson -and $commandMode -eq 'DryRun') {
         -SharedFolder $SharedFolder `
         -UseDefaultSharedFolder:$UseDefaultSharedFolder `
         -ResolvedSharedFolder $resolvedSharedFolder `
-        -SharedFolderWritable:$SharedFolderWritable
+        -SharedFolderWritable:$SharedFolderWritable `
+        -HostInteractionPolicy $hostInteractionPolicy
     Write-SandboxJsonOutput -Data $dryRunJsonResult
 }
 

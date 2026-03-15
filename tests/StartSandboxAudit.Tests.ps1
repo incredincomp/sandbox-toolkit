@@ -102,11 +102,31 @@ Describe 'Start-Sandbox audit mode' {
             (($result.Json.checks | Where-Object { $_.id -eq 'wsb-shared-folder' -and $_.status -eq 'WARN' }).Count) | Should Be 1
             (($result.Json.checks | Where-Object { $_.id -eq 'wsb-networking' })[0].summary) | Should Match 'configured/requested'
             (($result.Json.checks | Where-Object { $_.id -eq 'wsb-networking' })[0].summary) | Should Match 'not runtime-verified'
+            (($result.Json.checks | Where-Object { $_.id -eq 'wsb-clipboard-redirection' -and $_.status -eq 'PASS' }).Count) | Should Be 1
+            (($result.Json.checks | Where-Object { $_.id -eq 'wsb-audio-input' -and $_.status -eq 'PASS' }).Count) | Should Be 1
+            $result.Json.effective.host_interaction_requested.clipboard_redirection | Should Be 'Enable'
         } finally {
             if (Test-Path -LiteralPath $tempRoot) {
                 Remove-Item -LiteralPath $tempRoot -Recurse -Force
             }
         }
+    }
+
+    It 'reflects startup-command suppression request in audit checks and JSON' {
+        $result = Invoke-StartSandboxAuditJson -Arguments @(
+            '-Audit',
+            '-SkipPrereqCheck',
+            '-OutputJson',
+            '-Profile', 'minimal',
+            '-DisableStartupCommands',
+            '-DisableClipboard'
+        )
+
+        $result.ExitCode | Should Be 0
+        (($result.Json.checks | Where-Object { $_.id -eq 'wsb-logon-command' -and $_.status -eq 'PASS' }).Count) | Should Be 1
+        (($result.Json.checks | Where-Object { $_.id -eq 'wsb-logon-command' })[0].summary) | Should Match 'omitted'
+        $result.Json.effective.host_interaction_requested.startup_commands_enabled | Should Be $false
+        $result.Json.effective.host_interaction_requested.clipboard_redirection | Should Be 'Disable'
     }
 
     It 'rejects incompatible mode combinations for audit mode' {

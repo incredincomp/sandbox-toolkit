@@ -94,7 +94,8 @@ Describe 'Invoke-SandboxPreflightValidation' {
             -CustomProfilePath (Join-Path $fixtureDir 'custom-profiles.valid.json') `
             -SandboxProfile 'minimal' `
             -AddTools @('ghidra') `
-            -RemoveTools @('notepadpp')
+            -RemoveTools @('notepadpp') `
+            -HostInteractionPolicy (Get-SandboxHostInteractionPolicy)
 
         $result.HasFailures | Should Be $false
         (@($result.Checks | Where-Object { $_.Status -eq 'PASS' }).Count) | Should BeGreaterThan 0
@@ -108,10 +109,21 @@ Describe 'Invoke-SandboxPreflightValidation' {
             -ManifestPath $missingManifest `
             -CustomProfilePath (Join-Path $fixtureDir 'custom-profiles.valid.json') `
             -SandboxProfile 'minimal' `
-            -SkipPrereqCheck
+            -SkipPrereqCheck `
+            -HostInteractionPolicy (Get-SandboxHostInteractionPolicy)
 
         $result.HasFailures | Should Be $true
         (@($result.Checks | Where-Object { $_.Name -eq 'selection' -and $_.Status -eq 'FAIL' }).Count) | Should Be 1
+    }
+}
+
+Describe 'Test-SandboxHostInteractionPolicyReadiness' {
+    It 'returns warn when startup automation is explicitly disabled' {
+        $checks = Test-SandboxHostInteractionPolicyReadiness `
+            -HostInteractionPolicy (Get-SandboxHostInteractionPolicy -DisableStartupCommands)
+
+        @($checks | Where-Object { $_.Name -eq 'host-interaction-policy' -and $_.Status -eq 'PASS' }).Count | Should Be 1
+        @($checks | Where-Object { $_.Name -eq 'startup-command-automation' -and $_.Status -eq 'WARN' }).Count | Should Be 1
     }
 }
 

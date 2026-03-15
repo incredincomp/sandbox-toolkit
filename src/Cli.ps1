@@ -23,6 +23,9 @@ function Resolve-StartSandboxCommandMode {
         [switch]$UseDefaultSharedFolder,
         [switch]$SharedFolderWritable,
         [switch]$SharedFolderValidationDiagnostics,
+        [switch]$DisableClipboard,
+        [switch]$DisableAudioInput,
+        [switch]$DisableStartupCommands,
         [switch]$ExplicitSandboxProfile
     )
 
@@ -57,6 +60,9 @@ function Resolve-StartSandboxCommandMode {
         if ($SharedFolder -or $UseDefaultSharedFolder -or $SharedFolderWritable -or $SharedFolderValidationDiagnostics) {
             throw "Shared-folder options cannot be combined with -CleanDownloads."
         }
+        if ($DisableClipboard -or $DisableAudioInput -or $DisableStartupCommands) {
+            throw "Host-interaction policy options cannot be combined with -CleanDownloads."
+        }
         if ($ExplicitSandboxProfile) {
             throw "-SandboxProfile cannot be specified with -CleanDownloads."
         }
@@ -78,6 +84,9 @@ function Resolve-StartSandboxCommandMode {
         }
         if ($SharedFolder -or $UseDefaultSharedFolder -or $SharedFolderWritable -or $SharedFolderValidationDiagnostics) {
             throw "Shared-folder options cannot be combined with -ListTools or -ListProfiles."
+        }
+        if ($DisableClipboard -or $DisableAudioInput -or $DisableStartupCommands) {
+            throw "Host-interaction policy options cannot be combined with -ListTools or -ListProfiles."
         }
         if ($AddTools -or $RemoveTools) {
             throw "-AddTools and -RemoveTools cannot be combined with -ListTools or -ListProfiles."

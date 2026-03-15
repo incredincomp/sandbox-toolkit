@@ -88,7 +88,9 @@ Describe 'Start-Sandbox JSON output modes' {
             '-OutputJson',
             '-Profile', 'net-re-lite',
             '-AddTools', 'floss',
-            '-RemoveTools', 'pestudio'
+            '-RemoveTools', 'pestudio',
+            '-DisableClipboard',
+            '-DisableStartupCommands'
         )
 
         $result.ExitCode | Should Be 0
@@ -101,6 +103,9 @@ Describe 'Start-Sandbox JSON output modes' {
         (($result.Json.effective.tools | Select-Object -ExpandProperty id) -contains 'wireshark') | Should Be $true
         (($result.Json.effective.tools | Select-Object -ExpandProperty id) -contains 'ghidra') | Should Be $false
         (($result.Json.effective.tools | Select-Object -ExpandProperty id) -contains 'pestudio') | Should Be $false
+        $result.Json.effective.host_interaction.clipboard_redirection | Should Be 'Disable'
+        $result.Json.effective.host_interaction.audio_input | Should Be 'Disable'
+        $result.Json.effective.host_interaction.startup_commands_enabled | Should Be $false
         $result.Json.stages.download.skipped | Should Be $true
         $result.Json.stages.launch.skipped | Should Be $true
     }

@@ -123,6 +123,7 @@ function Invoke-SandboxArtifactAudit {
         [Parameter(Mandatory)][string]$RepoRoot,
         [Parameter(Mandatory)][PSCustomObject]$Selection,
         [Parameter(Mandatory)][string]$NetworkingMode,
+        [Parameter(Mandatory)][PSCustomObject]$HostInteractionPolicy,
         [Parameter(Mandatory)][PSCustomObject]$Artifacts,
         [string]$SharedHostFolder,
         [switch]$SharedFolderWritable,
@@ -237,18 +238,65 @@ function Invoke-SandboxArtifactAudit {
                 -Remediation 'Inspect profile resolution and regenerate sandbox.wsb.'))
         }
 
-        $configuredLogonCommand = [string]$wsbXml.Configuration.LogonCommand.Command
-        if ($configuredLogonCommand -match 'autostart\.cmd$') {
+        $configuredClipboard = [string]$wsbXml.Configuration.ClipboardRedirection
+        if ($configuredClipboard -eq $HostInteractionPolicy.ClipboardRedirection) {
             $checks.Add((Get-SandboxAuditCheck `
-                -Name 'wsb-logon-command' `
+                -Name 'wsb-clipboard-redirection' `
                 -Status 'PASS' `
-                -Message "Logon command is present in generated artifact: '$configuredLogonCommand' (configured/requested, not runtime-verified)."))
+                -Message "Clipboard redirection setting '$configuredClipboard' is present in generated artifact as requested (configured/requested, not runtime-verified)."))
         } else {
             $checks.Add((Get-SandboxAuditCheck `
-                -Name 'wsb-logon-command' `
+                -Name 'wsb-clipboard-redirection' `
                 -Status 'FAIL' `
-                -Message "Generated artifact is missing expected startup command reference to autostart.cmd. Found: '$configuredLogonCommand'" `
-                -Remediation 'Regenerate sandbox.wsb and ensure scripts/autostart.cmd mapping remains intact.'))
+                -Message "Clipboard redirection mismatch in generated artifact: requested '$($HostInteractionPolicy.ClipboardRedirection)' but sandbox.wsb contains '$configuredClipboard'." `
+                -Remediation 'Regenerate sandbox.wsb and verify host-interaction policy selection path.'))
+        }
+
+        $configuredAudioInput = [string]$wsbXml.Configuration.AudioInput
+        if ($configuredAudioInput -eq $HostInteractionPolicy.AudioInput) {
+            $checks.Add((Get-SandboxAuditCheck `
+                -Name 'wsb-audio-input' `
+                -Status 'PASS' `
+                -Message "Audio input setting '$configuredAudioInput' is present in generated artifact as requested (configured/requested, not runtime-verified)."))
+        } else {
+            $checks.Add((Get-SandboxAuditCheck `
+                -Name 'wsb-audio-input' `
+                -Status 'FAIL' `
+                -Message "Audio input mismatch in generated artifact: requested '$($HostInteractionPolicy.AudioInput)' but sandbox.wsb contains '$configuredAudioInput'." `
+                -Remediation 'Regenerate sandbox.wsb and verify host-interaction policy selection path.'))
+        }
+
+        $logonCommandNode = Get-AuditObjectPropertyValue -InputObject $wsbXml.Configuration -PropertyName 'LogonCommand'
+        $configuredLogonCommand = ''
+        if ($logonCommandNode) {
+            $configuredLogonCommand = [string](Get-AuditObjectPropertyValue -InputObject $logonCommandNode -PropertyName 'Command')
+        }
+        if ($HostInteractionPolicy.StartupCommandsEnabled) {
+            if ($configuredLogonCommand -match 'autostart\.cmd$') {
+                $checks.Add((Get-SandboxAuditCheck `
+                    -Name 'wsb-logon-command' `
+                    -Status 'PASS' `
+                    -Message "Logon command is present in generated artifact: '$configuredLogonCommand' (configured/requested, not runtime-verified)."))
+            } else {
+                $checks.Add((Get-SandboxAuditCheck `
+                    -Name 'wsb-logon-command' `
+                    -Status 'FAIL' `
+                    -Message "Generated artifact is missing expected startup command reference to autostart.cmd. Found: '$configuredLogonCommand'" `
+                    -Remediation 'Regenerate sandbox.wsb and ensure scripts/autostart.cmd mapping remains intact.'))
+            }
+        } else {
+            if ([string]::IsNullOrWhiteSpace($configuredLogonCommand)) {
+                $checks.Add((Get-SandboxAuditCheck `
+                    -Name 'wsb-logon-command' `
+                    -Status 'PASS' `
+                    -Message 'Logon command block is omitted in generated artifact as requested (configured/requested, not runtime-verified).'))
+            } else {
+                $checks.Add((Get-SandboxAuditCheck `
+                    -Name 'wsb-logon-command' `
+                    -Status 'FAIL' `
+                    -Message "Startup command suppression was requested, but generated artifact still contains logon command '$configuredLogonCommand'." `
+                    -Remediation 'Regenerate sandbox.wsb and verify -DisableStartupCommands wiring.'))
+            }
         }
 
         $mappedFolders = @($wsbXml.Configuration.MappedFolders.MappedFolder)
