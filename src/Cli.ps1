@@ -11,6 +11,7 @@ function Resolve-StartSandboxCommandMode {
         [switch]$ListTools,
         [switch]$ListProfiles,
         [switch]$Validate,
+        [switch]$Audit,
         [switch]$DryRun,
         [switch]$Force,
         [switch]$NoLaunch,
@@ -31,6 +32,9 @@ function Resolve-StartSandboxCommandMode {
         }
         if ($Validate) {
             throw "-CleanDownloads cannot be combined with -Validate."
+        }
+        if ($Audit) {
+            throw "-CleanDownloads cannot be combined with -Audit."
         }
         if ($DryRun) {
             throw "-CleanDownloads cannot be combined with -DryRun."
@@ -63,6 +67,9 @@ function Resolve-StartSandboxCommandMode {
         if ($Validate) {
             throw "-Validate cannot be combined with -ListTools or -ListProfiles."
         }
+        if ($Audit) {
+            throw "-Audit cannot be combined with -ListTools or -ListProfiles."
+        }
         if ($DryRun) {
             throw "-DryRun cannot be combined with -ListTools or -ListProfiles."
         }
@@ -87,17 +94,29 @@ function Resolve-StartSandboxCommandMode {
     if ($Validate -and $DryRun) {
         throw "-Validate cannot be combined with -DryRun."
     }
+    if ($Validate -and $Audit) {
+        throw "-Validate cannot be combined with -Audit."
+    }
     if ($Validate -and $Force) {
         throw "-Force cannot be combined with -Validate."
     }
     if ($Validate -and $NoLaunch) {
         throw "-NoLaunch cannot be combined with -Validate."
     }
+    if ($Audit -and $DryRun) {
+        throw "-Audit cannot be combined with -DryRun."
+    }
+    if ($Audit -and $Force) {
+        throw "-Force cannot be combined with -Audit."
+    }
+    if ($Audit -and $NoLaunch) {
+        throw "-NoLaunch cannot be combined with -Audit."
+    }
     if ($OutputJson -and $ListTools -and $ListProfiles) {
         throw "-OutputJson cannot be combined with both -ListTools and -ListProfiles. Choose one list mode."
     }
-    if ($OutputJson -and -not ($Validate -or $DryRun -or $isListMode)) {
-        throw "-OutputJson is supported only with -Validate, -DryRun, -ListTools, or -ListProfiles."
+    if ($OutputJson -and -not ($Validate -or $Audit -or $DryRun -or $isListMode)) {
+        throw "-OutputJson is supported only with -Validate, -Audit, -DryRun, -ListTools, or -ListProfiles."
     }
 
     if ($CleanDownloads) {
@@ -108,6 +127,9 @@ function Resolve-StartSandboxCommandMode {
     }
     if ($Validate) {
         return 'Validate'
+    }
+    if ($Audit) {
+        return 'Audit'
     }
     if ($DryRun) {
         return 'DryRun'
@@ -121,7 +143,7 @@ function Get-StartSandboxModePlan {
         Returns stage execution flags for each command mode.
     #>
     param(
-        [Parameter(Mandatory)][ValidateSet('CleanDownloads', 'List', 'Validate', 'DryRun', 'Run')][string]$CommandMode
+        [Parameter(Mandatory)][ValidateSet('CleanDownloads', 'List', 'Validate', 'Audit', 'DryRun', 'Run')][string]$CommandMode
     )
 
     switch ($CommandMode) {
@@ -153,6 +175,15 @@ function Get-StartSandboxModePlan {
             }
         }
         'DryRun' {
+            return [pscustomobject]@{
+                CheckPrerequisites = $true
+                ResolveSharedFolder = $true
+                DownloadTools = $false
+                GenerateArtifacts = $true
+                LaunchSandbox = $false
+            }
+        }
+        'Audit' {
             return [pscustomobject]@{
                 CheckPrerequisites = $true
                 ResolveSharedFolder = $true

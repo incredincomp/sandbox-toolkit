@@ -67,6 +67,50 @@ Describe 'Get-SandboxDryRunJsonResult' {
     }
 }
 
+Describe 'Get-SandboxAuditJsonResult' {
+    It 'projects audit checks and effective request context to stable JSON fields' {
+        $selection = [pscustomobject]@{
+            Profile = 'minimal'
+            ProfileType = 'built-in'
+            BaseProfile = 'minimal'
+            RuntimeAddTools = @('wireshark')
+            RuntimeRemoveTools = @()
+            Tools = @(
+                [pscustomobject]@{
+                    id = 'wireshark'
+                    display_name = 'Wireshark'
+                    installer_type = 'exe'
+                    install_order = 70
+                }
+            )
+        }
+        $auditResult = [pscustomobject]@{
+            Checks = @(
+                [pscustomobject]@{ Name = 'wsb-networking'; Status = 'PASS'; Message = 'configured/requested'; Remediation = $null },
+                [pscustomobject]@{ Name = 'wsb-shared-folder'; Status = 'WARN'; Message = 'writable mapping'; Remediation = 'prefer read-only' }
+            )
+        }
+        $artifacts = [pscustomobject]@{
+            InstallManifestPath = 'C:\repo\scripts\install-manifest.json'
+            WsbPath = 'C:\repo\sandbox.wsb'
+        }
+
+        $result = Get-SandboxAuditJsonResult `
+            -AuditResult $auditResult `
+            -Selection $selection `
+            -NetworkingMode 'Disable' `
+            -Artifacts $artifacts `
+            -ExitCode 0 `
+            -SharedFolder 'C:\Lab\Ingress'
+
+        $result.command.mode | Should Be 'audit'
+        $result.overall_status | Should Be 'WARN'
+        $result.profile.selected | Should Be 'minimal'
+        $result.checks.Count | Should Be 2
+        @($result.checks | Where-Object { $_.id -eq 'wsb-shared-folder' -and $_.status -eq 'WARN' }).Count | Should Be 1
+    }
+}
+
 Describe 'Get-SandboxListToolsJsonResult' {
     It 'projects list-tools catalog entries to stable JSON fields' {
         $result = Get-SandboxListToolsJsonResult -Tools @(

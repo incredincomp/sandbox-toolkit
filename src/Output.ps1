@@ -136,6 +136,76 @@ function Get-SandboxDryRunJsonResult {
     }
 }
 
+function Get-SandboxAuditJsonResult {
+    <#
+    .SYNOPSIS
+        Projects audit execution state and checks into stable JSON contract shape.
+    #>
+    param(
+        [Parameter(Mandatory)][PSCustomObject]$AuditResult,
+        [Parameter(Mandatory)][PSCustomObject]$Selection,
+        [Parameter(Mandatory)][string]$NetworkingMode,
+        [Parameter(Mandatory)][PSCustomObject]$Artifacts,
+        [Parameter(Mandatory)][int]$ExitCode,
+        [switch]$SkipPrereqCheck,
+        [string]$SharedFolder,
+        [switch]$UseDefaultSharedFolder,
+        [string]$ResolvedSharedFolder,
+        [switch]$SharedFolderWritable
+    )
+
+    return [ordered]@{
+        command = [ordered]@{
+            mode = 'audit'
+        }
+        overall_status = Get-SandboxCheckStatusSummary -Checks $AuditResult.Checks
+        exit_code = $ExitCode
+        profile = [ordered]@{
+            selected = $Selection.Profile
+            resolved_type = $Selection.ProfileType
+            base_profile = $Selection.BaseProfile
+        }
+        overrides = [ordered]@{
+            add_tools = @($Selection.RuntimeAddTools)
+            remove_tools = @($Selection.RuntimeRemoveTools)
+        }
+        effective = [ordered]@{
+            networking_requested = $NetworkingMode
+            tools = @(
+                $Selection.Tools | ForEach-Object {
+                    [ordered]@{
+                        id = $_.id
+                        display_name = $_.display_name
+                        installer_type = $_.installer_type
+                        install_order = $_.install_order
+                    }
+                }
+            )
+        }
+        artifacts = [ordered]@{
+            install_manifest_path = $Artifacts.InstallManifestPath
+            wsb_path = $Artifacts.WsbPath
+        }
+        checks = @(
+            $AuditResult.Checks | ForEach-Object {
+                [ordered]@{
+                    id = $_.Name
+                    status = $_.Status
+                    summary = $_.Message
+                    remediation = $_.Remediation
+                }
+            }
+        )
+        context = [ordered]@{
+            skip_prereq_check = [bool]$SkipPrereqCheck
+            requested_shared_folder = if ($UseDefaultSharedFolder) { 'default' } else { $SharedFolder }
+            resolved_shared_folder = $ResolvedSharedFolder
+            shared_folder_writable = [bool]$SharedFolderWritable
+            runtime_verification = 'not_performed'
+        }
+    }
+}
+
 function Get-SandboxListToolsJsonResult {
     <#
     .SYNOPSIS

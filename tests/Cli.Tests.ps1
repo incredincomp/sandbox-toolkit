@@ -28,6 +28,10 @@ Describe 'Resolve-StartSandboxCommandMode' {
         Resolve-StartSandboxCommandMode -Validate | Should Be 'Validate'
     }
 
+    It 'returns Audit when -Audit is specified' {
+        Resolve-StartSandboxCommandMode -Audit | Should Be 'Audit'
+    }
+
     It 'returns List when -ListTools is specified' {
         Resolve-StartSandboxCommandMode -ListTools | Should Be 'List'
     }
@@ -72,6 +76,18 @@ Describe 'Resolve-StartSandboxCommandMode' {
         $message | Should Match '-NoLaunch cannot be combined with -Validate'
     }
 
+    It 'rejects -Audit with -DryRun' {
+        $message = Get-ErrorMessage { Resolve-StartSandboxCommandMode -Audit:$true -DryRun:$true }
+        $message | Should Not BeNullOrEmpty
+        $message | Should Match '-Audit cannot be combined with -DryRun'
+    }
+
+    It 'rejects -Audit with -NoLaunch' {
+        $message = Get-ErrorMessage { Resolve-StartSandboxCommandMode -Audit:$true -NoLaunch:$true }
+        $message | Should Not BeNullOrEmpty
+        $message | Should Match '-NoLaunch cannot be combined with -Audit'
+    }
+
     It 'rejects -AddTools with list mode' {
         $message = Get-ErrorMessage { Resolve-StartSandboxCommandMode -ListProfiles:$true -AddTools @('ghidra') }
         $message | Should Not BeNullOrEmpty
@@ -95,7 +111,11 @@ Describe 'Resolve-StartSandboxCommandMode' {
     It 'rejects -OutputJson without a JSON-capable mode' {
         $message = Get-ErrorMessage { Resolve-StartSandboxCommandMode -OutputJson:$true }
         $message | Should Not BeNullOrEmpty
-        $message | Should Match '-OutputJson is supported only with -Validate, -DryRun, -ListTools, or -ListProfiles'
+        $message | Should Match '-OutputJson is supported only with -Validate, -Audit, -DryRun, -ListTools, or -ListProfiles'
+    }
+
+    It 'accepts -OutputJson with -Audit' {
+        Resolve-StartSandboxCommandMode -Audit:$true -OutputJson:$true | Should Be 'Audit'
     }
 
     It 'rejects -Validate with -CleanDownloads' {
@@ -128,6 +148,15 @@ Describe 'Get-StartSandboxModePlan' {
     It 'keeps DryRun non-destructive for launch but allows artifact generation' {
         $plan = Get-StartSandboxModePlan -CommandMode 'DryRun'
 
+        $plan.DownloadTools | Should Be $false
+        $plan.GenerateArtifacts | Should Be $true
+        $plan.LaunchSandbox | Should Be $false
+    }
+
+    It 'keeps Audit non-destructive while still generating artifacts for inspection' {
+        $plan = Get-StartSandboxModePlan -CommandMode 'Audit'
+
+        $plan.CheckPrerequisites | Should Be $true
         $plan.DownloadTools | Should Be $false
         $plan.GenerateArtifacts | Should Be $true
         $plan.LaunchSandbox | Should Be $false

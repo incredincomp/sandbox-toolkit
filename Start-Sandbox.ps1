@@ -33,6 +33,9 @@
 .PARAMETER Validate
     Run non-destructive preflight checks and report PASS/WARN/FAIL readiness.
 
+.PARAMETER Audit
+    Run host-side audit checks against generated sandbox artifacts to verify configured/requested settings.
+
 .PARAMETER CleanDownloads
     Remove repo-owned disposable download/session artifacts and exit.
 
@@ -49,7 +52,7 @@
     Optional tool IDs to remove from the selected profile at runtime.
 
 .PARAMETER OutputJson
-    Emit machine-readable JSON for -Validate, -DryRun, -ListTools, or -ListProfiles modes.
+    Emit machine-readable JSON for -Validate, -Audit, -DryRun, -ListTools, or -ListProfiles modes.
 
 .PARAMETER SkipPrereqCheck
     Skip the Windows Sandbox feature check (useful for CI or offline use).
@@ -96,6 +99,10 @@
     # Emits preflight validation as JSON for automation.
 
 .EXAMPLE
+    .\Start-Sandbox.ps1 -Audit -Profile minimal
+    # Generates artifacts and audits configured/requested settings without launch.
+
+.EXAMPLE
     .\Start-Sandbox.ps1 -CleanDownloads
     # Removes repo-owned setup cache and generated session artifacts.
 
@@ -128,6 +135,7 @@ param(
     [switch]$NoLaunch,
     [switch]$DryRun,
     [switch]$Validate,
+    [switch]$Audit,
     [switch]$CleanDownloads,
     [switch]$ListTools,
     [switch]$ListProfiles,
@@ -172,7 +180,7 @@ $resolvedSharedFolder = $null
 
 # -- Load helper modules -------------------------------------------------------
 
-foreach ($module in @('Manifest.ps1', 'Download.ps1', 'SandboxConfig.ps1', 'SharedFolderValidation.ps1', 'Session.ps1', 'Validation.ps1', 'Output.ps1', 'Maintenance.ps1', 'Cli.ps1')) {
+foreach ($module in @('Manifest.ps1', 'Download.ps1', 'SandboxConfig.ps1', 'SharedFolderValidation.ps1', 'Session.ps1', 'Validation.ps1', 'Audit.ps1', 'Output.ps1', 'Maintenance.ps1', 'Cli.ps1')) {
     . (Join-Path $srcDir $module)
 }
 
@@ -181,6 +189,7 @@ $commandMode = Resolve-StartSandboxCommandMode `
     -ListTools:$ListTools `
     -ListProfiles:$ListProfiles `
     -Validate:$Validate `
+    -Audit:$Audit `
     -DryRun:$DryRun `
     -Force:$Force `
     -NoLaunch:$NoLaunch `
@@ -369,21 +378,37 @@ if ($modePlan.CheckPrerequisites) {
                         SharedHostFolder = $resolvedSharedFolder
                         SharedFolderWritable = [bool]$SharedFolderWritable
                     }
-                    $validateJsonResult = Get-SandboxValidateJsonResult `
-                        -PreflightResult $preflightResult `
-                        -SandboxProfile $SandboxProfile `
-                        -ExitCode 1 `
-                        -SkipPrereqCheck:$SkipPrereqCheck `
-                        -SharedFolder $SharedFolder `
-                        -UseDefaultSharedFolder:$UseDefaultSharedFolder
-                    Write-SandboxJsonOutput -Data $validateJsonResult
+                    if ($commandMode -eq 'Audit') {
+                        Write-StatusLine "  [FAIL] $($check.Message)" -ForegroundColor Red
+                        if ($check.Remediation) {
+                            Write-StatusLine "         Remediation: $($check.Remediation)" -ForegroundColor DarkGray
+                        }
+                    } else {
+                        $validateJsonResult = Get-SandboxValidateJsonResult `
+                            -PreflightResult $preflightResult `
+                            -SandboxProfile $SandboxProfile `
+                            -ExitCode 1 `
+                            -SkipPrereqCheck:$SkipPrereqCheck `
+                            -SharedFolder $SharedFolder `
+                            -UseDefaultSharedFolder:$UseDefaultSharedFolder
+                        Write-SandboxJsonOutput -Data $validateJsonResult
+                    }
                 } else {
-                    Write-Error $check.Message
-                    if ($check.Remediation) {
-                        Write-StatusLine "  Remediation: $($check.Remediation)" -ForegroundColor Yellow
+                    if ($commandMode -eq 'Audit') {
+                        Write-StatusLine "  [FAIL] $($check.Message)" -ForegroundColor Red
+                        if ($check.Remediation) {
+                            Write-StatusLine "         Remediation: $($check.Remediation)" -ForegroundColor DarkGray
+                        }
+                    } else {
+                        Write-Error $check.Message
+                        if ($check.Remediation) {
+                            Write-StatusLine "  Remediation: $($check.Remediation)" -ForegroundColor Yellow
+                        }
                     }
                 }
-                exit 1
+                if ($commandMode -ne 'Audit') {
+                    exit 1
+                }
             }
         }
     }
@@ -426,8 +451,12 @@ Write-StatusLine ''
 
 # -- [3/5] Download ------------------------------------------------------------
 
-if ($commandMode -eq 'DryRun') {
-    Write-StatusLine '[3/5] Download plan (dry-run)...' -ForegroundColor Yellow
+if ($commandMode -eq 'DryRun' -or $commandMode -eq 'Audit') {
+    if ($commandMode -eq 'Audit') {
+        Write-StatusLine '[3/5] Download stage (audit)...' -ForegroundColor Yellow
+    } else {
+        Write-StatusLine '[3/5] Download plan (dry-run)...' -ForegroundColor Yellow
+    }
     Write-StatusLine "  [PLAN] Setup directory: $setupDir" -ForegroundColor DarkGray
     $setupState = @(Get-ToolSetupState -Tools $tools -SetupDir $setupDir)
     $setupState | ForEach-Object {
@@ -474,6 +503,43 @@ if ($resolvedSharedFolder) {
     Write-StatusLine '        In sandbox: C:\Users\WDAGUtilityAccount\Desktop\shared' -ForegroundColor DarkGray
 }
 Write-StatusLine ''
+
+if ($commandMode -eq 'Audit') {
+    Write-StatusLine '[5/5] Audit...' -ForegroundColor Yellow
+    $auditResult = Invoke-SandboxArtifactAudit `
+        -RepoRoot $repoRoot `
+        -Selection $selection `
+        -NetworkingMode $networkingMode `
+        -Artifacts $artifacts `
+        -SharedHostFolder $resolvedSharedFolder `
+        -SharedFolderWritable:$SharedFolderWritable `
+        -SkipPrereqCheck:$SkipPrereqCheck `
+        -PrerequisiteChecks $prerequisiteChecks
+
+    $auditExitCode = Get-SandboxAuditExitCode -AuditResult $auditResult
+    if ($OutputJson) {
+        $auditJsonResult = Get-SandboxAuditJsonResult `
+            -AuditResult $auditResult `
+            -Selection $selection `
+            -NetworkingMode $networkingMode `
+            -Artifacts $artifacts `
+            -ExitCode $auditExitCode `
+            -SkipPrereqCheck:$SkipPrereqCheck `
+            -SharedFolder $SharedFolder `
+            -UseDefaultSharedFolder:$UseDefaultSharedFolder `
+            -ResolvedSharedFolder $resolvedSharedFolder `
+            -SharedFolderWritable:$SharedFolderWritable
+        Write-SandboxJsonOutput -Data $auditJsonResult
+    } else {
+        Write-SandboxAuditReport -AuditResult $auditResult
+        Write-StatusLine ''
+    }
+
+    if ($auditExitCode -ne 0) {
+        exit $auditExitCode
+    }
+    return
+}
 
 # -- [5/5] Launch --------------------------------------------------------------
 
