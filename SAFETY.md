@@ -39,7 +39,7 @@ Optional shared-folder mapping is available for sample transfer:
 - `.\Start-Sandbox.ps1 -UseDefaultSharedFolder` creates/maps repo-local `shared/`.
 - `.\Start-Sandbox.ps1 -SharedFolder <path>` maps one explicit existing folder.
 - Shared-folder mapping is **read-only by default**.
-- Writable mode requires explicit `-SharedFolderWritable` and increases host risk.
+- Writable mode requires explicit `-SharedFolderWritable` with a shared-folder option and increases host risk.
 - In sandbox, the mapped path is `C:\Users\WDAGUtilityAccount\Desktop\shared`.
 
 Avoid mapping broad or sensitive host paths (drive root, Windows folders, Program Files,

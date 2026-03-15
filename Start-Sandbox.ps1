@@ -40,6 +40,7 @@
 
 .PARAMETER SharedFolderWritable
     Make the optional shared folder writable from inside the sandbox.
+    Requires -SharedFolder or -UseDefaultSharedFolder.
     Use with caution for untrusted samples.
 
 .EXAMPLE
@@ -158,26 +159,6 @@ function Assert-SafeSharedFolderPath {
     return $normalizedPath
 }
 
-function Ensure-GitIgnoreEntry {
-    param(
-        [Parameter(Mandatory)][string]$GitIgnorePath,
-        [Parameter(Mandatory)][string]$Entry
-    )
-
-    if (-not (Test-Path -LiteralPath $GitIgnorePath)) {
-        throw ".gitignore not found: $GitIgnorePath"
-    }
-
-    $gitIgnoreContent = Get-Content -LiteralPath $GitIgnorePath -Raw
-    $lines = $gitIgnoreContent -split "`r?`n"
-    if ($lines -contains $Entry) {
-        return
-    }
-
-    Add-Content -LiteralPath $GitIgnorePath -Value "`r`n# Shared ingress folder`r`n$Entry`r`n"
-    Write-StatusLine "  [OK]  Updated .gitignore with '$Entry'" -ForegroundColor Green
-}
-
 # -- Paths --------------------------------------------------------------------
 
 $repoRoot            = $PSScriptRoot
@@ -186,7 +167,6 @@ $manifestPath        = Join-Path $repoRoot 'tools.json'
 $setupDir            = Join-Path $repoRoot 'scripts\setups'
 $installManifestPath = Join-Path $repoRoot 'scripts\install-manifest.json'
 $wsbPath             = Join-Path $repoRoot 'sandbox.wsb'
-$gitIgnorePath       = Join-Path $repoRoot '.gitignore'
 $defaultSharedFolder = Join-Path $repoRoot 'shared'
 $resolvedSharedFolder = $null
 
@@ -209,12 +189,15 @@ if ($SharedFolder -and $UseDefaultSharedFolder) {
     throw "Use either -SharedFolder or -UseDefaultSharedFolder, not both."
 }
 
+if ($SharedFolderWritable -and -not ($SharedFolder -or $UseDefaultSharedFolder)) {
+    throw "-SharedFolderWritable requires -SharedFolder or -UseDefaultSharedFolder."
+}
+
 if ($UseDefaultSharedFolder) {
     if (-not (Test-Path -LiteralPath $defaultSharedFolder)) {
         New-Item -ItemType Directory -Path $defaultSharedFolder -Force | Out-Null
         Write-StatusLine "  [OK]  Created default shared folder: $defaultSharedFolder" -ForegroundColor Green
     }
-    Ensure-GitIgnoreEntry -GitIgnorePath $gitIgnorePath -Entry 'shared/'
     $resolvedSharedFolder = Assert-SafeSharedFolderPath -Path $defaultSharedFolder -RepoRoot $repoRoot
 }
 

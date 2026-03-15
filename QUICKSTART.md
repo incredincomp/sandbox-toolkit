@@ -90,7 +90,7 @@ See [PROFILES.md](PROFILES.md) for what each profile includes.
 Use this when you need to stage files from host into sandbox. No extra mapping is added unless you opt in.
 
 - Default mode is read-only.
-- Writable mode requires explicit `-SharedFolderWritable`.
+- Writable mode requires explicit `-SharedFolderWritable` plus `-SharedFolder` or `-UseDefaultSharedFolder`.
 - Files appear in the sandbox at `C:\Users\WDAGUtilityAccount\Desktop\shared`.
 
 ```powershell

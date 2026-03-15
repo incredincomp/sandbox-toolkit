@@ -21,7 +21,7 @@ Use this when you need to transfer files from host to sandbox for triage.
 
 - Opt-in only: no extra folder is mapped unless you pass `-UseDefaultSharedFolder` or `-SharedFolder`.
 - Default access is read-only (safer).
-- Writable mapping requires explicit `-SharedFolderWritable`.
+- Writable mapping requires explicit `-SharedFolderWritable` plus one shared-folder selection switch.
 - In-sandbox destination is fixed: `C:\Users\WDAGUtilityAccount\Desktop\shared`.
 
 ```powershell
