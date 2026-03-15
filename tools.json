@@ -349,6 +349,40 @@
       "notes": "Advanced process/network correlation workflow. Manual acquisition/setup required."
     },
     {
+      "id": "visual-studio-community",
+      "display_name": "Visual Studio Community",
+      "category": "developer",
+      "profiles": ["dev-windows", "full"],
+      "source_type": "manual",
+      "version": "latest",
+      "update": {
+        "strategy": "unsupported",
+        "source_confidence": "low",
+        "notes": "Bootstrap/workload selection is interactive and intentionally kept manual in this pass."
+      },
+      "filename": "vs-community-manual.url",
+      "installer_type": "manual",
+      "install_order": 40,
+      "notes": "Heavy installer. Manual acquisition and workload selection required."
+    },
+    {
+      "id": "windows-sdk",
+      "display_name": "Windows SDK",
+      "category": "developer",
+      "profiles": ["dev-windows", "full"],
+      "source_type": "manual",
+      "version": "latest",
+      "update": {
+        "strategy": "unsupported",
+        "source_confidence": "low",
+        "notes": "Version/source mapping is coupled to Microsoft release channels and intentionally manual in this pass."
+      },
+      "filename": "windows-sdk-manual.url",
+      "installer_type": "manual",
+      "install_order": 41,
+      "notes": "Install manually (typically via Visual Studio Installer components or SDK installer workflow)."
+    },
+    {
       "id": "npcap",
       "display_name": "Npcap",
       "category": "network",

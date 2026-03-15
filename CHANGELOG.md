@@ -4,6 +4,44 @@ All notable changes to this project will be documented here.
 
 ---
 
+## [2.1.0] — 2026-03-15
+
+### Features
+
+- Added curated first-wave analysis tool catalog entries:
+  - `dependencies` (portable GitHub-release workflow)
+  - `api-monitor` (manual/advanced)
+  - `procdot` (manual/advanced)
+- Added curated first-wave developer tool catalog entries:
+  - `visual-studio-community` (manual/heavy)
+  - `windows-sdk` (manual/workflow-coupled)
+- Added new built-in profiles:
+  - `triage-plus`
+  - `reverse-windows`
+  - `behavior-net`
+  - `dev-windows`
+- Integrated new tools/profiles through existing selection surfaces:
+  - `-ListTools`
+  - `-ListProfiles`
+  - `-DryRun`
+  - `-Validate`
+  - custom profiles
+  - runtime `-AddTools` / `-RemoveTools`
+  - template/session resolution
+  - `-CheckForUpdates` where update metadata is configured
+
+### Hardening
+
+- Added safe handling for `source_type: manual` in host download flow (no fake download attempts).
+- Kept manual/advanced tooling states explicit rather than pretending full automation.
+
+### Testing
+
+- Added deterministic tests for:
+  - manual-source download handling
+  - curated profile resolution and dry-run/list integration coverage
+  - update metadata compatibility checks for new tool entries
+
 ## [2.0.9] — 2026-03-15
 
 ### Hardening

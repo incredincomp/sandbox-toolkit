@@ -59,11 +59,27 @@ Progress is logged to `install-log.txt` on the sandbox Desktop.
 # Network analysis — RE toolkit + Wireshark, networking ENABLED
 .\Start-Sandbox.ps1 -Profile network-analysis
 
+# Triage plus — rapid triage/network pack
+.\Start-Sandbox.ps1 -Profile triage-plus
+
+# Reverse windows — Windows RE/runtime tracing pack
+.\Start-Sandbox.ps1 -Profile reverse-windows
+
+# Behavior net — behavior + network tracing pack
+.\Start-Sandbox.ps1 -Profile behavior-net
+
+# Dev windows — Visual Studio + Windows SDK workflow pack
+.\Start-Sandbox.ps1 -Profile dev-windows
+
 # Full — everything
 .\Start-Sandbox.ps1 -Profile full
 ```
 
 See [PROFILES.md](PROFILES.md) for what each profile includes.
+
+Curated expansion notes:
+- `api-monitor`, `procdot`, `visual-studio-community`, and `windows-sdk` are intentionally modeled as manual/advanced in this pass.
+- REMnux bundling and VirusTotal uploader bundling are intentionally deferred.
 
 ---
 
@@ -240,7 +256,7 @@ The example file lives at `custom-profiles.example.json`.
 Supported structure:
 - Top-level `profiles` array is required when the local file exists.
 - Each custom profile requires `name` and `base_profile`.
-- `base_profile` must be one of built-in profiles (`minimal`, `reverse-engineering`, `network-analysis`, `full`).
+- `base_profile` must be one of built-in profiles (`minimal`, `reverse-engineering`, `network-analysis`, `triage-plus`, `reverse-windows`, `behavior-net`, `dev-windows`, `full`).
 - `add_tools` and `remove_tools` are optional arrays of valid tool IDs.
 
 Example:
@@ -273,7 +289,7 @@ Custom profile troubleshooting:
   Fix: copy `custom-profiles.example.json` again and reapply edits in small steps.
 - Symptom: unknown `base_profile`.
   Cause: unsupported base profile value.
-  Fix: use one of `minimal`, `reverse-engineering`, `network-analysis`, `full`.
+  Fix: use one of `minimal`, `reverse-engineering`, `network-analysis`, `triage-plus`, `reverse-windows`, `behavior-net`, `dev-windows`, `full`.
 - Symptom: unknown tool ID in `add_tools` or `remove_tools`.
   Cause: typo or non-existent tool ID.
   Fix: run `.\Start-Sandbox.ps1 -ListTools` and use exact IDs.

@@ -16,6 +16,10 @@
       minimal            -- editors, Python, Sysinternals only.
       reverse-engineering -- adds Ghidra, x64dbg, dnSpyEx, DIE, UPX, PE-bear, pestudio, HxD, FLOSS.
       network-analysis   -- reverse-engineering plus Wireshark/Npcap (networking enabled).
+      triage-plus        -- rapid triage pack: Sysinternals, DIE, Dependencies, Wireshark.
+      reverse-windows    -- Windows RE/runtime tracing pack: x64dbg, DIE, Dependencies, API Monitor, ProcDOT.
+      behavior-net       -- behavior/network tracing pack: Sysinternals, Wireshark, API Monitor, ProcDOT.
+      dev-windows        -- Windows development pack: Visual Studio Community, Windows SDK, Sysinternals.
       full               -- all tools (networking enabled).
 
 .PARAMETER Profile

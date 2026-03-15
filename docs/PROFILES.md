@@ -2,24 +2,26 @@
 
 ## Overview
 
-Profiles control which tools are downloaded and installed, and what sandbox settings apply
-(networking, etc.). Choose the profile that matches your analysis task.
+Profiles control tool selection and sandbox networking posture.
+
+Notes:
+- `7zip` is included as a bootstrap dependency for archive-based tools in all profiles.
+- Some tools are intentionally marked manual/advanced in this pass instead of pretending full automation.
 
 ---
 
 ## `minimal`
 
-**Use when:** You want a fast sandbox with basic editors and Sysinternals. No RE tools.
+**Use when:** Fast baseline with editors/runtime + Sysinternals.
 
 **Networking:** ❌ Disabled
 
-| Tool | Category |
-|---|---|
-| 7-Zip | Utility |
-| Visual Studio Code | Editor |
-| Notepad++ | Editor |
-| Python 3 | Runtime |
-| Sysinternals Suite | Sysanalysis |
+Core tools:
+- 7-Zip
+- Visual Studio Code
+- Notepad++
+- Python 3
+- Sysinternals Suite
 
 ```powershell
 .\Start-Sandbox.ps1 -Profile minimal
@@ -29,25 +31,22 @@ Profiles control which tools are downloaded and installed, and what sandbox sett
 
 ## `reverse-engineering` *(default)*
 
-**Use when:** Analyzing malware, PE files, .NET assemblies, packed binaries.
+**Use when:** General malware RE/static analysis.
 
-**Networking:** ❌ Disabled (safe for detonation / static analysis)
+**Networking:** ❌ Disabled
 
-All tools from `minimal`, plus:
-
-| Tool | Category | Purpose |
-|---|---|---|
-| Amazon Corretto JDK 21 | Runtime | Required by Ghidra |
-| Visual C++ Redist x64 | Runtime | Required by PE-bear |
-| Ghidra | Reversing | Disassembler/decompiler (NSA) |
-| x64dbg | Reversing | Dynamic debugger |
-| dnSpyEx | Reversing | .NET decompiler and debugger |
-| Detect-It-Easy | Reversing | Packer/protector identification |
-| UPX | Reversing | Packer/unpacker |
-| PE-bear | Reversing | PE file editor/viewer |
-| pestudio | Reversing | PE static analysis |
-| HxD | Reversing | Hex editor |
-| FLARE FLOSS | Reversing | Obfuscated string extraction |
+Adds to `minimal`:
+- Corretto 21
+- Visual C++ Redist x64
+- Ghidra
+- x64dbg
+- dnSpyEx
+- Detect-It-Easy
+- UPX
+- PE-bear
+- pestudio
+- HxD
+- FLARE FLOSS
 
 ```powershell
 .\Start-Sandbox.ps1 -Profile reverse-engineering
@@ -57,19 +56,13 @@ All tools from `minimal`, plus:
 
 ## `network-analysis`
 
-**Use when:** Capturing and analyzing network traffic from a sample.
+**Use when:** Network capture/inspection workflows.
 
-**Networking:** ✅ Enabled — understand the risks in [SAFETY.md](SAFETY.md).
+**Networking:** ✅ Enabled
 
-All tools from `reverse-engineering`, plus:
-
-| Tool | Category | Notes |
-|---|---|---|
-| Wireshark | Network | Packet capture and analysis |
-| Npcap | Network | **Manual install required** (no silent install) |
-
-> **Note on Npcap:** Npcap's installer does not support silent/unattended installation.
-> After the sandbox starts, run `npcap.exe` from `%TEMP%` manually.
+Adds to `reverse-engineering`:
+- Wireshark
+- Npcap (manual install)
 
 ```powershell
 .\Start-Sandbox.ps1 -Profile network-analysis
@@ -77,13 +70,85 @@ All tools from `reverse-engineering`, plus:
 
 ---
 
-## `full`
+## `triage-plus`
 
-**Use when:** You want everything installed.
+**Use when:** Rapid triage with lightweight static + network tooling.
 
 **Networking:** ✅ Enabled
 
-All tools from `network-analysis` (i.e., everything in the manifest).
+Core pack:
+- Sysinternals Suite
+- Detect-It-Easy
+- Dependencies
+- Wireshark
+
+```powershell
+.\Start-Sandbox.ps1 -Profile triage-plus
+```
+
+---
+
+## `reverse-windows`
+
+**Use when:** Windows-focused reverse/debug/runtime tracing.
+
+**Networking:** ❌ Disabled
+
+Core pack:
+- x64dbg
+- Detect-It-Easy
+- Dependencies
+- API Monitor (manual/advanced)
+- ProcDOT (manual/advanced)
+
+```powershell
+.\Start-Sandbox.ps1 -Profile reverse-windows
+```
+
+---
+
+## `behavior-net`
+
+**Use when:** Behavior + network correlation workflows.
+
+**Networking:** ✅ Enabled
+
+Core pack:
+- Sysinternals Suite
+- Wireshark
+- API Monitor (manual/advanced)
+- ProcDOT (manual/advanced)
+
+```powershell
+.\Start-Sandbox.ps1 -Profile behavior-net
+```
+
+---
+
+## `dev-windows`
+
+**Use when:** Developer/debugger workstation inside sandbox.
+
+**Networking:** ❌ Disabled
+
+Core pack:
+- Visual Studio Community (manual/heavy)
+- Windows SDK (manual/workflow-coupled)
+- Sysinternals Suite
+
+```powershell
+.\Start-Sandbox.ps1 -Profile dev-windows
+```
+
+---
+
+## `full`
+
+**Use when:** Entire catalog.
+
+**Networking:** ✅ Enabled
+
+Includes all tools in `tools.json`.
 
 ```powershell
 .\Start-Sandbox.ps1 -Profile full
@@ -91,16 +156,7 @@ All tools from `network-analysis` (i.e., everything in the manifest).
 
 ---
 
-## Adding a new tool to a profile
+## Deferred In This Pass
 
-Edit `tools.json` and add the profile name to the tool's `profiles` array:
-
-```json
-{
-  "id": "mytool",
-  "profiles": ["reverse-engineering", "full"],
-  ...
-}
-```
-
-The CI will validate your change automatically on push.
+- REMnux bundling (Linux/container-oriented; planned for later helper/container work).
+- VirusTotal Windows uploader bundling (official uploader is no longer maintained by VirusTotal).

@@ -136,6 +136,50 @@ Estimated size: Small (1–2 files)
 
 ---
 
+## 2026-03-15 Session log (curated tooling expansion pass)
+
+### Scope
+- Add a bounded curated first wave of analysis/developer tool entries using existing manifest/profile/update model.
+- Add built-in profile packs for triage, Windows reversing, behavior+network tracing, and developer workflows.
+- Keep uncertain tools explicit as manual/advanced instead of fake automation.
+
+### Decisions made
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Add `dependencies` as automated GitHub-release portable tool with update metadata | High-confidence release source and deterministic adapter compatibility | Mark as manual despite reliable source |
+| Model `api-monitor`, `procdot`, `visual-studio-community`, and `windows-sdk` as `source_type: manual` + `installer_type: manual` | Packaging/install/update paths are interactive or weakly standardized for this repo’s non-flaky automation goals | Pretend full unattended install support |
+| Add explicit host-side handling for `source_type: manual` in download flow | Schema already allowed manual source; runtime previously threw for this shape | Keep schema/runtime mismatch and avoid manual-source entries |
+| Keep new curated profile packs narrowly scoped and include only required bootstrap helper (`7zip`) | Preserves bounded scope and deterministic install ordering | Expand each new profile into broad kitchen-sink bundles |
+| Document REMnux and VirusTotal uploader as intentionally deferred | Aligns with scope constraints and avoids misleading first-class claims | Add speculative/unsupported integration stubs |
+
+### Files modified
+- `Start-Sandbox.ps1`
+- `src/Manifest.ps1`
+- `src/SandboxConfig.ps1`
+- `src/Download.ps1`
+- `scripts/Install-Tools.ps1`
+- `tools.json`
+- `schemas/tools.schema.json`
+- `tests/Download.Tests.ps1` (new)
+- `tests/Cli.Tests.ps1`
+- `tests/Session.Tests.ps1`
+- `tests/StartSandboxCliIntegration.Tests.ps1`
+- `tests/Updates.Tests.ps1`
+- `.github/workflows/validate.yml`
+- `README.md`
+- `docs/QUICKSTART.md`
+- `docs/PROFILES.md`
+- `CHANGELOG.md`
+- `IMPLEMENTATION_TRACKER.md`
+
+### Validation
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Full test suite | ✅ | `Invoke-Pester -Path tests` | 2026-03-15 |
+| PSScriptAnalyzer (Error,Warning) | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' \| ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-15 |
+
+---
+
 ## 2026-03-15 Session log (release hardening follow-up)
 
 ### Scope

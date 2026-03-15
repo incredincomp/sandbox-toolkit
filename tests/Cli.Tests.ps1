@@ -291,6 +291,7 @@ Describe 'Manifest-backed listing helpers' {
         (($profiles -contains 'triage-plus')) | Should Be $true
         (($profiles -contains 'reverse-windows')) | Should Be $true
         (($profiles -contains 'behavior-net')) | Should Be $true
+        (($profiles -contains 'dev-windows')) | Should Be $true
     }
 
     It 'Get-ManifestToolCatalog is sourced from manifest tools' {

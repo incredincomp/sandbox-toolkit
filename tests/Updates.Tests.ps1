@@ -127,11 +127,14 @@ Describe 'Manifest update metadata compatibility for curated tool expansion' {
 
         $dependencies = @($manifest.tools | Where-Object { $_.id -eq 'dependencies' })[0]
         $apiMonitor = @($manifest.tools | Where-Object { $_.id -eq 'api-monitor' })[0]
+        $windowsSdk = @($manifest.tools | Where-Object { $_.id -eq 'windows-sdk' })[0]
 
         $dependencies | Should Not BeNullOrEmpty
         $apiMonitor | Should Not BeNullOrEmpty
+        $windowsSdk | Should Not BeNullOrEmpty
         [string]$dependencies.update.strategy | Should Be 'github_release'
         [string]$apiMonitor.update.strategy | Should Be 'unsupported'
+        [string]$windowsSdk.update.strategy | Should Be 'unsupported'
 
         Mock Invoke-RestMethod -ParameterFilter { $Uri -like 'https://api.github.com/repos/*/releases/latest' } {
             return [pscustomobject]@{
@@ -144,10 +147,13 @@ Describe 'Manifest update metadata compatibility for curated tool expansion' {
 
         $dependenciesResult = Invoke-SandboxToolUpdateCheck -Tool $dependencies
         $apiMonitorResult = Invoke-SandboxToolUpdateCheck -Tool $apiMonitor
+        $windowsSdkResult = Invoke-SandboxToolUpdateCheck -Tool $windowsSdk
 
         ($dependenciesResult.status -in @('up-to-date', 'outdated', 'unknown')) | Should Be $true
         $dependenciesResult.source_type | Should Be 'github_release'
         $apiMonitorResult.status | Should Be 'unsupported-for-checking'
         $apiMonitorResult.source_type | Should Be 'unsupported'
+        $windowsSdkResult.status | Should Be 'unsupported-for-checking'
+        $windowsSdkResult.source_type | Should Be 'unsupported'
     }
 }

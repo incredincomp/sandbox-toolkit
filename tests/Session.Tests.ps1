@@ -119,6 +119,11 @@ Describe 'Resolve-SandboxSessionSelection' {
                 MustContain = @('sysinternals', 'wireshark', 'api-monitor', 'procdot')
                 MustNotContain = @('visual-studio-community')
             }
+            [pscustomobject]@{
+                Profile = 'dev-windows'
+                MustContain = @('sysinternals', 'visual-studio-community', 'windows-sdk')
+                MustNotContain = @('x64dbg', 'api-monitor')
+            }
         )
 
         foreach ($case in $cases) {

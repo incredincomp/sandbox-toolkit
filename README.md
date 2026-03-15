@@ -10,8 +10,33 @@ A manifest-driven, profile-aware Windows Sandbox environment for **defensive mal
 ## Standalone project
 
 This repository is maintained as a standalone project under `incredincomp/sandbox-toolkit`.
-It is manifest-driven (`tools.json`), profile-aware (`minimal`, `reverse-engineering`, `network-analysis`, `full`), and built for defensive malware analysis, reverse engineering, and sample triage.
+It is manifest-driven (`tools.json`), profile-aware (`minimal`, `reverse-engineering`, `network-analysis`, `triage-plus`, `reverse-windows`, `behavior-net`, `dev-windows`, `full`), and built for defensive malware analysis, reverse engineering, and sample triage.
 The default posture is safer-by-default: disposable fresh sandbox sessions, read-only mapped scripts, and networking disabled unless a networked profile is explicitly selected.
+
+---
+
+## What changed (2.1.0)
+
+- Added curated first-wave analysis tools to the catalog:
+  - `dependencies` (GitHub-release portable)
+  - `api-monitor` (manual/advanced)
+  - `procdot` (manual/advanced)
+- Added curated first-wave developer tools to the catalog:
+  - `visual-studio-community` (manual/heavy)
+  - `windows-sdk` (manual/workflow-coupled)
+- Added new built-in profiles:
+  - `triage-plus`
+  - `reverse-windows`
+  - `behavior-net`
+  - `dev-windows`
+- Integrated new tools/profiles across existing command surfaces:
+  - `-ListTools`, `-ListProfiles`, `-DryRun`, `-Validate`, `-CheckForUpdates`
+  - custom profiles, runtime `-AddTools`/`-RemoveTools`, and saved templates
+- Added explicit manual-source handling for `source_type: manual` so manual/advanced tools are represented honestly without fake automation.
+
+Deferred intentionally in this pass:
+- REMnux bundling (Linux/container-oriented; better fit for later helper/container milestone).
+- VirusTotal Windows uploader as first-class bundled target (official uploader is no longer maintained by VirusTotal).
 
 ---
 
@@ -627,7 +652,7 @@ Supported custom-profile shape:
 - Top-level `profiles` array is required when the file exists.
 - Each profile entry requires:
   - `name` (non-empty, unique, must not conflict with built-in profile names)
-  - `base_profile` (one of built-in profiles: `minimal`, `reverse-engineering`, `network-analysis`, `full`)
+  - `base_profile` (one of built-in profiles: `minimal`, `reverse-engineering`, `network-analysis`, `triage-plus`, `reverse-windows`, `behavior-net`, `dev-windows`, `full`)
 - Optional per-profile arrays:
   - `add_tools` (tool IDs to add)
   - `remove_tools` (tool IDs to remove)
@@ -660,7 +685,7 @@ Custom profile troubleshooting:
   Fix: start from `custom-profiles.example.json` again and reapply edits incrementally.
 - Symptom: validation reports unknown `base_profile`.
   Likely cause: `base_profile` is not one of built-in profiles.
-  Fix: use one of `minimal`, `reverse-engineering`, `network-analysis`, or `full`.
+  Fix: use one of `minimal`, `reverse-engineering`, `network-analysis`, `triage-plus`, `reverse-windows`, `behavior-net`, `dev-windows`, or `full`.
 - Symptom: validation reports unknown tool IDs in `add_tools` / `remove_tools`.
   Likely cause: typo or unsupported tool ID.
   Fix: run `.\Start-Sandbox.ps1 -ListTools` and copy exact IDs.
@@ -718,6 +743,10 @@ Examples:
 | `minimal` | ❌ Disabled | VSCode, Notepad++, Python 3, Sysinternals |
 | `reverse-engineering` *(default)* | ❌ Disabled | + Ghidra, x64dbg, dnSpyEx, DIE, UPX, PE-bear, pestudio, HxD, FLOSS |
 | `network-analysis` | ✅ Enabled | + Wireshark, Npcap |
+| `triage-plus` | ✅ Enabled | Sysinternals, Detect-It-Easy, Dependencies, Wireshark (+ 7-Zip bootstrap) |
+| `reverse-windows` | ❌ Disabled | x64dbg, Detect-It-Easy, Dependencies, API Monitor (manual), ProcDOT (manual) (+ 7-Zip bootstrap) |
+| `behavior-net` | ✅ Enabled | Sysinternals, Wireshark, API Monitor (manual), ProcDOT (manual) (+ 7-Zip bootstrap) |
+| `dev-windows` | ❌ Disabled | Sysinternals, Visual Studio Community (manual), Windows SDK (manual) (+ 7-Zip bootstrap) |
 | `full` | ✅ Enabled | All tools |
 
 ```powershell
@@ -744,13 +773,18 @@ See [PROFILES.md](docs/PROFILES.md) for full details.
 | [x64dbg](https://x64dbg.com/) | Reversing | SourceForge | Latest snapshot |
 | [dnSpyEx](https://github.com/dnSpyEx/dnSpy) | Reversing | GitHub | Active fork of archived dnSpy |
 | [Detect-It-Easy](https://github.com/horsicq/DIE-engine) | Reversing | GitHub | Latest stable |
+| [Dependencies](https://github.com/lucasg/Dependencies) | Reversing | GitHub | Portable dependency viewer |
 | [UPX](https://upx.github.io/) | Reversing | GitHub | Latest stable |
 | [PE-bear](https://github.com/hasherezade/pe-bear) | Reversing | GitHub | Latest stable |
 | [pestudio](https://www.winitor.com/) | Reversing | Vendor | Latest |
 | [HxD](https://mh-nexus.de/en/hxd/) | Reversing | Vendor | Latest |
 | [FLARE FLOSS](https://github.com/mandiant/flare-floss) | Reversing | GitHub | Latest stable |
-| [Wireshark](https://www.wireshark.org/) | Network | Vendor | network-analysis/full only |
+| [Wireshark](https://www.wireshark.org/) | Network | Vendor | Included in network-capable profiles |
 | [Npcap](https://npcap.com/) | Network | Vendor | **Manual install** (no silent mode) |
+| API Monitor | Sysanalysis | Manual | Advanced/manual acquisition and setup |
+| ProcDOT | Sysanalysis | Manual | Advanced/manual acquisition and setup |
+| Visual Studio Community | Developer | Manual | Heavy interactive installer/workloads |
+| Windows SDK | Developer | Manual | Manual install (often via VS Installer workflow) |
 
 ### Removed tools in 2.0
 

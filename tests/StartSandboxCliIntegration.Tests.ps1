@@ -124,6 +124,10 @@ Describe 'Start-Sandbox integrated command combinations' {
                 Profile = 'behavior-net'
                 MustContain = @('sysinternals', 'wireshark', 'api-monitor', 'procdot')
             }
+            [pscustomobject]@{
+                Profile = 'dev-windows'
+                MustContain = @('sysinternals', 'visual-studio-community', 'windows-sdk')
+            }
         )
 
         foreach ($case in $cases) {
@@ -217,11 +221,14 @@ Describe 'Start-Sandbox integrated command combinations' {
         (($listProfiles.Json.profiles | Where-Object { $_.name -eq 'triage-plus' -and $_.type -eq 'built-in' }).Count) | Should Be 1
         (($listProfiles.Json.profiles | Where-Object { $_.name -eq 'reverse-windows' -and $_.type -eq 'built-in' }).Count) | Should Be 1
         (($listProfiles.Json.profiles | Where-Object { $_.name -eq 'behavior-net' -and $_.type -eq 'built-in' }).Count) | Should Be 1
+        (($listProfiles.Json.profiles | Where-Object { $_.name -eq 'dev-windows' -and $_.type -eq 'built-in' }).Count) | Should Be 1
         $listTools.ExitCode | Should Be 0
         $listTools.Json.tools.Count | Should Be $script:manifest.tools.Count
         (($listTools.Json.tools | Where-Object { $_.id -eq 'dependencies' }).Count) | Should Be 1
         (($listTools.Json.tools | Where-Object { $_.id -eq 'api-monitor' }).Count) | Should Be 1
         (($listTools.Json.tools | Where-Object { $_.id -eq 'procdot' }).Count) | Should Be 1
+        (($listTools.Json.tools | Where-Object { $_.id -eq 'visual-studio-community' }).Count) | Should Be 1
+        (($listTools.Json.tools | Where-Object { $_.id -eq 'windows-sdk' }).Count) | Should Be 1
     }
 
     It 'supports save/list/show template workflows' {
