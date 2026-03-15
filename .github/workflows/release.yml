@@ -1,0 +1,87 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish-release:
+    name: Publish Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve release metadata
+        id: meta
+        shell: pwsh
+        run: |
+          $tag = $env:GITHUB_REF_NAME
+          if (-not $tag -or -not $tag.StartsWith('v')) {
+            throw "Expected a version tag ref (v*). Found: '$tag'"
+          }
+
+          $version = $tag.Substring(1)
+          $preferredNotesPath = Join-Path 'artifacts/releases' "$version.md"
+          $notesPath = $preferredNotesPath
+
+          if (-not (Test-Path -LiteralPath $preferredNotesPath -PathType Leaf)) {
+            New-Item -ItemType Directory -Path 'artifacts/releases' -Force | Out-Null
+            $notesPath = Join-Path 'artifacts/releases' "$version.generated.md"
+            @"
+# sandbox-toolkit $tag
+
+Automated release generated from tag '$tag'.
+
+Prepared release notes file '$preferredNotesPath' was not found.
+See CHANGELOG.md for detailed release notes.
+"@ | Set-Content -Path $notesPath -Encoding UTF8
+          }
+
+          "tag=$tag" >> $env:GITHUB_OUTPUT
+          "title=$tag" >> $env:GITHUB_OUTPUT
+          "notes_path=$notesPath" >> $env:GITHUB_OUTPUT
+          "is_prerelease=$([bool]($tag -match '-'))" >> $env:GITHUB_OUTPUT
+
+      - name: Create or update GitHub release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.meta.outputs.tag }}
+          TITLE: ${{ steps.meta.outputs.title }}
+          NOTES_PATH: ${{ steps.meta.outputs.notes_path }}
+          IS_PRERELEASE: ${{ steps.meta.outputs.is_prerelease }}
+        run: |
+          $tag = $env:TAG
+          $title = $env:TITLE
+          $notesPath = $env:NOTES_PATH
+          $isPrerelease = $env:IS_PRERELEASE -eq 'True'
+
+          gh release view $tag --json tagName *> $null
+          $exists = $LASTEXITCODE -eq 0
+
+          if ($exists) {
+            $args = @('release', 'edit', $tag, '--title', $title, '--notes-file', $notesPath)
+            if ($isPrerelease) { $args += '--prerelease' }
+            & gh @args
+            if ($LASTEXITCODE -ne 0) {
+              throw "Failed to edit release for tag '$tag'."
+            }
+            exit 0
+          }
+
+          $createArgs = @('release', 'create', $tag, '--title', $title, '--notes-file', $notesPath, '--verify-tag')
+          if ($isPrerelease) { $createArgs += '--prerelease' }
+          & gh @createArgs
+          if ($LASTEXITCODE -ne 0) {
+            throw "Failed to create release for tag '$tag'."
+          }

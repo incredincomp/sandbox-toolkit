@@ -207,6 +207,31 @@ Estimated size: Small (1–2 files)
 
 ---
 
+## 2026-03-15 Session log (release automation workflow)
+
+### Scope
+- Add a bounded tag-triggered release workflow so `v*` tags automatically publish/update GitHub release objects.
+
+### Decisions made
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Add `.github/workflows/release.yml` triggered by `push.tags: v*` | Aligns with existing tag-based release convention and keeps manual release steps minimal | Manual `gh release create` for every tag |
+| Use `gh release` CLI in workflow to create-or-edit release object idempotently | Keeps behavior explicit and avoids duplicate-release failures on reruns | Fail job when release already exists |
+| Prefer `artifacts/releases/<version>.md` notes and generate fallback notes when missing | Preserves current release-note artifact pattern while keeping tag automation resilient | Hard-fail if notes file is missing |
+
+### Files modified
+- `.github/workflows/release.yml` (new)
+- `README.md`
+- `IMPLEMENTATION_TRACKER.md`
+
+### Validation
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Full test suite | ✅ | `Invoke-Pester -Path tests` | 2026-03-15 |
+| PSScriptAnalyzer (Error,Warning) | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' \| ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-15 |
+
+---
+
 ## 2026-03-15 Session log (release hardening follow-up)
 
 ### Scope

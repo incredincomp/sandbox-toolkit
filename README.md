@@ -820,6 +820,7 @@ sandbox-toolkit/
 ├── .github/
 │   └── workflows/
 │       └── validate.yml       # CI: PSScriptAnalyzer + manifest validation
+│       └── release.yml        # Tag-triggered GitHub release publication (v* tags)
 ├── README.md
 ├── docs/
 │   ├── QUICKSTART.md
@@ -867,6 +868,7 @@ See [SAFETY.md](docs/SAFETY.md) for full safety guidance.
 - Tool version bumps: edit `tools.json`. The CI validates the manifest on every push.
 - New tools: add an entry following the schema in `schemas/tools.schema.json`.
 - Profiles: update the `profiles` array on each relevant tool entry.
+- Releases: push an annotated `vX.Y.Z` tag after updating changelog/release notes (`artifacts/releases/X.Y.Z.md`). The release workflow publishes/updates the GitHub release object automatically.
 
 ---
 
