@@ -243,6 +243,127 @@ function Test-SandboxHostInteractionPolicyReadiness {
     return @($checks)
 }
 
+function Test-SandboxSessionLifecycleReadiness {
+    <#
+    .SYNOPSIS
+        Reports readiness implications for selected session lifecycle mode.
+    #>
+    param(
+        [Parameter(Mandatory)][PSCustomObject]$SessionLifecycleState
+    )
+
+    $checks = [System.Collections.Generic.List[object]]::new()
+    if ($SessionLifecycleState.RequestedMode -eq 'Fresh') {
+        $checks.Add((Get-SandboxValidationCheck `
+            -Name 'session-mode' `
+            -Status 'PASS' `
+            -Message 'Session mode is Fresh. Launch path remains disposable by default.'))
+        return @($checks)
+    }
+
+    if (-not $SessionLifecycleState.WarmSupport.Supported) {
+        $checks.Add((Get-SandboxValidationCheck `
+            -Name 'session-mode' `
+            -Status 'FAIL' `
+            -Message "Session mode Warm requested but unsupported: $($SessionLifecycleState.WarmSupport.Reason)" `
+            -Remediation 'Use -SessionMode Fresh, or run on a host with Windows 11 24H2+ Windows Sandbox CLI support.'))
+        return @($checks)
+    }
+
+    if ($SessionLifecycleState.InventoryError) {
+        $checks.Add((Get-SandboxValidationCheck `
+            -Name 'session-mode' `
+            -Status 'WARN' `
+            -Message "Warm mode requested and CLI is present, but running-session discovery failed: $($SessionLifecycleState.InventoryError)" `
+            -Remediation 'Validate Windows Sandbox CLI access (wsb list --raw) or use -SessionMode Fresh.'))
+        return @($checks)
+    }
+
+    if ($SessionLifecycleState.RunningSessionCount -gt 0) {
+        $checks.Add((Get-SandboxValidationCheck `
+            -Name 'session-mode' `
+            -Status 'PASS' `
+            -Message "Warm mode requested and supported. Running warm session candidates discovered: $($SessionLifecycleState.RunningSessionCount)."))
+    } else {
+        $checks.Add((Get-SandboxValidationCheck `
+            -Name 'session-mode' `
+            -Status 'WARN' `
+            -Message 'Warm mode requested and supported, but no running session was discovered. Launch would create a new CLI-managed sandbox session.' `
+            -Remediation 'Start a warm session first if reuse is required, or use -SessionMode Fresh for cleaner starts.'))
+    }
+
+    return @($checks)
+}
+
+function Test-SandboxWslHelperReadiness {
+    <#
+    .SYNOPSIS
+        Reports readiness implications for optional WSL helper sidecar.
+    #>
+    param(
+        [Parameter(Mandatory)][PSCustomObject]$WslHelperState
+    )
+
+    $checks = [System.Collections.Generic.List[object]]::new()
+    if (-not $WslHelperState.Enabled) {
+        $checks.Add((Get-SandboxValidationCheck `
+            -Name 'wsl-helper' `
+            -Status 'PASS' `
+            -Message 'WSL helper sidecar not requested.'))
+        return @($checks)
+    }
+
+    if (-not $WslHelperState.WslCommandAvailable -or -not $WslHelperState.DistroAvailable) {
+        $checks.Add((Get-SandboxValidationCheck `
+            -Name 'wsl-helper' `
+            -Status 'FAIL' `
+            -Message "WSL helper sidecar requested but unavailable: $($WslHelperState.SupportReason)" `
+            -Remediation 'Install/configure WSL and target distro, or run without -UseWslHelper.'))
+        return @($checks)
+    }
+
+    $effectiveDistroLabel = if ($WslHelperState.EffectiveDistro) { $WslHelperState.EffectiveDistro } else { '(default)' }
+    $checks.Add((Get-SandboxValidationCheck `
+        -Name 'wsl-helper' `
+        -Status 'PASS' `
+        -Message ("WSL helper sidecar requested; distro={0}; stage_path={1}." -f $effectiveDistroLabel, $WslHelperState.StagePath)))
+
+    if (-not $WslHelperState.Hardening -or -not $WslHelperState.Hardening.Available) {
+        $checks.Add((Get-SandboxValidationCheck `
+            -Name 'wsl-helper-hardening' `
+            -Status 'WARN' `
+            -Message 'WSL helper hardening settings could not be verified from /etc/wsl.conf (configured/requested evidence only).' `
+            -Remediation 'Add explicit /etc/wsl.conf settings for [automount] enabled=false, [interop] enabled=false, appendWindowsPath=false in helper distro.'))
+        return @($checks)
+    }
+
+    $hardeningIssues = [System.Collections.Generic.List[string]]::new()
+    if (($WslHelperState.Hardening.AutomountEnabled + '').ToLowerInvariant() -ne 'false') {
+        $hardeningIssues.Add('automount.enabled=false')
+    }
+    if (($WslHelperState.Hardening.InteropEnabled + '').ToLowerInvariant() -ne 'false') {
+        $hardeningIssues.Add('interop.enabled=false')
+    }
+    if (($WslHelperState.Hardening.AppendWindowsPath + '').ToLowerInvariant() -ne 'false') {
+        $hardeningIssues.Add('interop.appendWindowsPath=false')
+    }
+
+    if ($hardeningIssues.Count -eq 0) {
+        $checks.Add((Get-SandboxValidationCheck `
+            -Name 'wsl-helper-hardening' `
+            -Status 'PASS' `
+            -Message 'WSL helper hardening expectations are configured in /etc/wsl.conf (automount/interop settings requested).'))
+    } else {
+        $checks.Add((Get-SandboxValidationCheck `
+            -Name 'wsl-helper-hardening' `
+            -Status 'WARN' `
+            -Message ("WSL helper hardening is partially configured. Missing recommended settings: {0}." -f ($hardeningIssues -join ', ')) `
+            -Remediation 'Apply recommended helper distro /etc/wsl.conf settings; do not treat WSL as the primary malware isolation boundary.'))
+    }
+
+    return @($checks)
+}
+
 function Invoke-SandboxPreflightValidation {
     <#
     .SYNOPSIS
@@ -260,7 +381,9 @@ function Invoke-SandboxPreflightValidation {
         [switch]$UseDefaultSharedFolder,
         [switch]$SharedFolderWritable,
         [switch]$SharedFolderValidationDiagnostics,
-        [Parameter(Mandatory)][PSCustomObject]$HostInteractionPolicy
+        [Parameter(Mandatory)][PSCustomObject]$HostInteractionPolicy,
+        [Parameter(Mandatory)][PSCustomObject]$SessionLifecycleState,
+        [Parameter(Mandatory)][PSCustomObject]$WslHelperState
     )
 
     $checks = [System.Collections.Generic.List[object]]::new()
@@ -287,6 +410,12 @@ function Invoke-SandboxPreflightValidation {
     foreach ($policyCheck in (Test-SandboxHostInteractionPolicyReadiness -HostInteractionPolicy $HostInteractionPolicy)) {
         $checks.Add($policyCheck)
     }
+    foreach ($sessionCheck in (Test-SandboxSessionLifecycleReadiness -SessionLifecycleState $SessionLifecycleState)) {
+        $checks.Add($sessionCheck)
+    }
+    foreach ($helperCheck in (Test-SandboxWslHelperReadiness -WslHelperState $WslHelperState)) {
+        $checks.Add($helperCheck)
+    }
 
     $hasFailures = @($checks | Where-Object { $_.Status -eq 'FAIL' }).Count -gt 0
     $hasWarnings = @($checks | Where-Object { $_.Status -eq 'WARN' }).Count -gt 0
@@ -300,6 +429,8 @@ function Invoke-SandboxPreflightValidation {
         SharedHostFolder = $sharedFolderResult.ResolvedSharedFolder
         SharedFolderWritable = $sharedFolderResult.SharedFolderWritable
         HostInteractionPolicy = $HostInteractionPolicy
+        SessionLifecycleState = $SessionLifecycleState
+        WslHelperState = $WslHelperState
     }
 }
 

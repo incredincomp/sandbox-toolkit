@@ -95,7 +95,21 @@ Describe 'Invoke-SandboxPreflightValidation' {
             -SandboxProfile 'minimal' `
             -AddTools @('ghidra') `
             -RemoveTools @('notepadpp') `
-            -HostInteractionPolicy (Get-SandboxHostInteractionPolicy)
+            -HostInteractionPolicy (Get-SandboxHostInteractionPolicy) `
+            -SessionLifecycleState ([pscustomobject]@{
+                RequestedMode = 'Fresh'
+                EffectiveMode = 'Fresh'
+                WarmSupport = [pscustomobject]@{ Supported = $false; Reason = 'not-required' }
+                RunningSessionCount = 0
+                InventoryError = $null
+            }) `
+            -WslHelperState ([pscustomobject]@{
+                Enabled = $false
+                WslCommandAvailable = $false
+                DistroAvailable = $false
+                SupportReason = 'not-requested'
+                StagePath = '~/.sandbox-toolkit-helper'
+            })
 
         $result.HasFailures | Should Be $false
         (@($result.Checks | Where-Object { $_.Status -eq 'PASS' }).Count) | Should BeGreaterThan 0
@@ -110,7 +124,21 @@ Describe 'Invoke-SandboxPreflightValidation' {
             -CustomProfilePath (Join-Path $fixtureDir 'custom-profiles.valid.json') `
             -SandboxProfile 'minimal' `
             -SkipPrereqCheck `
-            -HostInteractionPolicy (Get-SandboxHostInteractionPolicy)
+            -HostInteractionPolicy (Get-SandboxHostInteractionPolicy) `
+            -SessionLifecycleState ([pscustomobject]@{
+                RequestedMode = 'Fresh'
+                EffectiveMode = 'Fresh'
+                WarmSupport = [pscustomobject]@{ Supported = $false; Reason = 'not-required' }
+                RunningSessionCount = 0
+                InventoryError = $null
+            }) `
+            -WslHelperState ([pscustomobject]@{
+                Enabled = $false
+                WslCommandAvailable = $false
+                DistroAvailable = $false
+                SupportReason = 'not-requested'
+                StagePath = '~/.sandbox-toolkit-helper'
+            })
 
         $result.HasFailures | Should Be $true
         (@($result.Checks | Where-Object { $_.Name -eq 'selection' -and $_.Status -eq 'FAIL' }).Count) | Should Be 1
@@ -124,6 +152,45 @@ Describe 'Test-SandboxHostInteractionPolicyReadiness' {
 
         @($checks | Where-Object { $_.Name -eq 'host-interaction-policy' -and $_.Status -eq 'PASS' }).Count | Should Be 1
         @($checks | Where-Object { $_.Name -eq 'startup-command-automation' -and $_.Status -eq 'WARN' }).Count | Should Be 1
+    }
+}
+
+Describe 'Test-SandboxSessionLifecycleReadiness' {
+    It 'fails when warm mode is requested on unsupported host state' {
+        $checks = Test-SandboxSessionLifecycleReadiness -SessionLifecycleState ([pscustomobject]@{
+            RequestedMode = 'Warm'
+            EffectiveMode = 'Warm'
+            WarmSupport = [pscustomobject]@{
+                Supported = $false
+                Reason = 'wsb command not found'
+            }
+            RunningSessionCount = 0
+            InventoryError = $null
+        })
+
+        @($checks | Where-Object { $_.Name -eq 'session-mode' -and $_.Status -eq 'FAIL' }).Count | Should Be 1
+    }
+}
+
+Describe 'Test-SandboxWslHelperReadiness' {
+    It 'warns when helper hardening settings are missing expected values' {
+        $checks = Test-SandboxWslHelperReadiness -WslHelperState ([pscustomobject]@{
+            Enabled = $true
+            WslCommandAvailable = $true
+            DistroAvailable = $true
+            SupportReason = 'ok'
+            EffectiveDistro = 'Ubuntu'
+            StagePath = '~/.sandbox-toolkit-helper'
+            Hardening = [pscustomobject]@{
+                Available = $true
+                AutomountEnabled = 'true'
+                InteropEnabled = 'true'
+                AppendWindowsPath = 'true'
+            }
+        })
+
+        @($checks | Where-Object { $_.Name -eq 'wsl-helper' -and $_.Status -eq 'PASS' }).Count | Should Be 1
+        @($checks | Where-Object { $_.Name -eq 'wsl-helper-hardening' -and $_.Status -eq 'WARN' }).Count | Should Be 1
     }
 }
 

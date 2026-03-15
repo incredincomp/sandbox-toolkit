@@ -85,6 +85,18 @@
     Suppress generated `<LogonCommand>` startup automation in sandbox.wsb.
     When set, scripts/autostart.cmd is not auto-invoked on sandbox startup.
 
+.PARAMETER SessionMode
+    Sandbox lifecycle mode. Fresh starts a clean disposable session; Warm attempts to reuse an existing session via Windows Sandbox CLI.
+
+.PARAMETER UseWslHelper
+    Enable optional WSL helper sidecar tasks for staging and helper metadata.
+
+.PARAMETER WslDistro
+    Optional WSL distro to use with -UseWslHelper. Defaults to the current WSL default distro.
+
+.PARAMETER WslHelperStagePath
+    Optional Linux-side staging directory path used by the WSL helper sidecar.
+
 .EXAMPLE
     .\Start-Sandbox.ps1
     # Downloads tools for the default 'reverse-engineering' profile and launches.
@@ -137,6 +149,14 @@
 .\Start-Sandbox.ps1 -DryRun -Profile minimal -DisableClipboard -DisableStartupCommands
     # Previews artifact generation with tighter host-interaction policy settings.
 
+.EXAMPLE
+.\Start-Sandbox.ps1 -SessionMode Warm -Profile minimal
+    # Attempts warm-session reuse via Windows Sandbox CLI, otherwise creates a session through CLI on supported hosts.
+
+.EXAMPLE
+.\Start-Sandbox.ps1 -DryRun -UseWslHelper -WslDistro Ubuntu
+    # Validates and previews optional WSL helper sidecar usage with selected distro.
+
 .LINK
     QUICKSTART.md, PROFILES.md, SAFETY.md
 #>
@@ -164,7 +184,11 @@ param(
     [switch]$SharedFolderValidationDiagnostics,
     [switch]$DisableClipboard,
     [switch]$DisableAudioInput,
-    [switch]$DisableStartupCommands
+    [switch]$DisableStartupCommands,
+    [ValidateSet('Fresh', 'Warm')][string]$SessionMode = 'Fresh',
+    [switch]$UseWslHelper,
+    [string]$WslDistro,
+    [string]$WslHelperStagePath = '~/.sandbox-toolkit-helper'
 )
 
 Set-StrictMode -Version Latest
@@ -198,7 +222,7 @@ $resolvedSharedFolder = $null
 
 # -- Load helper modules -------------------------------------------------------
 
-foreach ($module in @('Manifest.ps1', 'Download.ps1', 'SandboxConfig.ps1', 'SharedFolderValidation.ps1', 'Session.ps1', 'Validation.ps1', 'Audit.ps1', 'Output.ps1', 'Maintenance.ps1', 'Cli.ps1')) {
+foreach ($module in @('Manifest.ps1', 'Download.ps1', 'SandboxConfig.ps1', 'SharedFolderValidation.ps1', 'Session.ps1', 'Workflow.ps1', 'Validation.ps1', 'Audit.ps1', 'Output.ps1', 'Maintenance.ps1', 'Cli.ps1')) {
     . (Join-Path $srcDir $module)
 }
 
@@ -222,6 +246,10 @@ $commandMode = Resolve-StartSandboxCommandMode `
     -DisableClipboard:$DisableClipboard `
     -DisableAudioInput:$DisableAudioInput `
     -DisableStartupCommands:$DisableStartupCommands `
+    -SessionMode $SessionMode `
+    -UseWslHelper:$UseWslHelper `
+    -ExplicitWslDistro:$($PSBoundParameters.ContainsKey('WslDistro')) `
+    -ExplicitWslHelperStagePath:$($PSBoundParameters.ContainsKey('WslHelperStagePath')) `
     -ExplicitSandboxProfile:$($PSBoundParameters.ContainsKey('SandboxProfile'))
 $modePlan = Get-StartSandboxModePlan -CommandMode $commandMode
 $script:EmitHumanOutput = -not $OutputJson
@@ -229,10 +257,16 @@ $hostInteractionPolicy = Get-SandboxHostInteractionPolicy `
     -DisableClipboard:$DisableClipboard `
     -DisableAudioInput:$DisableAudioInput `
     -DisableStartupCommands:$DisableStartupCommands
+$sessionLifecycleState = Get-SandboxSessionLifecycleState -SessionMode $SessionMode
+$wslHelperState = Get-SandboxWslHelperState `
+    -UseWslHelper:$UseWslHelper `
+    -WslDistro $WslDistro `
+    -WslHelperStagePath $WslHelperStagePath
 
 $setupState = @()
 $artifacts = $null
 $prerequisiteChecks = @()
+$wslHelperResult = $null
 
 try {
 
@@ -325,6 +359,9 @@ Write-StatusLine '  Windows Sandbox Toolkit' -ForegroundColor Cyan
 Write-StatusLine '  -----------------------------------------' -ForegroundColor DarkGray
 Write-StatusLine "  Profile : $SandboxProfile" -ForegroundColor White
 Write-StatusLine "  Mode    : $commandMode" -ForegroundColor White
+Write-StatusLine "  Session : $($sessionLifecycleState.RequestedMode)" -ForegroundColor White
+$helperStateLabel = if ($wslHelperState.Enabled) { 'enabled' } else { 'disabled' }
+Write-StatusLine ("  Helper  : WSL {0}" -f $helperStateLabel) -ForegroundColor White
 Write-StatusLine "  Repo    : $repoRoot" -ForegroundColor DarkGray
 Write-StatusLine ''
 
@@ -341,7 +378,9 @@ if ($commandMode -eq 'Validate') {
         -UseDefaultSharedFolder:$UseDefaultSharedFolder `
         -SharedFolderWritable:$SharedFolderWritable `
         -SharedFolderValidationDiagnostics:$SharedFolderValidationDiagnostics `
-        -HostInteractionPolicy $hostInteractionPolicy
+        -HostInteractionPolicy $hostInteractionPolicy `
+        -SessionLifecycleState $sessionLifecycleState `
+        -WslHelperState $wslHelperState
 
     $validationExitCode = Get-SandboxValidationExitCode -PreflightResult $preflightResult
     if ($OutputJson) {
@@ -352,7 +391,9 @@ if ($commandMode -eq 'Validate') {
             -SkipPrereqCheck:$SkipPrereqCheck `
             -SharedFolder $SharedFolder `
             -UseDefaultSharedFolder:$UseDefaultSharedFolder `
-            -HostInteractionPolicy $hostInteractionPolicy
+            -HostInteractionPolicy $hostInteractionPolicy `
+            -SessionLifecycleState $sessionLifecycleState `
+            -WslHelperState $wslHelperState
         Write-SandboxJsonOutput -Data $validateJsonResult
     } else {
         Write-SandboxPreflightReport -PreflightResult $preflightResult
@@ -471,10 +512,19 @@ if ($selection.RuntimeRemoveTools.Count -gt 0) {
     Write-StatusLine "        Runtime remove: $($selection.RuntimeRemoveTools -join ', ')" -ForegroundColor DarkGray
 }
 Write-StatusLine "        Networking: $networkingMode" -ForegroundColor DarkGray
+if ($sessionLifecycleState.RequestedMode -eq 'Warm') {
+    Write-StatusLine ("        Session lifecycle: warm_requested; warm_supported={0}; running_sessions={1}" -f `
+            $sessionLifecycleState.WarmSupport.Supported, `
+            $sessionLifecycleState.RunningSessionCount) -ForegroundColor DarkGray
+}
 Write-StatusLine ("        Host interaction: clipboard={0}; audio_input={1}; startup_commands_enabled={2}" -f `
         $hostInteractionPolicy.ClipboardRedirection, `
         $hostInteractionPolicy.AudioInput, `
         $hostInteractionPolicy.StartupCommandsEnabled) -ForegroundColor DarkGray
+if ($wslHelperState.Enabled) {
+    $effectiveDistroLabel = if ($wslHelperState.EffectiveDistro) { $wslHelperState.EffectiveDistro } else { '(default)' }
+    Write-StatusLine ("        WSL helper: enabled; distro={0}; stage_path={1}" -f $effectiveDistroLabel, $wslHelperState.StagePath) -ForegroundColor DarkGray
+}
 $tools | ForEach-Object {
     $tag = if ($_.installer_type -eq 'manual') { '  [manual]' } else { '' }
     Write-StatusLine "        * $($_.display_name)$tag" -ForegroundColor DarkGray
@@ -513,6 +563,23 @@ if ($commandMode -eq 'DryRun' -or $commandMode -eq 'Audit') {
 
 Write-StatusLine ''
 
+if ($sessionLifecycleState.RequestedMode -eq 'Warm' -and -not $sessionLifecycleState.WarmSupport.Supported) {
+    throw "Warm session mode is unsupported on this host. $($sessionLifecycleState.WarmSupport.Reason)"
+}
+
+if ($wslHelperState.Enabled) {
+    Write-StatusLine '[3.5/5] WSL helper sidecar...' -ForegroundColor Yellow
+    $wslHelperResult = Invoke-SandboxWslHelperSidecar `
+        -WslHelperState $wslHelperState `
+        -Selection $selection `
+        -NetworkingMode $networkingMode `
+        -SessionLifecycleState $sessionLifecycleState
+    $effectiveHelperDistro = if ($wslHelperState.EffectiveDistro) { $wslHelperState.EffectiveDistro } else { '(default)' }
+    Write-StatusLine ("  [OK]  WSL helper staged metadata in distro '{0}' at '{1}'." -f $effectiveHelperDistro, $wslHelperResult.StagePath) -ForegroundColor Green
+    Write-StatusLine ("        Payload hash: {0}" -f $wslHelperResult.PayloadHash) -ForegroundColor DarkGray
+    Write-StatusLine ''
+}
+
 # -- [4/5] Configure -----------------------------------------------------------
 
 Write-StatusLine '[4/5] Configuring...' -ForegroundColor Yellow
@@ -543,6 +610,8 @@ if ($commandMode -eq 'Audit') {
         -RepoRoot $repoRoot `
         -Selection $selection `
         -NetworkingMode $networkingMode `
+        -SessionLifecycleState $sessionLifecycleState `
+        -WslHelperState $wslHelperState `
         -HostInteractionPolicy $hostInteractionPolicy `
         -Artifacts $artifacts `
         -SharedHostFolder $resolvedSharedFolder `
@@ -563,7 +632,9 @@ if ($commandMode -eq 'Audit') {
             -UseDefaultSharedFolder:$UseDefaultSharedFolder `
             -ResolvedSharedFolder $resolvedSharedFolder `
             -SharedFolderWritable:$SharedFolderWritable `
-            -HostInteractionPolicy $hostInteractionPolicy
+            -HostInteractionPolicy $hostInteractionPolicy `
+            -SessionLifecycleState $sessionLifecycleState `
+            -WslHelperState $wslHelperState
         Write-SandboxJsonOutput -Data $auditJsonResult
     } else {
         Write-SandboxAuditReport -AuditResult $auditResult
@@ -580,13 +651,23 @@ if ($commandMode -eq 'Audit') {
 
 Write-StatusLine '[5/5] Launch...' -ForegroundColor Yellow
 try {
-    $launchResult = Invoke-SandboxLaunch -WsbPath $wsbPath -NoLaunch:$NoLaunch -DryRun:($commandMode -eq 'DryRun')
+    $launchResult = Invoke-SandboxSessionLaunch `
+        -WsbPath $wsbPath `
+        -SessionLifecycleState $sessionLifecycleState `
+        -NoLaunch:$NoLaunch `
+        -DryRun:($commandMode -eq 'DryRun')
     if ($launchResult.Reason -eq 'DryRun') {
         Write-StatusLine '  [SKIP] -DryRun specified; sandbox launch suppressed.' -ForegroundColor DarkGray
         Write-StatusLine "         Generated files remain on host: $installManifestPath, $wsbPath" -ForegroundColor DarkGray
     } elseif ($launchResult.Reason -eq 'NoLaunch') {
         Write-StatusLine '  [SKIP] -NoLaunch specified.' -ForegroundColor DarkGray
         Write-StatusLine "         To start manually: $wsbPath" -ForegroundColor DarkGray
+    } elseif ($launchResult.Reason -eq 'WarmReusedSession') {
+        Write-StatusLine ("  [OK]   Reused warm sandbox session: {0}" -f $launchResult.WarmSessionId) -ForegroundColor Green
+        Write-StatusLine '         Connected to existing sandbox session using Windows Sandbox CLI.' -ForegroundColor DarkGray
+    } elseif ($launchResult.Reason -eq 'WarmCreatedSession') {
+        Write-StatusLine '  [OK]   Warm mode requested and no running session was found; created a new CLI-managed sandbox session.' -ForegroundColor Green
+        Write-StatusLine '         Startup automation follows generated sandbox.wsb configuration.' -ForegroundColor DarkGray
     } else {
         Write-StatusLine '  [OK]   Windows Sandbox launched.' -ForegroundColor Green
         Write-StatusLine '         Setup runs automatically. Check install-log.txt on the sandbox Desktop.' -ForegroundColor DarkGray
@@ -608,7 +689,10 @@ if ($OutputJson -and $commandMode -eq 'DryRun') {
         -UseDefaultSharedFolder:$UseDefaultSharedFolder `
         -ResolvedSharedFolder $resolvedSharedFolder `
         -SharedFolderWritable:$SharedFolderWritable `
-        -HostInteractionPolicy $hostInteractionPolicy
+        -HostInteractionPolicy $hostInteractionPolicy `
+        -SessionLifecycleState $sessionLifecycleState `
+        -WslHelperState $wslHelperState `
+        -WslHelperResult $wslHelperResult
     Write-SandboxJsonOutput -Data $dryRunJsonResult
 }
 
