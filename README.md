@@ -3,7 +3,7 @@
 A manifest-driven, profile-aware Windows Sandbox environment for **defensive malware analysis and reverse engineering**.
 
 > **Safety first.** Networking is disabled by default. The sandbox is disposable by design.
-> See [SAFETY.md](SAFETY.md) before enabling networking or mapping additional host folders.
+> See [SAFETY.md](docs/SAFETY.md) before enabling networking or mapping additional host folders.
 
 ---
 
@@ -53,7 +53,7 @@ cd sandbox-toolkit
 # 3. Windows Sandbox opens and installs all tools automatically
 ```
 
-See [QUICKSTART.md](QUICKSTART.md) for a step-by-step guide including prerequisites.
+See [QUICKSTART.md](docs/QUICKSTART.md) for a step-by-step guide including prerequisites.
 
 ---
 
@@ -71,7 +71,7 @@ See [QUICKSTART.md](QUICKSTART.md) for a step-by-step guide including prerequisi
 .\Start-Sandbox.ps1 -Profile network-analysis
 ```
 
-See [PROFILES.md](PROFILES.md) for full details.
+See [PROFILES.md](docs/PROFILES.md) for full details.
 
 ---
 
@@ -132,10 +132,11 @@ sandbox-toolkit/
 │   └── workflows/
 │       └── validate.yml       # CI: PSScriptAnalyzer + manifest validation
 ├── README.md
-├── QUICKSTART.md
-├── PROFILES.md
-├── TROUBLESHOOTING.md
-├── SAFETY.md
+├── docs/
+│   ├── QUICKSTART.md
+│   ├── PROFILES.md
+│   ├── TROUBLESHOOTING.md
+│   └── SAFETY.md
 └── CHANGELOG.md
 ```
 
@@ -167,7 +168,7 @@ sandbox-toolkit/
 - No samples from the host are auto-executed.
 - The sandbox is fully disposable; nothing persists after it closes.
 
-See [SAFETY.md](SAFETY.md) for full safety guidance.
+See [SAFETY.md](docs/SAFETY.md) for full safety guidance.
 
 ---
 

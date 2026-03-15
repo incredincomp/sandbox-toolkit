@@ -1,0 +1,85 @@
+{
+  "schema_version": "1.0.0",
+  "discovery_run": {
+    "date": "2026-03-14",
+    "agent": "GitHub Copilot (Raptor mini)",
+    "prompt_used": "Existing Repository Discovery",
+    "target_repo": "https://github.com/incredincomp/sandbox-toolkit"
+  },
+  "repository": {
+    "name": "sandbox-toolkit",
+    "description": "A manifest-driven, profile-aware Windows Sandbox toolkit for defensive malware analysis and reverse engineering.",
+    "primary_language": "PowerShell",
+    "additional_languages": ["JSON", "Markdown"],
+    "repo_type": "tooling / sandbox orchestration"
+  },
+  "technology_stack": {
+    "build_system": "PowerShell scripts (no dedicated build system)",
+    "package_manager": "None (downloads tool installers via manifest)",
+    "dependency_file": "tools.json",
+    "runtime_version": "Windows PowerShell 5.1+ (Windows Sandbox), Python 3.13.2 used by CI",
+    "test_framework": "Pester (PowerShell) + PSScriptAnalyzer (lint)",
+    "lint_tool": "PSScriptAnalyzer"
+  },
+  "structure": {
+    "top_level_dirs": [
+      "artifacts",
+      "bootstrap",
+      "docs",
+      "schemas",
+      "scripts",
+      "src",
+      "tests",
+      ".github"
+    ],
+    "source_dir": "src",
+    "test_dir": "tests",
+    "docs_dir": "docs",
+    "config_files": [
+      "tools.json",
+      "sandbox.wsb.template",
+      ".github/workflows/validate.yml",
+      "schemas/tools.schema.json"
+    ],
+    "entry_points": [
+      "Start-Sandbox.ps1",
+      "scripts/Install-Tools.ps1",
+      "scripts/autostart.cmd"
+    ]
+  },
+  "ci_cd": {
+    "provider": "GitHub Actions",
+    "config_path": ".github/workflows/validate.yml",
+    "workflows": ["Validate"]
+  },
+  "infrastructure": {
+    "cloud_provider": null,
+    "iac_tool": null,
+    "iac_path": null,
+    "deployment_target": null
+  },
+  "existing_agent_files": {
+    "agents_md": "present (template placeholders remain)",
+    "implementation_tracker": "present (template placeholders remain)",
+    "repo_map": "present (template placeholders remain)",
+    "discovery_artifact": "present (this file)"
+  },
+  "documentation": {
+    "readme_quality": "substantial",
+    "docs_dir_present": "yes",
+    "architecture_docs": "limited (README and operational docs; no formal ADRs)"
+  },
+  "risk_areas": [
+    {
+      "area": "External tool downloads",
+      "description": "The toolkit relies on downloading third-party installers at runtime; broken URLs or changed host behavior can break setup.",
+      "severity": "medium"
+    },
+    {
+      "area": "No LICENSE file",
+      "description": "Repository does not include an explicit license file, which can affect reuse and distribution.",
+      "severity": "low"
+    }
+  ],
+  "discovery_notes": "This repository orchestrates Windows Sandbox setup via PowerShell, using a JSON manifest of tools. Most work is in scripts and documentation. There is no build system or packaged runtime. CI validates PowerShell style and manifest schema."
+}
