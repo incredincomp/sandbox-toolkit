@@ -508,3 +508,28 @@ Estimated size: Small (1–2 files)
 |-------|--------|--------|------|
 | Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
 | PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-14 |
+
+### Scope (custom profile authoring pass)
+- Add a copyable custom profile example and document local authoring rules for `custom-profiles.local.json`.
+- Add focused test coverage to keep the example aligned with real loader/validator rules.
+
+### Decisions made (custom profile authoring pass)
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Add one authoritative sample at repo root: `custom-profiles.example.json` | Matches the local-file location users actually copy to (`custom-profiles.local.json`) and keeps discovery simple | Introduce a new examples directory pattern for a single sample |
+| Validate sample through real `Import-CustomProfileConfig` + `Test-CustomProfileConfigIntegrity` path | Ensures sample drifts are caught by existing validation semantics | Text-level snapshot assertions on sample file contents |
+| Keep runtime behavior unchanged; improve docs only | Scope is authoring ergonomics and guardrails, not selection semantics | Add broader schema tooling or runtime validation changes |
+
+### Files modified (custom profile authoring pass)
+- `custom-profiles.example.json` (new)
+- `tests/Manifest.Tests.ps1`
+- `README.md`
+- `docs/QUICKSTART.md`
+- `IMPLEMENTATION_TRACKER.md`
+
+### Validation (custom profile authoring pass)
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Pester tests (custom profile sample guard) | ✅ | `Invoke-Pester -Path tests/Manifest.Tests.ps1` | 2026-03-14 |
+| Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
+| PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-14 |

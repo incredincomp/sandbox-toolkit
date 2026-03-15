@@ -133,7 +133,21 @@ Common `-Validate` remediations:
 
 ## Custom profiles
 
-Create optional `custom-profiles.local.json` in repo root:
+Create optional `custom-profiles.local.json` in repo root by copying the tracked example:
+
+```powershell
+Copy-Item .\custom-profiles.example.json .\custom-profiles.local.json
+```
+
+The example file lives at `custom-profiles.example.json`.
+
+Supported structure:
+- Top-level `profiles` array is required when the local file exists.
+- Each custom profile requires `name` and `base_profile`.
+- `base_profile` must be one of built-in profiles (`minimal`, `reverse-engineering`, `network-analysis`, `full`).
+- `add_tools` and `remove_tools` are optional arrays of valid tool IDs.
+
+Example:
 
 ```json
 {
@@ -148,6 +162,14 @@ Create optional `custom-profiles.local.json` in repo root:
   ]
 }
 ```
+
+Common mistakes:
+- Unknown `base_profile`.
+- Unknown tool IDs in `add_tools` or `remove_tools`.
+- Missing `profiles` property or malformed array/object shape.
+- Duplicate custom profile names or names that conflict with built-in profiles.
+
+The example is illustrative; runtime custom-profile validation is the source of truth.
 
 Usage:
 

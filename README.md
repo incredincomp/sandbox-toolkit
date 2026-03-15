@@ -243,7 +243,24 @@ Example payload:
 
 ### Custom profiles and runtime overrides
 
-User-defined profiles live in optional repo-local `custom-profiles.local.json`:
+User-defined profiles live in optional repo-local `custom-profiles.local.json`.
+
+Start from the tracked example:
+
+```powershell
+Copy-Item .\custom-profiles.example.json .\custom-profiles.local.json
+```
+
+Example source: `custom-profiles.example.json`.
+
+Supported custom-profile shape:
+- Top-level `profiles` array is required when the file exists.
+- Each profile entry requires:
+  - `name` (non-empty, unique, must not conflict with built-in profile names)
+  - `base_profile` (one of built-in profiles: `minimal`, `reverse-engineering`, `network-analysis`, `full`)
+- Optional per-profile arrays:
+  - `add_tools` (tool IDs to add)
+  - `remove_tools` (tool IDs to remove)
 
 ```json
 {
@@ -258,6 +275,14 @@ User-defined profiles live in optional repo-local `custom-profiles.local.json`:
   ]
 }
 ```
+
+Common authoring mistakes:
+- Unknown `base_profile` value.
+- Unknown tool IDs in `add_tools` or `remove_tools`.
+- Missing `profiles` property or malformed array/object shapes.
+- Duplicate custom profile names or a custom `name` that matches a built-in profile.
+
+The example is illustrative. Runtime validation (`Import-CustomProfileConfig` + `Test-CustomProfileConfigIntegrity`) remains the source of truth.
 
 Runtime override parameters:
 - `-AddTools <id[]>`
