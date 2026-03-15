@@ -91,6 +91,29 @@ Exit behavior:
 - `0`: validation passed (warnings may still be present).
 - `1`: one or more validation checks failed.
 
+### Machine-readable JSON output
+
+Use `-OutputJson` with `-Validate` or `-DryRun` to emit JSON to stdout for CI/automation.
+Human-readable console output remains the default.
+
+```powershell
+.\Start-Sandbox.ps1 -Validate -OutputJson
+.\Start-Sandbox.ps1 -Validate -Profile net-re-lite -OutputJson
+.\Start-Sandbox.ps1 -DryRun -Profile net-re-lite -AddTools floss -OutputJson
+```
+
+Supported modes:
+- `-Validate -OutputJson`
+- `-DryRun -OutputJson`
+
+Intentional exclusions:
+- `-OutputJson` is not enabled for normal launch mode.
+- `-OutputJson` is not enabled for list modes in this pass.
+
+JSON stability notes:
+- Validate JSON includes stable `checks[]` records (`id`, `status`, `summary`, `remediation`) plus overall status and `exit_code`.
+- Dry-run JSON includes profile resolution, runtime overrides, final effective tool list, effective networking, stage skip details, and generated artifact paths.
+
 ### Custom profiles and runtime overrides
 
 User-defined profiles live in optional repo-local `custom-profiles.local.json`:

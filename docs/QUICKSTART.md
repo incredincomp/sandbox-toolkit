@@ -80,10 +80,15 @@ See [PROFILES.md](PROFILES.md) for what each profile includes.
 
 # Simulate selection/config generation without downloading or launching
 .\Start-Sandbox.ps1 -DryRun -Profile reverse-engineering -SkipPrereqCheck
+.\Start-Sandbox.ps1 -DryRun -Profile net-re-lite -AddTools floss -OutputJson
 
 # Runtime tool overrides
 .\Start-Sandbox.ps1 -Profile minimal -AddTools ghidra,wireshark
 .\Start-Sandbox.ps1 -Profile reverse-engineering -RemoveTools ghidra,hxd
+
+# Machine-readable output for CI/automation
+.\Start-Sandbox.ps1 -Validate -OutputJson
+.\Start-Sandbox.ps1 -Validate -Profile net-re-lite -OutputJson
 
 # Download tools without launching (prepare cache for offline use)
 .\Start-Sandbox.ps1 -NoLaunch
@@ -101,6 +106,7 @@ See [PROFILES.md](PROFILES.md) for what each profile includes.
 `-Validate` vs `-DryRun`:
 - `-Validate` answers: "Can I safely/run this on this host now?" It does not download, generate artifacts, or launch.
 - `-DryRun` answers: "What would be selected/generated?" It still writes generated host artifacts (`install-manifest.json`, `sandbox.wsb`) but skips download and launch.
+- Add `-OutputJson` to either mode when automation needs stable machine-readable output from stdout.
 
 Common `-Validate` remediations:
 - Shared-folder path rejected: choose a dedicated local non-reparse ingress path (for example `C:\Lab\Ingress`).
@@ -144,6 +150,7 @@ Notes:
 - Unknown profile names and unknown tool IDs fail fast with actionable errors.
 - `-ListProfiles` shows both built-in and custom profiles distinctly.
 - Custom profiles in this pass inherit networking behavior from their built-in `base_profile`.
+- JSON output mode is intentionally scoped to `-Validate` and `-DryRun` in this pass.
 
 ---
 
