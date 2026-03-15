@@ -180,6 +180,33 @@ Estimated size: Small (1–2 files)
 
 ---
 
+## 2026-03-15 Session log (release cut v2.1.0)
+
+### Scope
+- Verify release convention/remotes/tag history.
+- Confirm integration hardening coverage and deterministic CI seams.
+- Cut and publish release `v2.1.0` with annotated tag and release notes.
+
+### Decisions made
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Use `v2.1.0` as the release tag/version | Changelog already defines 2.1.0 user-facing feature set and prior published tag is `v2.0.7` | Backfill separate `v2.0.8`/`v2.0.9` tags |
+| Keep release mechanism as annotated git tag + GitHub release object | Existing repo history uses annotated tags and GitHub remote is available with authenticated `gh` CLI | Changelog-only release without tag/release object |
+| Publish consolidated release notes artifact at `artifacts/releases/v2.1.0.md` | Deterministic local handoff artifact even if remote release APIs fail later | Depend only on changelog excerpts |
+
+### Files modified
+- `artifacts/releases/v2.1.0.md` (new)
+- `IMPLEMENTATION_TRACKER.md`
+
+### Validation
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Full test suite | ✅ | `Invoke-Pester -Path tests` | 2026-03-15 |
+| PSScriptAnalyzer (Error,Warning) | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' \| ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-15 |
+| Remote health/reachability | ✅ | `git ls-remote --heads origin` / `git ls-remote --tags origin` | 2026-03-15 |
+
+---
+
 ## 2026-03-15 Session log (release hardening follow-up)
 
 ### Scope
