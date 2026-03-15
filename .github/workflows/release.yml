@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to publish (for manual reruns, e.g. v2.1.1)"
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -26,6 +32,10 @@ jobs:
         shell: pwsh
         run: |
           $tag = $env:GITHUB_REF_NAME
+          if ($env:GITHUB_EVENT_NAME -eq 'workflow_dispatch' -and -not [string]::IsNullOrWhiteSpace('${{ github.event.inputs.tag }}')) {
+            $tag = '${{ github.event.inputs.tag }}'
+          }
+
           if (-not $tag -or -not $tag.StartsWith('v')) {
             throw "Expected a version tag ref (v*). Found: '$tag'"
           }
@@ -37,14 +47,16 @@ jobs:
           if (-not (Test-Path -LiteralPath $preferredNotesPath -PathType Leaf)) {
             New-Item -ItemType Directory -Path 'artifacts/releases' -Force | Out-Null
             $notesPath = Join-Path 'artifacts/releases' "$version.generated.md"
-            @"
+            $releaseNotes = @"
 # sandbox-toolkit $tag
 
 Automated release generated from tag '$tag'.
 
 Prepared release notes file '$preferredNotesPath' was not found.
 See CHANGELOG.md for detailed release notes.
-"@ | Set-Content -Path $notesPath -Encoding UTF8
+"@
+
+            $releaseNotes | Set-Content -Path $notesPath -Encoding UTF8
           }
 
           "tag=$tag" >> $env:GITHUB_OUTPUT

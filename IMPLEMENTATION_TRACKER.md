@@ -1193,6 +1193,34 @@ Estimated size: Small (1–2 files)
 
 ---
 
+## 2026-03-15 Session log (workflow reliability follow-up)
+
+### Scope
+- Fix post-push CI failures in workflow execution surfaces.
+- Intentionally harden `release.yml` behavior for tag and manual release runs.
+- Preserve existing script/runtime behavior while stabilizing Actions contracts.
+
+### Decisions made
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Add `-SkipPublisherCheck` when installing pinned Pester `4.10.1` in CI | GitHub-hosted runner had signer/root mismatch against previously cached Pester signer and failed install step without this override | Rewrite entire suite to Pester 5 immediately |
+| Reset `$LASTEXITCODE` after child `powershell` invocations in smoke and exit-code contract steps | Negative test cases intentionally return exit code `1`; without reset, job step exits non-zero even when assertions pass | Remove negative contract cases from CI matrix |
+| Add `workflow_dispatch` support and explicit optional `tag` input to `release.yml` | Allows deterministic manual reruns/recovery for tag release publishing paths | Keep tag-only trigger with no manual recovery path |
+| Normalize fallback release-notes generation in `release.yml` into explicit variable assignment | Makes script behavior clearer and avoids ambiguous multiline write flow during parser/runtime evaluation | Keep inline here-string pipeline form |
+
+### Files modified
+- `.github/workflows/validate.yml`
+- `.github/workflows/release.yml`
+- `IMPLEMENTATION_TRACKER.md`
+
+### Validation
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Full test suite | ✅ | `Import-Module Pester -RequiredVersion 4.10.1 -Force; Invoke-Pester -Path tests -EnableExit` | 2026-03-15 |
+| PSScriptAnalyzer (Error,Warning) | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' \| ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-15 |
+
+---
+
 ## 2026-03-15 Session log (CI parity and failure triage pass)
 
 ### Scope

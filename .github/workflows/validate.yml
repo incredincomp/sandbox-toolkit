@@ -17,7 +17,7 @@ jobs:
 
       - name: Install Pester
         shell: pwsh
-        run: Install-Module Pester -RequiredVersion 4.10.1 -Force -Scope CurrentUser
+        run: Install-Module Pester -RequiredVersion 4.10.1 -Force -Scope CurrentUser -SkipPublisherCheck
 
       - name: Run Pester tests
         shell: pwsh
@@ -216,6 +216,8 @@ jobs:
           $args = @($env:SMOKE_ARGS -split ' ' | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
           $output = & powershell -NoProfile -ExecutionPolicy Bypass -File .\Start-Sandbox.ps1 @args 2>&1 | Out-String
           $exitCode = $LASTEXITCODE
+          # Prevent an expected non-zero child exit from leaking as step failure.
+          $global:LASTEXITCODE = 0
           $expectedExit = [int]$env:EXPECT_EXIT
 
           if ($exitCode -ne $expectedExit) {
@@ -314,6 +316,8 @@ jobs:
           foreach ($case in $cases) {
             $output = & powershell -NoProfile -ExecutionPolicy Bypass -File .\Start-Sandbox.ps1 @($case.Args) 2>&1 | Out-String
             $exitCode = $LASTEXITCODE
+            # Prevent expected non-zero child exits from failing the step itself.
+            $global:LASTEXITCODE = 0
             if ($exitCode -ne $case.ExpectedExitCode) {
               throw "Case '$($case.Name)' expected exit code $($case.ExpectedExitCode) but got $exitCode. Output:`n$output"
             }
