@@ -45,6 +45,9 @@
 .PARAMETER RemoveTools
     Optional tool IDs to remove from the selected profile at runtime.
 
+.PARAMETER OutputJson
+    Emit machine-readable JSON for -Validate or -DryRun modes.
+
 .PARAMETER SkipPrereqCheck
     Skip the Windows Sandbox feature check (useful for CI or offline use).
 
@@ -86,6 +89,10 @@
     # Starts from minimal profile, adds/removes tools at runtime, then launches.
 
 .EXAMPLE
+    .\Start-Sandbox.ps1 -Validate -OutputJson
+    # Emits preflight validation as JSON for automation.
+
+.EXAMPLE
     .\Start-Sandbox.ps1 -ListProfiles
     # Prints supported profiles from the current manifest.
 
@@ -118,6 +125,7 @@ param(
     [switch]$ListProfiles,
     [string[]]$AddTools,
     [string[]]$RemoveTools,
+    [switch]$OutputJson,
     [switch]$SkipPrereqCheck,
     [string]$SharedFolder,
     [switch]$UseDefaultSharedFolder,
@@ -137,6 +145,9 @@ function Write-StatusLine {
         [Parameter(Mandatory)][AllowEmptyString()][string]$Message,
         [ConsoleColor]$ForegroundColor = [ConsoleColor]::White
     )
+    if (-not $script:EmitHumanOutput) {
+        return
+    }
     $Host.UI.WriteLine($ForegroundColor, $Host.UI.RawUI.BackgroundColor, $Message)
 }
 
@@ -153,7 +164,7 @@ $resolvedSharedFolder = $null
 
 # -- Load helper modules -------------------------------------------------------
 
-foreach ($module in @('Manifest.ps1', 'Download.ps1', 'SandboxConfig.ps1', 'SharedFolderValidation.ps1', 'Session.ps1', 'Validation.ps1', 'Cli.ps1')) {
+foreach ($module in @('Manifest.ps1', 'Download.ps1', 'SandboxConfig.ps1', 'SharedFolderValidation.ps1', 'Session.ps1', 'Validation.ps1', 'Output.ps1', 'Cli.ps1')) {
     . (Join-Path $srcDir $module)
 }
 
@@ -164,6 +175,7 @@ $commandMode = Resolve-StartSandboxCommandMode `
     -DryRun:$DryRun `
     -Force:$Force `
     -NoLaunch:$NoLaunch `
+    -OutputJson:$OutputJson `
     -AddTools $AddTools `
     -RemoveTools $RemoveTools `
     -SharedFolder $SharedFolder `
@@ -172,6 +184,13 @@ $commandMode = Resolve-StartSandboxCommandMode `
     -SharedFolderValidationDiagnostics:$SharedFolderValidationDiagnostics `
     -ExplicitSandboxProfile:$($PSBoundParameters.ContainsKey('SandboxProfile'))
 $modePlan = Get-StartSandboxModePlan -CommandMode $commandMode
+$script:EmitHumanOutput = -not $OutputJson
+
+$setupState = @()
+$artifacts = $null
+$prerequisiteChecks = @()
+
+try {
 
 if ($commandMode -eq 'List') {
     $manifest = Import-ToolManifest -ManifestPath $manifestPath
@@ -232,10 +251,21 @@ if ($commandMode -eq 'Validate') {
         -SharedFolderWritable:$SharedFolderWritable `
         -SharedFolderValidationDiagnostics:$SharedFolderValidationDiagnostics
 
-    Write-SandboxPreflightReport -PreflightResult $preflightResult
-    Write-StatusLine ''
-
     $validationExitCode = Get-SandboxValidationExitCode -PreflightResult $preflightResult
+    if ($OutputJson) {
+        $validateJsonResult = Get-SandboxValidateJsonResult `
+            -PreflightResult $preflightResult `
+            -SandboxProfile $SandboxProfile `
+            -ExitCode $validationExitCode `
+            -SkipPrereqCheck:$SkipPrereqCheck `
+            -SharedFolder $SharedFolder `
+            -UseDefaultSharedFolder:$UseDefaultSharedFolder
+        Write-SandboxJsonOutput -Data $validateJsonResult
+    } else {
+        Write-SandboxPreflightReport -PreflightResult $preflightResult
+        Write-StatusLine ''
+    }
+
     if ($validationExitCode -ne 0) {
         exit $validationExitCode
     }
@@ -260,21 +290,41 @@ $resolvedSharedFolder = $sharedFolderRequest.SharedHostFolder
 if ($modePlan.CheckPrerequisites) {
     Write-StatusLine '[1/5] Checking prerequisites...' -ForegroundColor Yellow
 
-    foreach ($check in (Test-SandboxHostPrerequisite -SkipPrereqCheck:$SkipPrereqCheck)) {
+    $prerequisiteChecks = @(Test-SandboxHostPrerequisite -SkipPrereqCheck:$SkipPrereqCheck)
+    foreach ($check in $prerequisiteChecks) {
         switch ($check.Status) {
             'PASS' {
                 Write-StatusLine "  [OK]  $($check.Message)" -ForegroundColor Green
             }
             'WARN' {
-                Write-Warning $check.Message
-                if ($check.Remediation) {
-                    Write-Warning $check.Remediation
+                if ($script:EmitHumanOutput) {
+                    Write-Warning $check.Message
+                    if ($check.Remediation) {
+                        Write-Warning $check.Remediation
+                    }
                 }
             }
             'FAIL' {
-                Write-Error $check.Message
-                if ($check.Remediation) {
-                    Write-StatusLine "  Remediation: $($check.Remediation)" -ForegroundColor Yellow
+                if ($OutputJson) {
+                    $preflightResult = [pscustomobject]@{
+                        Checks = @($prerequisiteChecks)
+                        Selection = $null
+                        SharedHostFolder = $resolvedSharedFolder
+                        SharedFolderWritable = [bool]$SharedFolderWritable
+                    }
+                    $validateJsonResult = Get-SandboxValidateJsonResult `
+                        -PreflightResult $preflightResult `
+                        -SandboxProfile $SandboxProfile `
+                        -ExitCode 1 `
+                        -SkipPrereqCheck:$SkipPrereqCheck `
+                        -SharedFolder $SharedFolder `
+                        -UseDefaultSharedFolder:$UseDefaultSharedFolder
+                    Write-SandboxJsonOutput -Data $validateJsonResult
+                } else {
+                    Write-Error $check.Message
+                    if ($check.Remediation) {
+                        Write-StatusLine "  Remediation: $($check.Remediation)" -ForegroundColor Yellow
+                    }
                 }
                 exit 1
             }
@@ -322,7 +372,8 @@ Write-StatusLine ''
 if ($commandMode -eq 'DryRun') {
     Write-StatusLine '[3/5] Download plan (dry-run)...' -ForegroundColor Yellow
     Write-StatusLine "  [PLAN] Setup directory: $setupDir" -ForegroundColor DarkGray
-    Get-ToolSetupState -Tools $tools -SetupDir $setupDir | ForEach-Object {
+    $setupState = @(Get-ToolSetupState -Tools $tools -SetupDir $setupDir)
+    $setupState | ForEach-Object {
         $state = if ($_.cached) { 'cached' } else { 'missing' }
         Write-StatusLine "  [PLAN] $($_.filename) -- $state" -ForegroundColor DarkGray
     }
@@ -387,4 +438,28 @@ try {
     Write-StatusLine "  Open manually: $wsbPath" -ForegroundColor Yellow
 }
 
+if ($OutputJson -and $commandMode -eq 'DryRun') {
+    $dryRunJsonResult = Get-SandboxDryRunJsonResult `
+        -Selection $selection `
+        -NetworkingMode $networkingMode `
+        -SetupState $setupState `
+        -Artifacts $artifacts `
+        -PrerequisiteChecks $prerequisiteChecks `
+        -SkipPrereqCheck:$SkipPrereqCheck `
+        -SharedFolder $SharedFolder `
+        -UseDefaultSharedFolder:$UseDefaultSharedFolder `
+        -ResolvedSharedFolder $resolvedSharedFolder `
+        -SharedFolderWritable:$SharedFolderWritable
+    Write-SandboxJsonOutput -Data $dryRunJsonResult
+}
+
 Write-StatusLine ''
+} catch {
+    if ($OutputJson) {
+        $errorJsonResult = Get-SandboxErrorJsonResult -CommandMode $commandMode -Message $_.Exception.Message
+        Write-SandboxJsonOutput -Data $errorJsonResult
+        exit 1
+    }
+
+    throw
+}

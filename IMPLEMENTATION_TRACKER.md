@@ -311,3 +311,26 @@ Estimated size: Small (1–2 files)
 |-------|--------|--------|------|
 | Pester tests | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
 | PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer ... }` | 2026-03-14 |
+
+### Scope (json output feature pass)
+- Add `-OutputJson` support for `-Validate` and `-DryRun`.
+- Preserve default human-readable output and existing exit semantics.
+
+### Decisions made (json output feature pass)
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Restrict `-OutputJson` to `-Validate` and `-DryRun` | Keeps mode semantics explicit and avoids mixed-output ambiguity | Support all command modes in this pass |
+| Suppress human status lines in JSON mode via `Write-StatusLine` gate | Prevents mixed text + JSON output and keeps automation output parseable | Maintain existing text output and append JSON blob |
+| Emit structured JSON error envelope for fatal JSON-mode failures | Keeps invalid selection/override failures machine-readable | Let unhandled exceptions print text errors in JSON mode |
+
+### Files modified (json output feature pass)
+- `Start-Sandbox.ps1`
+- `src/Cli.ps1`
+- `tests/Cli.Tests.ps1`
+- `tests/StartSandboxJson.Tests.ps1` (new)
+
+### Validation (json output feature pass)
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Pester tests | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
+| PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer ... }` | 2026-03-14 |

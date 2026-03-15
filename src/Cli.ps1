@@ -13,6 +13,7 @@ function Resolve-StartSandboxCommandMode {
         [switch]$DryRun,
         [switch]$Force,
         [switch]$NoLaunch,
+        [switch]$OutputJson,
         [string[]]$AddTools,
         [string[]]$RemoveTools,
         [string]$SharedFolder,
@@ -56,6 +57,9 @@ function Resolve-StartSandboxCommandMode {
     }
     if ($Validate -and $NoLaunch) {
         throw "-NoLaunch cannot be combined with -Validate."
+    }
+    if ($OutputJson -and -not ($Validate -or $DryRun)) {
+        throw "-OutputJson is supported only with -Validate or -DryRun."
     }
 
     if ($isListMode) {
