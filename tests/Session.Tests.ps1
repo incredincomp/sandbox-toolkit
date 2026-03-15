@@ -56,3 +56,18 @@ Describe 'Resolve-SandboxSessionSelection' {
         ($selection.Tools | Select-Object -ExpandProperty id) -join ',' | Should Be (($expected | Select-Object -ExpandProperty id) -join ',')
     }
 }
+
+Describe 'Resolve-SandboxEffectiveToolSelection' {
+    It 'deduplicates IDs and keeps deterministic install_order ordering' {
+        $manifest = [pscustomobject]@{
+            tools = @(
+                [pscustomobject]@{ id = 'b'; install_order = 20; display_name = 'B' },
+                [pscustomobject]@{ id = 'a'; install_order = 10; display_name = 'A' },
+                [pscustomobject]@{ id = 'c'; install_order = 30; display_name = 'C' }
+            )
+        }
+
+        $tools = Resolve-SandboxEffectiveToolSelection -Manifest $manifest -ToolIds @('c', 'a', 'a')
+        ($tools | Select-Object -ExpandProperty id) -join ',' | Should Be 'a,c'
+    }
+}

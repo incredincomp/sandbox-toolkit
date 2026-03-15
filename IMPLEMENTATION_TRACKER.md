@@ -212,3 +212,22 @@ Estimated size: Small (1–2 files)
 |-------|--------|--------|------|
 | Pester tests | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
 | PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer ... }` | 2026-03-14 |
+
+### Scope (profiles refactor pass)
+- Centralize effective tool-selection ordering/deduplication into reusable helper logic.
+- Add characterization test coverage to preserve built-in selection behavior.
+
+### Decisions made (profiles refactor pass)
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Add `Resolve-SandboxEffectiveToolSelection` in `src/Session.ps1` and route built-in profile selection through it | Create one deterministic ordering/dedupe seam for upcoming custom-profile and runtime-override layering | Keep profile selection inline with repeated ordering logic |
+
+### Files modified (profiles refactor pass)
+- `src/Session.ps1`
+- `tests/Session.Tests.ps1`
+
+### Validation (profiles refactor pass)
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Pester tests | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
+| PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer ... }` | 2026-03-14 |

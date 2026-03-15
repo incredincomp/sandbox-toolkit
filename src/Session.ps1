@@ -28,11 +28,38 @@ function Resolve-SandboxSessionSelection {
         [Parameter(Mandatory)][string]$SandboxProfile
     )
 
-    $tools = Get-ToolsForProfile -Manifest $Manifest -SandboxProfile $SandboxProfile
+    $tools = Resolve-SandboxEffectiveToolSelection `
+        -Manifest $Manifest `
+        -ToolIds (Get-ToolsForProfile -Manifest $Manifest -SandboxProfile $SandboxProfile | Select-Object -ExpandProperty id)
+
     return [pscustomobject]@{
         Profile = $SandboxProfile
         Tools   = @($tools)
     }
+}
+
+function Resolve-SandboxEffectiveToolSelection {
+    <#
+    .SYNOPSIS
+        Resolves a deterministic ordered tool list from an ID set.
+    #>
+    param(
+        [Parameter(Mandatory)][PSCustomObject]$Manifest,
+        [Parameter(Mandatory)][string[]]$ToolIds
+    )
+
+    $selectedToolIds = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    foreach ($toolId in $ToolIds) {
+        if (-not [string]::IsNullOrWhiteSpace($toolId)) {
+            [void]$selectedToolIds.Add($toolId)
+        }
+    }
+
+    return @(
+        $Manifest.tools |
+            Sort-Object install_order |
+            Where-Object { $selectedToolIds.Contains($_.id) }
+    )
 }
 
 function Write-SandboxSessionManifest {
