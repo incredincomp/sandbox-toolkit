@@ -149,6 +149,15 @@ Boundary reminder:
 - This toolkit does not auto-edit `/etc/wsl.conf` and does not auto-restart distros.
 - WSL helper remains an optional orchestration layer; Windows Sandbox remains the primary execution/isolation boundary.
 
+WSL helper troubleshooting:
+- Symptom: Windows drives still appear under `/mnt/c`, `/mnt/d`, etc.
+  Likely cause: edits were applied to the wrong distro, only to the tracked sample file (not `/etc/wsl.conf`), or the target distro never fully stopped so the new config was not reloaded.
+  What to do: confirm helper target (`-WslDistro`), confirm `/etc/wsl.conf` inside that same distro, check running distros with `wsl --list --running`, terminate the target distro with `wsl --terminate <DistroName>`, restart it, then re-run `.\Start-Sandbox.ps1 -Validate -UseWslHelper -WslDistro <DistroName>`.
+- Symptom: interop still appears enabled.
+  Likely cause: `[interop] enabled=false` and `appendWindowsPath=false` were not applied in the helper distro, or checks were performed in a shell session started before full distro restart.
+  What to do: ensure `/etc/wsl.conf` in the helper distro contains the tracked sample settings from `wsl-helper.example.wsl.conf`, fully restart that distro, then re-check and re-run toolkit validation.
+- Note: `wsl --shutdown` is also valid when needed, but it stops all running WSL distros.
+
 Examples:
 
 ```powershell

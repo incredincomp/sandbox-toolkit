@@ -175,6 +175,14 @@ WSL helper boundary:
   3. Manually place reviewed content in `/etc/wsl.conf` inside that distro.
   4. Stop/restart the distro.
   5. Re-run `.\Start-Sandbox.ps1 -Validate -UseWslHelper -WslDistro <name>`.
+- WSL helper troubleshooting:
+  - Symptom: drives still mounted under `/mnt/c` or `/mnt/d`.
+    Cause: wrong distro edited, sample file reviewed but not copied into `/etc/wsl.conf`, or distro not fully restarted.
+    Fix: verify `-WslDistro` target, run `wsl --list --running`, then `wsl --terminate <name>`, restart distro, and re-run `.\Start-Sandbox.ps1 -Validate -UseWslHelper -WslDistro <name>`.
+  - Symptom: interop still appears enabled.
+    Cause: `[interop]` settings not applied in the helper distro or checks done from a pre-restart shell session.
+    Fix: confirm `/etc/wsl.conf` in that distro matches `wsl-helper.example.wsl.conf`, fully restart distro, re-check, and re-run validation.
+  - Optional: `wsl --shutdown` also reloads config, but it stops all running WSL distros.
 
 Host-interaction policy controls:
 - `-DisableClipboard` requests disabled clipboard redirection in generated `sandbox.wsb`.

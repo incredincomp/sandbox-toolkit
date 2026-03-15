@@ -778,3 +778,28 @@ Estimated size: Small (1–2 files)
 |-------|--------|--------|------|
 | Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
 | PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-14 |
+
+### Scope (WSL helper troubleshooting docs pass)
+- Add a compact troubleshooting note for helper hardening confusion after manual `wsl.conf` edits.
+- Keep this pass documentation-only with no runtime/validation behavior changes.
+
+### Decisions made (WSL helper troubleshooting docs pass)
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Add troubleshooting bullets inline in existing WSL helper sections of README/QUICKSTART | Smallest authoritative surface with lowest doc drift risk | Create separate troubleshooting doc section/file |
+| Focus only on two symptoms (`/mnt/*` still mounted, interop still enabled) | Matches highest-friction post-edit confusion and requested bounded scope | Broaden into general WSL FAQ |
+| Use Microsoft-documented restart semantics (`wsl --list --running`, `wsl --terminate <distro>`, optional `wsl --shutdown`) | Grounds remediation in official behavior and avoids ambiguous “restart” wording | Generic “close and reopen shell” guidance only |
+
+### External references consulted
+- Microsoft Learn: WSL advanced settings (`wsl-config`) — confirms `wsl.conf` is per-distro and that config changes require fully stopping/restarting distro instances; documents `wsl --terminate <distro>` and `wsl --shutdown` behavior.
+
+### Files modified (WSL helper troubleshooting docs pass)
+- `README.md`
+- `docs/QUICKSTART.md`
+- `IMPLEMENTATION_TRACKER.md`
+
+### Validation (WSL helper troubleshooting docs pass)
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
+| PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-14 |
