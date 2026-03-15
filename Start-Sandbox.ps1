@@ -92,73 +92,6 @@ function Write-StatusLine {
     $Host.UI.WriteLine($ForegroundColor, $Host.UI.RawUI.BackgroundColor, $Message)
 }
 
-function Get-NormalizedFullPath {
-    param(
-        [Parameter(Mandatory)][string]$Path
-    )
-
-    $resolved = Resolve-Path -LiteralPath $Path -ErrorAction Stop
-    $fullPath = [System.IO.Path]::GetFullPath($resolved.Path)
-    return $fullPath.TrimEnd('\')
-}
-
-function Assert-SafeSharedFolderPath {
-    param(
-        [Parameter(Mandatory)][string]$Path,
-        [Parameter(Mandatory)][string]$RepoRoot
-    )
-
-    $normalizedPath = Get-NormalizedFullPath -Path $Path
-    $normalizedRepoRoot = Get-NormalizedFullPath -Path $RepoRoot
-
-    if (-not (Test-Path -LiteralPath $normalizedPath -PathType Container)) {
-        throw "Shared folder path must exist and be a directory: $normalizedPath"
-    }
-
-    if ($normalizedPath -ieq $normalizedRepoRoot) {
-        throw "Shared folder path is too broad: repository root is not allowed. Choose a dedicated subfolder such as '$normalizedRepoRoot\shared'."
-    }
-
-    $pathRoot = [System.IO.Path]::GetPathRoot($normalizedPath).TrimEnd('\')
-    if ($normalizedPath -ieq $pathRoot) {
-        throw "Shared folder path is too broad: drive root is not allowed ($normalizedPath)."
-    }
-
-    $blockedPaths = @()
-    foreach ($candidate in @(
-        $env:windir,
-        $env:ProgramFiles,
-        ${env:ProgramFiles(x86)},
-        $env:ProgramW6432,
-        $env:USERPROFILE,
-        [Environment]::GetFolderPath('Desktop'),
-        [Environment]::GetFolderPath('MyDocuments'),
-        (Join-Path $env:USERPROFILE 'Downloads')
-    )) {
-        if ($candidate) {
-            try {
-                $blockedPaths += (Get-NormalizedFullPath -Path $candidate)
-            } catch {
-                # Skip candidates that cannot be normalized on this host.
-            }
-        }
-    }
-
-    if ($blockedPaths -contains $normalizedPath) {
-        throw "Shared folder path is not allowed: '$normalizedPath' is an overly broad or sensitive location. Use a dedicated analysis ingress folder."
-    }
-
-    $relativeFromRoot = $normalizedPath.Substring([System.IO.Path]::GetPathRoot($normalizedPath).Length).Trim('\')
-    if ($relativeFromRoot) {
-        $segmentCount = ($relativeFromRoot -split '[\\/]').Count
-        if ($segmentCount -lt 2) {
-            throw "Shared folder path is too broad: use a deeper dedicated folder (for example, 'C:\Lab\Ingress' instead of '$normalizedPath')."
-        }
-    }
-
-    return $normalizedPath
-}
-
 # -- Paths --------------------------------------------------------------------
 
 $repoRoot            = $PSScriptRoot
@@ -167,12 +100,11 @@ $manifestPath        = Join-Path $repoRoot 'tools.json'
 $setupDir            = Join-Path $repoRoot 'scripts\setups'
 $installManifestPath = Join-Path $repoRoot 'scripts\install-manifest.json'
 $wsbPath             = Join-Path $repoRoot 'sandbox.wsb'
-$defaultSharedFolder = Join-Path $repoRoot 'shared'
 $resolvedSharedFolder = $null
 
 # -- Load helper modules -------------------------------------------------------
 
-foreach ($module in @('Manifest.ps1', 'Download.ps1', 'SandboxConfig.ps1')) {
+foreach ($module in @('Manifest.ps1', 'Download.ps1', 'SandboxConfig.ps1', 'SharedFolderValidation.ps1')) {
     . (Join-Path $srcDir $module)
 }
 
@@ -185,25 +117,17 @@ Write-StatusLine "  Profile : $SandboxProfile" -ForegroundColor White
 Write-StatusLine "  Repo    : $repoRoot" -ForegroundColor DarkGray
 Write-StatusLine ''
 
-if ($SharedFolder -and $UseDefaultSharedFolder) {
-    throw "Use either -SharedFolder or -UseDefaultSharedFolder, not both."
-}
-
-if ($SharedFolderWritable -and -not ($SharedFolder -or $UseDefaultSharedFolder)) {
-    throw "-SharedFolderWritable requires -SharedFolder or -UseDefaultSharedFolder."
-}
-
-if ($UseDefaultSharedFolder) {
-    if (-not (Test-Path -LiteralPath $defaultSharedFolder)) {
-        New-Item -ItemType Directory -Path $defaultSharedFolder -Force | Out-Null
-        Write-StatusLine "  [OK]  Created default shared folder: $defaultSharedFolder" -ForegroundColor Green
+$sharedFolderRequest = Resolve-SharedFolderRequest `
+    -RepoRoot $repoRoot `
+    -SharedFolder $SharedFolder `
+    -UseDefaultSharedFolder:$UseDefaultSharedFolder `
+    -SharedFolderWritable:$SharedFolderWritable `
+    -OnDefaultSharedFolderCreated {
+        param($Path)
+        Write-StatusLine "  [OK]  Created default shared folder: $Path" -ForegroundColor Green
     }
-    $resolvedSharedFolder = Assert-SafeSharedFolderPath -Path $defaultSharedFolder -RepoRoot $repoRoot
-}
 
-if ($SharedFolder) {
-    $resolvedSharedFolder = Assert-SafeSharedFolderPath -Path $SharedFolder -RepoRoot $repoRoot
-}
+$resolvedSharedFolder = $sharedFolderRequest.SharedHostFolder
 
 # -- [1/5] Prerequisites -------------------------------------------------------
 
