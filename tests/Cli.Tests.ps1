@@ -90,6 +90,7 @@ Describe 'Get-StartSandboxModePlan' {
 
 Describe 'Manifest-backed listing helpers' {
     $manifest = Import-ToolManifest -ManifestPath (Join-Path $repoRoot 'tools.json')
+    $fixtureDir = Join-Path $PSScriptRoot 'fixtures'
 
     It 'Get-ManifestProfile returns supported profiles present in tools.json' {
         $profiles = Get-ManifestProfile -Manifest $manifest
@@ -108,6 +109,15 @@ Describe 'Manifest-backed listing helpers' {
         $catalogIds = @($catalog | Select-Object -ExpandProperty id)
         (($catalogIds -contains 'ghidra')) | Should Be $true
         (($catalogIds -contains 'npcap')) | Should Be $true
+    }
+
+    It 'Get-SandboxProfileCatalog includes built-in and custom profiles clearly' {
+        $customConfig = Import-CustomProfileConfig -CustomProfilePath (Join-Path $fixtureDir 'custom-profiles.valid.json')
+        Test-CustomProfileConfigIntegrity -CustomProfileConfig $customConfig -Manifest $manifest
+        $catalog = Get-SandboxProfileCatalog -Manifest $manifest -CustomProfileConfig $customConfig
+
+        @($catalog | Where-Object { $_.name -eq 'minimal' -and $_.profile_type -eq 'built-in' }).Count | Should Be 1
+        @($catalog | Where-Object { $_.name -eq 'net-re-lite' -and $_.profile_type -eq 'custom' -and $_.base_profile -eq 'reverse-engineering' }).Count | Should Be 1
     }
 }
 

@@ -87,20 +87,26 @@ function Test-SandboxSelectionReadiness {
     #>
     param(
         [Parameter(Mandatory)][string]$ManifestPath,
-        [Parameter(Mandatory)][string]$SandboxProfile
+        [Parameter(Mandatory)][string]$SandboxProfile,
+        [Parameter(Mandatory)][string]$CustomProfilePath
     )
 
     try {
         $manifest = Import-ToolManifest -ManifestPath $ManifestPath
         Test-ManifestIntegrity -Manifest $manifest
-        $selection = Resolve-SandboxSessionSelection -Manifest $manifest -SandboxProfile $SandboxProfile
-        $networking = Get-SandboxNetworkingMode -SandboxProfile $SandboxProfile
+        $customProfileConfig = Import-CustomProfileConfig -CustomProfilePath $CustomProfilePath
+        Test-CustomProfileConfigIntegrity -CustomProfileConfig $customProfileConfig -Manifest $manifest
+        $selection = Resolve-SandboxSessionSelection `
+            -Manifest $manifest `
+            -SandboxProfile $SandboxProfile `
+            -CustomProfileConfig $customProfileConfig
+        $networking = Get-SandboxNetworkingMode -SandboxProfile $selection.BaseProfile
 
         return [pscustomobject]@{
             Check = Get-SandboxValidationCheck `
                 -Name 'selection' `
                 -Status 'PASS' `
-                -Message "Profile '$SandboxProfile' selected $($selection.Tools.Count) tool(s); networking=$networking."
+                -Message "Profile '$SandboxProfile' selected $($selection.Tools.Count) tool(s); base=$($selection.BaseProfile); networking=$networking."
             Manifest = $manifest
             Selection = $selection
             NetworkingMode = $networking
@@ -211,6 +217,7 @@ function Invoke-SandboxPreflightValidation {
     param(
         [Parameter(Mandatory)][string]$RepoRoot,
         [Parameter(Mandatory)][string]$ManifestPath,
+        [Parameter(Mandatory)][string]$CustomProfilePath,
         [Parameter(Mandatory)][string]$SandboxProfile,
         [switch]$SkipPrereqCheck,
         [string]$SharedFolder,
@@ -227,7 +234,8 @@ function Invoke-SandboxPreflightValidation {
 
     $selectionResult = Test-SandboxSelectionReadiness `
         -ManifestPath $ManifestPath `
-        -SandboxProfile $SandboxProfile
+        -SandboxProfile $SandboxProfile `
+        -CustomProfilePath $CustomProfilePath
     $checks.Add($selectionResult.Check)
 
     $sharedFolderResult = Test-SandboxSharedFolderReadiness `

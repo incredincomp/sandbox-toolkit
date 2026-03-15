@@ -1,0 +1,11 @@
+{
+  "schema_version": "1.0",
+  "profiles": [
+    {
+      "name": "net-re-lite",
+      "base_profile": "reverse-engineering",
+      "add_tools": ["wireshark"],
+      "remove_tools": ["ghidra"]
+    }
+  ]
+}

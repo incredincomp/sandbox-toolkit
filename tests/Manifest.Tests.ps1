@@ -30,3 +30,43 @@ Describe 'Test-ManifestIntegrity dependency reference checks' {
         $message | Should Match "dependency 'missing-tool' does not reference an existing tool id"
     }
 }
+
+Describe 'Custom profile config integrity' {
+    $manifest = Import-ToolManifest -ManifestPath (Join-Path $repoRoot 'tools.json')
+    $fixtureDir = Join-Path $PSScriptRoot 'fixtures'
+
+    It 'loads valid custom profile definitions' {
+        $configPath = Join-Path $fixtureDir 'custom-profiles.valid.json'
+        $config = Import-CustomProfileConfig -CustomProfilePath $configPath
+
+        { Test-CustomProfileConfigIntegrity -CustomProfileConfig $config -Manifest $manifest } | Should Not Throw
+        (Get-CustomProfileEntry -CustomProfileConfig $config).Count | Should Be 1
+    }
+
+    It 'fails clearly for malformed custom profile shape' {
+        $configPath = Join-Path $fixtureDir 'custom-profiles.invalid-shape.json'
+        $message = $null
+        try {
+            Import-CustomProfileConfig -CustomProfilePath $configPath | Out-Null
+        } catch {
+            $message = $_.Exception.Message
+        }
+
+        $message | Should Not BeNullOrEmpty
+        $message | Should Match "missing required 'profiles' property"
+    }
+
+    It 'fails clearly for unknown custom tool references' {
+        $configPath = Join-Path $fixtureDir 'custom-profiles.unknown-tool.json'
+        $config = Import-CustomProfileConfig -CustomProfilePath $configPath
+        $message = $null
+        try {
+            Test-CustomProfileConfigIntegrity -CustomProfileConfig $config -Manifest $manifest
+        } catch {
+            $message = $_.Exception.Message
+        }
+
+        $message | Should Not BeNullOrEmpty
+        $message | Should Match "unknown tool id 'tool-does-not-exist'"
+    }
+}

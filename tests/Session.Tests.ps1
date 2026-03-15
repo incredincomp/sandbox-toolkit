@@ -46,6 +46,8 @@ Describe 'Write-SandboxSessionManifest' {
 }
 
 Describe 'Resolve-SandboxSessionSelection' {
+    $fixtureDir = Join-Path $PSScriptRoot 'fixtures'
+
     It 'uses profile selection logic from manifest helpers' {
         $manifest = Import-ToolManifest -ManifestPath (Join-Path $repoRoot 'tools.json')
         $selection = Resolve-SandboxSessionSelection -Manifest $manifest -SandboxProfile 'minimal'
@@ -54,6 +56,23 @@ Describe 'Resolve-SandboxSessionSelection' {
         $selection.Profile | Should Be 'minimal'
         $selection.Tools.Count | Should Be $expected.Count
         ($selection.Tools | Select-Object -ExpandProperty id) -join ',' | Should Be (($expected | Select-Object -ExpandProperty id) -join ',')
+    }
+
+    It 'resolves custom profile selections from valid custom config' {
+        $manifest = Import-ToolManifest -ManifestPath (Join-Path $repoRoot 'tools.json')
+        $config = Import-CustomProfileConfig -CustomProfilePath (Join-Path $fixtureDir 'custom-profiles.valid.json')
+        Test-CustomProfileConfigIntegrity -CustomProfileConfig $config -Manifest $manifest
+
+        $selection = Resolve-SandboxSessionSelection `
+            -Manifest $manifest `
+            -SandboxProfile 'net-re-lite' `
+            -CustomProfileConfig $config
+        $selectionIds = @($selection.Tools | Select-Object -ExpandProperty id)
+
+        $selection.ProfileType | Should Be 'custom'
+        $selection.BaseProfile | Should Be 'reverse-engineering'
+        (($selectionIds -contains 'wireshark')) | Should Be $true
+        (($selectionIds -contains 'ghidra')) | Should Be $false
     }
 }
 

@@ -60,6 +60,39 @@ function Get-ToolsForProfile {
     return $tools | Sort-Object install_order
 }
 
+function Import-CustomProfileConfig {
+    <#
+    .SYNOPSIS
+        Loads optional local custom profile configuration.
+    #>
+    param(
+        [Parameter(Mandatory)][string]$CustomProfilePath
+    )
+
+    if (-not (Test-Path -LiteralPath $CustomProfilePath -PathType Leaf)) {
+        return [pscustomobject]@{
+            schema_version = '1.0'
+            profiles       = @()
+        }
+    }
+
+    try {
+        $config = Get-Content -Raw -Path $CustomProfilePath | ConvertFrom-Json
+    } catch {
+        throw "Failed to parse custom profile config '$CustomProfilePath': $($_.Exception.Message)"
+    }
+
+    if (-not $config.PSObject.Properties['profiles']) {
+        throw "Custom profile config '$CustomProfilePath' is missing required 'profiles' property."
+    }
+
+    if (-not $config.profiles) {
+        $config | Add-Member -MemberType NoteProperty -Name profiles -Value @() -Force
+    }
+
+    return $config
+}
+
 function Get-ManifestProfile {
     <#
     .SYNOPSIS
@@ -77,6 +110,48 @@ function Get-ManifestProfile {
     return @(
         Get-SandboxProfileSupport | Where-Object { $_ -in $manifestProfiles }
     )
+}
+
+function Get-CustomProfileEntry {
+    <#
+    .SYNOPSIS
+        Returns custom profile entries from parsed custom config.
+    #>
+    param(
+        [Parameter(Mandatory)][PSCustomObject]$CustomProfileConfig
+    )
+
+    return @($CustomProfileConfig.profiles)
+}
+
+function Get-SandboxProfileCatalog {
+    <#
+    .SYNOPSIS
+        Returns built-in and custom profile catalog entries.
+    #>
+    param(
+        [Parameter(Mandatory)][PSCustomObject]$Manifest,
+        [Parameter(Mandatory)][PSCustomObject]$CustomProfileConfig
+    )
+
+    $catalog = [System.Collections.Generic.List[object]]::new()
+    foreach ($profileEntry in (Get-ManifestProfile -Manifest $Manifest)) {
+        $catalog.Add([pscustomobject]@{
+            name         = $profileEntry
+            profile_type = 'built-in'
+            base_profile = $profileEntry
+        })
+    }
+
+    foreach ($profileEntry in (Get-CustomProfileEntry -CustomProfileConfig $CustomProfileConfig)) {
+        $catalog.Add([pscustomobject]@{
+            name         = $profileEntry.name
+            profile_type = 'custom'
+            base_profile = $profileEntry.base_profile
+        })
+    }
+
+    return @($catalog)
 }
 
 function Test-ManifestIntegrity {
@@ -133,4 +208,70 @@ function Test-ManifestIntegrity {
     }
 
     Write-Verbose "Manifest integrity OK: $($Manifest.tools.Count) tools."
+}
+
+function Test-CustomProfileConfigIntegrity {
+    <#
+    .SYNOPSIS
+        Validates custom profile config shape and tool references.
+    #>
+    param(
+        [Parameter(Mandatory)][PSCustomObject]$CustomProfileConfig,
+        [Parameter(Mandatory)][PSCustomObject]$Manifest
+    )
+
+    $errors = @()
+    $toolIdSet = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    foreach ($tool in $Manifest.tools) {
+        [void]$toolIdSet.Add($tool.id)
+    }
+
+    $builtInProfileSet = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    foreach ($profileEntry in (Get-SandboxProfileSupport)) {
+        [void]$builtInProfileSet.Add($profileEntry)
+    }
+
+    $seenCustomNames = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+
+    foreach ($profileEntry in (Get-CustomProfileEntry -CustomProfileConfig $CustomProfileConfig)) {
+        if (-not $profileEntry.PSObject.Properties['name'] -or [string]::IsNullOrWhiteSpace($profileEntry.name)) {
+            $errors += 'Custom profile entry is missing required non-empty "name".'
+            continue
+        }
+
+        if ($builtInProfileSet.Contains($profileEntry.name)) {
+            $errors += "Custom profile '$($profileEntry.name)' conflicts with built-in profile name."
+        }
+
+        if (-not $seenCustomNames.Add($profileEntry.name)) {
+            $errors += "Duplicate custom profile name: '$($profileEntry.name)'."
+        }
+
+        if (-not $profileEntry.PSObject.Properties['base_profile'] -or [string]::IsNullOrWhiteSpace($profileEntry.base_profile)) {
+            $errors += "Custom profile '$($profileEntry.name)' is missing required 'base_profile'."
+        } elseif (-not $builtInProfileSet.Contains($profileEntry.base_profile)) {
+            $errors += "Custom profile '$($profileEntry.name)' references unknown base_profile '$($profileEntry.base_profile)'."
+        }
+
+        foreach ($fieldName in @('add_tools', 'remove_tools')) {
+            if (-not $profileEntry.PSObject.Properties[$fieldName]) {
+                continue
+            }
+
+            $ids = @($profileEntry.$fieldName)
+            foreach ($toolId in $ids) {
+                if ([string]::IsNullOrWhiteSpace($toolId)) {
+                    $errors += "Custom profile '$($profileEntry.name)' contains empty tool id in '$fieldName'."
+                    continue
+                }
+                if (-not $toolIdSet.Contains($toolId)) {
+                    $errors += "Custom profile '$($profileEntry.name)' references unknown tool id '$toolId' in '$fieldName'."
+                }
+            }
+        }
+    }
+
+    if ($errors.Count -gt 0) {
+        throw "Custom profile validation failed:`n  " + ($errors -join "`n  ")
+    }
 }

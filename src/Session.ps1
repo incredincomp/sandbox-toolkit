@@ -25,15 +25,67 @@ function Resolve-SandboxSessionSelection {
     #>
     param(
         [Parameter(Mandatory)][PSCustomObject]$Manifest,
-        [Parameter(Mandatory)][string]$SandboxProfile
+        [Parameter(Mandatory)][string]$SandboxProfile,
+        [PSCustomObject]$CustomProfileConfig
     )
 
-    $tools = Resolve-SandboxEffectiveToolSelection `
-        -Manifest $Manifest `
-        -ToolIds (Get-ToolsForProfile -Manifest $Manifest -SandboxProfile $SandboxProfile | Select-Object -ExpandProperty id)
+    if (-not $CustomProfileConfig) {
+        $CustomProfileConfig = [pscustomobject]@{
+            schema_version = '1.0'
+            profiles       = @()
+        }
+    }
+
+    $resolvedProfileType = 'built-in'
+    $baseProfile = $SandboxProfile
+    $customProfile = $null
+
+    if ($SandboxProfile -notin (Get-SandboxProfileSupport)) {
+        $customProfile = Get-CustomProfileEntry -CustomProfileConfig $CustomProfileConfig |
+            Where-Object { $_.name -ieq $SandboxProfile } |
+            Select-Object -First 1
+
+        if (-not $customProfile) {
+            $catalog = Get-SandboxProfileCatalog -Manifest $Manifest -CustomProfileConfig $CustomProfileConfig
+            $names = @($catalog | Select-Object -ExpandProperty name) -join ', '
+            throw "Invalid profile '$SandboxProfile'. Available profiles: $names"
+        }
+
+        $resolvedProfileType = 'custom'
+        $baseProfile = $customProfile.base_profile
+    }
+
+    $baseToolIds = @(
+        Get-ToolsForProfile -Manifest $Manifest -SandboxProfile $baseProfile | Select-Object -ExpandProperty id
+    )
+
+    $effectiveToolIds = [System.Collections.Generic.List[string]]::new()
+    foreach ($toolId in $baseToolIds) {
+        $effectiveToolIds.Add($toolId)
+    }
+
+    if ($customProfile) {
+        foreach ($toolId in @($customProfile.add_tools)) {
+            $effectiveToolIds.Add($toolId)
+        }
+
+        foreach ($toolId in @($customProfile.remove_tools)) {
+            $filteredToolIds = [System.Collections.Generic.List[string]]::new()
+            foreach ($effectiveToolId in $effectiveToolIds) {
+                if ($effectiveToolId -ine $toolId) {
+                    $filteredToolIds.Add($effectiveToolId)
+                }
+            }
+            $effectiveToolIds = $filteredToolIds
+        }
+    }
+
+    $tools = Resolve-SandboxEffectiveToolSelection -Manifest $Manifest -ToolIds @($effectiveToolIds)
 
     return [pscustomobject]@{
         Profile = $SandboxProfile
+        BaseProfile = $baseProfile
+        ProfileType = $resolvedProfileType
         Tools   = @($tools)
     }
 }

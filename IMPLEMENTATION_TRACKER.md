@@ -231,3 +231,34 @@ Estimated size: Small (1–2 files)
 |-------|--------|--------|------|
 | Pester tests | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
 | PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer ... }` | 2026-03-14 |
+
+### Scope (custom profile feature pass)
+- Add optional local custom profile config support.
+- Validate custom profile config shape, base-profile references, and tool-id references.
+- Surface built-in and custom profiles together for profile listing and selection.
+
+### Decisions made (custom profile feature pass)
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Use optional repo-local `custom-profiles.local.json` for user-defined profiles | Enables reusable local profiles without requiring manifest edits or repo forking | Extend `tools.json` schema with custom profile definitions |
+| Require custom profiles to reference a built-in `base_profile` and optional `add_tools`/`remove_tools` | Keeps networking/config behavior stable and reuses built-in profile semantics | Permit fully arbitrary custom profile definitions in this pass |
+| Validate custom profile config before selection/listing usage | Fail fast with actionable errors when user config is malformed | Defer errors to later runtime stages |
+
+### Files modified (custom profile feature pass)
+- `Start-Sandbox.ps1`
+- `src/Manifest.ps1`
+- `src/Session.ps1`
+- `src/Validation.ps1`
+- `tests/Cli.Tests.ps1`
+- `tests/Manifest.Tests.ps1`
+- `tests/Session.Tests.ps1`
+- `tests/Validation.Tests.ps1`
+- `tests/fixtures/custom-profiles.valid.json` (new)
+- `tests/fixtures/custom-profiles.invalid-shape.json` (new)
+- `tests/fixtures/custom-profiles.unknown-tool.json` (new)
+
+### Validation (custom profile feature pass)
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Pester tests | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
+| PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer ... }` | 2026-03-14 |

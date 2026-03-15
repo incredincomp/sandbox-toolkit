@@ -2,6 +2,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $repoRoot = Split-Path -Path $PSScriptRoot -Parent
+$fixtureDir = Join-Path $PSScriptRoot 'fixtures'
 . (Join-Path $repoRoot 'src\Manifest.ps1')
 . (Join-Path $repoRoot 'src\Session.ps1')
 . (Join-Path $repoRoot 'src\SandboxConfig.ps1')
@@ -90,6 +91,7 @@ Describe 'Invoke-SandboxPreflightValidation' {
         $result = Invoke-SandboxPreflightValidation `
             -RepoRoot $repoRoot `
             -ManifestPath (Join-Path $repoRoot 'tools.json') `
+            -CustomProfilePath (Join-Path $fixtureDir 'custom-profiles.valid.json') `
             -SandboxProfile 'minimal'
 
         $result.HasFailures | Should Be $false
@@ -102,6 +104,7 @@ Describe 'Invoke-SandboxPreflightValidation' {
         $result = Invoke-SandboxPreflightValidation `
             -RepoRoot $repoRoot `
             -ManifestPath $missingManifest `
+            -CustomProfilePath (Join-Path $fixtureDir 'custom-profiles.valid.json') `
             -SandboxProfile 'minimal' `
             -SkipPrereqCheck
 
@@ -114,10 +117,21 @@ Describe 'Test-SandboxSelectionReadiness' {
     It 'surfaces invalid profile references clearly' {
         $result = Test-SandboxSelectionReadiness `
             -ManifestPath (Join-Path $repoRoot 'tools.json') `
-            -SandboxProfile 'not-a-profile'
+            -SandboxProfile 'not-a-profile' `
+            -CustomProfilePath (Join-Path $fixtureDir 'custom-profiles.valid.json')
 
         $result.Check.Status | Should Be 'FAIL'
         $result.Check.Message | Should Match 'Invalid profile'
+    }
+
+    It 'surfaces invalid custom profile config clearly' {
+        $result = Test-SandboxSelectionReadiness `
+            -ManifestPath (Join-Path $repoRoot 'tools.json') `
+            -SandboxProfile 'minimal' `
+            -CustomProfilePath (Join-Path $fixtureDir 'custom-profiles.invalid-shape.json')
+
+        $result.Check.Status | Should Be 'FAIL'
+        $result.Check.Message | Should Match "missing required 'profiles' property"
     }
 }
 

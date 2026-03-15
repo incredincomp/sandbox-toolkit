@@ -19,7 +19,7 @@
       full               -- all tools (networking enabled).
 
 .PARAMETER Profile
-    Install profile to use. Default: reverse-engineering.
+    Install profile to use (built-in or custom). Default: reverse-engineering.
 
 .PARAMETER Force
     Re-download all files even if they already exist locally.
@@ -97,7 +97,6 @@
 
 [CmdletBinding()]
 param(
-    [ValidateSet('minimal', 'reverse-engineering', 'network-analysis', 'full')]
     [Alias('Profile')]
     [string]$SandboxProfile = 'reverse-engineering',
 
@@ -134,6 +133,7 @@ function Write-StatusLine {
 $repoRoot            = $PSScriptRoot
 $srcDir              = Join-Path $repoRoot 'src'
 $manifestPath        = Join-Path $repoRoot 'tools.json'
+$customProfilePath   = Join-Path $repoRoot 'custom-profiles.local.json'
 $setupDir            = Join-Path $repoRoot 'scripts\setups'
 $installManifestPath = Join-Path $repoRoot 'scripts\install-manifest.json'
 $wsbPath             = Join-Path $repoRoot 'sandbox.wsb'
@@ -162,12 +162,22 @@ $modePlan = Get-StartSandboxModePlan -CommandMode $commandMode
 if ($commandMode -eq 'List') {
     $manifest = Import-ToolManifest -ManifestPath $manifestPath
     Test-ManifestIntegrity -Manifest $manifest
+    $customProfileConfig = $null
+
+    if ($ListProfiles) {
+        $customProfileConfig = Import-CustomProfileConfig -CustomProfilePath $customProfilePath
+        Test-CustomProfileConfigIntegrity -CustomProfileConfig $customProfileConfig -Manifest $manifest
+    }
 
     if ($ListProfiles) {
         Write-StatusLine ''
         Write-StatusLine 'Available profiles:' -ForegroundColor Cyan
-        Get-ManifestProfile -Manifest $manifest | ForEach-Object {
-            Write-StatusLine "  - $_" -ForegroundColor White
+        Get-SandboxProfileCatalog -Manifest $manifest -CustomProfileConfig $customProfileConfig | ForEach-Object {
+            if ($_.profile_type -eq 'custom') {
+                Write-StatusLine "  - $($_.name) (custom; base=$($_.base_profile))" -ForegroundColor White
+            } else {
+                Write-StatusLine "  - $($_.name) (built-in)" -ForegroundColor White
+            }
         }
     }
 
@@ -198,6 +208,7 @@ if ($commandMode -eq 'Validate') {
     $preflightResult = Invoke-SandboxPreflightValidation `
         -RepoRoot $repoRoot `
         -ManifestPath $manifestPath `
+        -CustomProfilePath $customProfilePath `
         -SandboxProfile $SandboxProfile `
         -SkipPrereqCheck:$SkipPrereqCheck `
         -SharedFolder $SharedFolder `
@@ -262,11 +273,19 @@ Write-StatusLine '[2/5] Loading manifest...' -ForegroundColor Yellow
 
 $manifest = Import-ToolManifest -ManifestPath $manifestPath
 Test-ManifestIntegrity -Manifest $manifest
-$selection = Resolve-SandboxSessionSelection -Manifest $manifest -SandboxProfile $SandboxProfile
+$customProfileConfig = Import-CustomProfileConfig -CustomProfilePath $customProfilePath
+Test-CustomProfileConfigIntegrity -CustomProfileConfig $customProfileConfig -Manifest $manifest
+$selection = Resolve-SandboxSessionSelection `
+    -Manifest $manifest `
+    -SandboxProfile $SandboxProfile `
+    -CustomProfileConfig $customProfileConfig
 $tools      = $selection.Tools
-$networkingMode = Get-SandboxNetworkingMode -SandboxProfile $SandboxProfile
+$networkingMode = Get-SandboxNetworkingMode -SandboxProfile $selection.BaseProfile
 
 Write-StatusLine "  [OK]  $($tools.Count) tool(s) selected for profile '$SandboxProfile'." -ForegroundColor Green
+if ($selection.ProfileType -eq 'custom') {
+    Write-StatusLine "        Base profile: $($selection.BaseProfile)" -ForegroundColor DarkGray
+}
 Write-StatusLine "        Networking: $networkingMode" -ForegroundColor DarkGray
 $tools | ForEach-Object {
     $tag = if ($_.installer_type -eq 'manual') { '  [manual]' } else { '' }
@@ -307,7 +326,7 @@ Write-StatusLine '[4/5] Configuring...' -ForegroundColor Yellow
 
 $artifacts = Invoke-SandboxSessionArtifactGeneration `
     -RepoRoot $repoRoot `
-    -SandboxProfile $SandboxProfile `
+    -SandboxProfile $selection.BaseProfile `
     -Tools $tools `
     -InstallManifestPath $installManifestPath `
     -WsbPath $wsbPath `
