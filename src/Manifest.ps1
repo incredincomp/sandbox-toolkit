@@ -115,6 +115,18 @@ function Test-ManifestIntegrity {
         }
     }
 
+    foreach ($tool in $Manifest.tools) {
+        if (-not $tool.dependencies) {
+            continue
+        }
+
+        foreach ($dependencyId in $tool.dependencies) {
+            if (-not $ids.ContainsKey($dependencyId)) {
+                $errors += "Tool '$($tool.id)': dependency '$dependencyId' does not reference an existing tool id."
+            }
+        }
+    }
+
     if ($errors.Count -gt 0) {
         throw "Manifest validation failed:`n  " + ($errors -join "`n  ")
     }

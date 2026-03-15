@@ -152,3 +152,26 @@ Estimated size: Small (1–2 files)
 |-------|--------|--------|------|
 | Pester tests | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
 | PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer ... }` | 2026-03-14 |
+
+### Scope (validation refactor pass)
+- Centralize non-destructive preflight checks into a reusable validation seam.
+- Add manifest dependency-reference integrity validation.
+
+### Decisions made (validation refactor pass)
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Add `src/Validation.ps1` with structured check objects (`PASS`/`WARN`/`FAIL`) | Keep `-Validate` logic testable and separate from console rendering | Keep preflight checks inline in `Start-Sandbox.ps1` |
+| Keep shared-folder preflight non-mutating by warning when default `shared/` does not exist | Preserve no-mutation guarantee for future `-Validate` mode | Reuse `Resolve-SharedFolderRequest` directly (would auto-create `shared/`) |
+| Add dependency-id existence checks in `Test-ManifestIntegrity` | Surface invalid tool references early in selection/preflight | Rely only on runtime install-order failures |
+
+### Files modified (validation refactor pass)
+- `src/Manifest.ps1`
+- `src/Validation.ps1` (new)
+- `tests/Manifest.Tests.ps1` (new)
+- `tests/Validation.Tests.ps1` (new)
+
+### Validation (validation refactor pass)
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Pester tests | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
+| PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer ... }` | 2026-03-14 |
