@@ -750,3 +750,31 @@ Estimated size: Small (1–2 files)
 |-------|--------|--------|------|
 | Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
 | PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-14 |
+
+### Scope (non-invasive WSL helper hardening guidance pass)
+- Add one tracked sample `wsl.conf` for dedicated helper-distro use.
+- Keep runtime behavior unchanged; clarify manual helper hardening workflow and boundaries in docs.
+- Add focused guard test to keep sample aligned with helper hardening detection expectations.
+
+### Decisions made (non-invasive WSL helper hardening guidance pass)
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Add single authoritative sample at repo root: `wsl-helper.example.wsl.conf` | Matches existing tracked-example pattern (`custom-profiles.example.json`) and keeps copy/review workflow obvious | Introduce a new examples directory pattern for one file |
+| Keep sample minimal to `automount` + `interop` keys only | These are already consumed by current helper hardening checks and are directly relevant to helper-side risk reduction | Add broader WSL tuning knobs outside current helper detection scope |
+| Keep toolkit non-invasive (no `/etc/wsl.conf` mutation/restart automation) and document manual per-distro application | Avoid surprising host/distro changes and preserve explicit trust-boundary wording | Add automatic `sudo tee /etc/wsl.conf` or distro restart behavior |
+
+### External references consulted
+- Microsoft Learn: WSL advanced settings (`wsl-config`) — confirms `/etc/wsl.conf` is per distro and documents supported `automount.enabled`, `interop.enabled`, and `interop.appendWindowsPath` keys.
+
+### Files modified (non-invasive WSL helper hardening guidance pass)
+- `wsl-helper.example.wsl.conf` (new)
+- `tests/Validation.Tests.ps1`
+- `README.md`
+- `docs/QUICKSTART.md`
+- `IMPLEMENTATION_TRACKER.md`
+
+### Validation (non-invasive WSL helper hardening guidance pass)
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
+| PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-14 |

@@ -127,12 +127,27 @@ Examples:
 - Execution/isolation boundary: Windows Sandbox.
 - No claim that WSL preprocessing makes unknown samples safe.
 
-Recommended hardening targets for a dedicated helper distro (`/etc/wsl.conf`):
-- `[automount] enabled=false`
-- `[interop] enabled=false`
-- `[interop] appendWindowsPath=false`
-
 Use a dedicated helper distro/profile and narrow staging paths.
+
+Tracked sample:
+- `wsl-helper.example.wsl.conf` is a recommended starting point for a dedicated helper distro.
+- It targets reduction of broad host-drive exposure (`[automount] enabled=false`), Windows binary launching from Linux (`[interop] enabled=false`), and unintended Windows path injection into Linux `$PATH` (`appendWindowsPath=false`).
+- This sample is not a universal WSL profile and is intentionally minimal.
+
+Manual application workflow (non-invasive):
+1. Create/select a dedicated helper distro (for example `Ubuntu`).
+2. Review `wsl-helper.example.wsl.conf`.
+3. Inside that distro, manually apply the reviewed content to `/etc/wsl.conf` (per-distro config file).
+4. Fully stop and restart the distro so `wsl.conf` changes take effect.
+5. Re-run toolkit validation with helper options:
+   ```powershell
+   .\Start-Sandbox.ps1 -Validate -UseWslHelper -WslDistro Ubuntu
+   ```
+
+Boundary reminder:
+- `wsl.conf` is per distro, not global across all WSL distros.
+- This toolkit does not auto-edit `/etc/wsl.conf` and does not auto-restart distros.
+- WSL helper remains an optional orchestration layer; Windows Sandbox remains the primary execution/isolation boundary.
 
 Examples:
 

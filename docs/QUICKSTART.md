@@ -161,10 +161,20 @@ WSL helper boundary:
 - `-UseWslHelper` enables optional helper staging/metadata tasks only.
 - WSL is not the primary malware isolation boundary in this workflow.
 - Windows Sandbox remains the execution/isolation boundary for untrusted Windows samples.
-- Recommended helper distro `/etc/wsl.conf` hardening:
-  - `[automount] enabled=false`
-  - `[interop] enabled=false`
-  - `[interop] appendWindowsPath=false`
+- Use a dedicated helper distro and the tracked sample `wsl-helper.example.wsl.conf` as a starting point.
+- `wsl.conf` is per-distro at `/etc/wsl.conf` (not a global setting across all distros).
+- Apply the sample manually inside the helper distro after review; this toolkit does not mutate live distro config.
+- Fully stop and restart the distro after changes so `wsl.conf` settings are reloaded.
+- Sample hardening intent:
+  - reduce broad host-drive exposure: `[automount] enabled=false`
+  - disable Windows interop launching: `[interop] enabled=false`
+  - avoid Windows path injection into Linux `$PATH`: `[interop] appendWindowsPath=false`
+- Practical flow:
+  1. Create/select helper distro.
+  2. Review `wsl-helper.example.wsl.conf`.
+  3. Manually place reviewed content in `/etc/wsl.conf` inside that distro.
+  4. Stop/restart the distro.
+  5. Re-run `.\Start-Sandbox.ps1 -Validate -UseWslHelper -WslDistro <name>`.
 
 Host-interaction policy controls:
 - `-DisableClipboard` requests disabled clipboard redirection in generated `sandbox.wsb`.
