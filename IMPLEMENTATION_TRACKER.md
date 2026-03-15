@@ -680,3 +680,33 @@ Estimated size: Small (1–2 files)
 |-------|--------|--------|------|
 | Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
 | PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-14 |
+
+### Scope (warm-session parser hardening pass)
+- Harden `wsb list --raw` warm-session discovery with one authoritative normalization seam.
+- Keep warm/fresh semantics unchanged while making malformed/unsupported raw output handling deterministic.
+- Add parser fixtures and focused tests for supported/empty/malformed/missing-field cases.
+
+### Decisions made (warm-session parser hardening pass)
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Add `ConvertFrom-SandboxWsbRawSessionList` in `src/Workflow.ps1` and route discovery through it | Single normalization seam prevents ad hoc raw parsing drift | Keep inline parsing in `Get-SandboxWarmSessionInventory` |
+| Treat `id` and `status` as required normalized fields | Warm reuse logic needs deterministic identity and running-state evaluation | Tolerate missing status and silently skip records |
+| Fail on unsupported JSON shape and malformed JSON with explicit errors | Warm mode must be honest/deterministic on unsupported CLI output | Silent fallback to empty inventory for all parse issues |
+
+### Files modified (warm-session parser hardening pass)
+- `src/Workflow.ps1`
+- `tests/Workflow.Tests.ps1`
+- `tests/Validation.Tests.ps1`
+- `tests/fixtures/wsb-list-raw.array.json` (new)
+- `tests/fixtures/wsb-list-raw.sessions.json` (new)
+- `tests/fixtures/wsb-list-raw.missing-id.json` (new)
+- `README.md`
+- `docs/QUICKSTART.md`
+- `CHANGELOG.md`
+- `IMPLEMENTATION_TRACKER.md`
+
+### Validation (warm-session parser hardening pass)
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
+| PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-14 |

@@ -76,6 +76,7 @@ Important boundaries:
 - Warm mode is an operational speed/convenience tradeoff, not a stronger security mode.
 - Fresh mode is the cleaner default for isolation hygiene.
 - Warm mode support depends on Windows Sandbox CLI availability (documented by Microsoft for Windows 11 24H2+).
+- Warm mode discovery also depends on parsable `wsb list --raw` output; unsupported/malformed raw output is surfaced deterministically (validation warns, warm launch fails).
 
 Examples:
 

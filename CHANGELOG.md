@@ -4,6 +4,16 @@ All notable changes to this project will be documented here.
 
 ---
 
+## [2.0.4] — 2026-03-14
+
+### Reliability
+
+- Hardened warm-session discovery by centralizing `wsb list --raw` parsing into one normalization helper.
+- Added deterministic handling for malformed/unsupported raw JSON output and records missing required warm-session fields.
+- Added parser-focused fixtures/tests to reduce warm-mode fragility against bounded CLI output drift.
+
+---
+
 ## [2.0.3] — 2026-03-14
 
 ### Features

@@ -154,6 +154,7 @@ Fresh vs warm session mode:
 - `Warm` is opt-in and reuses an existing session when discoverable via Windows Sandbox CLI support, otherwise creates a CLI-managed session.
 - Warm mode is a convenience tradeoff, not a stronger security guarantee.
 - Windows Sandbox CLI warm control surfaces are documented by Microsoft starting with Windows 11 24H2.
+- Warm discovery requires parsable `wsb list --raw` output; malformed/unsupported output is reported deterministically.
 
 WSL helper boundary:
 - `-UseWslHelper` enables optional helper staging/metadata tasks only.
