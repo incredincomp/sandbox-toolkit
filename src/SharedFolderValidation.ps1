@@ -24,48 +24,63 @@ function Get-SharedFolderBlockedPathPolicy {
 
     return @(
         [pscustomobject]@{
+            Category  = 'drive root'
+            Rationale = 'mapping a full drive is overly broad'
+            Kind      = 'drive-root'
+            Path      = $null
+        }
+        [pscustomobject]@{
             Category  = 'repository root'
             Rationale = 'mapping the entire repository can expose unrelated files'
+            Kind      = 'exact-path'
             Path      = $normalizedRepoRoot
         }
         [pscustomobject]@{
             Category  = 'Windows directory'
             Rationale = 'system directories are sensitive and overly broad'
+            Kind      = 'exact-path'
             Path      = $env:windir
         }
         [pscustomobject]@{
             Category  = 'Program Files'
             Rationale = 'program install roots are broad and contain host binaries'
+            Kind      = 'exact-path'
             Path      = $env:ProgramFiles
         }
         [pscustomobject]@{
             Category  = 'Program Files (x86)'
             Rationale = 'program install roots are broad and contain host binaries'
+            Kind      = 'exact-path'
             Path      = ${env:ProgramFiles(x86)}
         }
         [pscustomobject]@{
             Category  = 'ProgramW6432'
             Rationale = 'program install roots are broad and contain host binaries'
+            Kind      = 'exact-path'
             Path      = $env:ProgramW6432
         }
         [pscustomobject]@{
             Category  = 'user profile root'
             Rationale = 'profile root contains broad personal and application data'
+            Kind      = 'exact-path'
             Path      = $env:USERPROFILE
         }
         [pscustomobject]@{
             Category  = 'Desktop root'
             Rationale = 'Desktop often contains user documents and active files'
+            Kind      = 'exact-path'
             Path      = $desktopPath
         }
         [pscustomobject]@{
             Category  = 'Documents root'
             Rationale = 'Documents is a common location for sensitive personal files'
+            Kind      = 'exact-path'
             Path      = $documentsPath
         }
         [pscustomobject]@{
             Category  = 'Downloads root'
             Rationale = 'Downloads is a broad ingress area for arbitrary host files'
+            Kind      = 'exact-path'
             Path      = $downloadsPath
         }
     )
@@ -78,6 +93,11 @@ function Get-ResolvedSharedFolderBlockedPathPolicy {
 
     $resolvedPolicy = @()
     foreach ($entry in Get-SharedFolderBlockedPathPolicy -RepoRoot $RepoRoot) {
+        if ($entry.Kind -ne 'exact-path') {
+            $resolvedPolicy += $entry
+            continue
+        }
+
         if (-not $entry.Path) {
             continue
         }
@@ -86,6 +106,7 @@ function Get-ResolvedSharedFolderBlockedPathPolicy {
             $resolvedPolicy += [pscustomobject]@{
                 Category  = $entry.Category
                 Rationale = $entry.Rationale
+                Kind      = $entry.Kind
                 Path      = Get-NormalizedFullPath -Path $entry.Path
             }
         } catch {
@@ -127,10 +148,18 @@ function Assert-SafeSharedFolderPath {
         [Parameter(Mandatory)][string]$RepoRoot
     )
 
-    $normalizedPath = Get-NormalizedFullPath -Path $Path
+    if (-not (Test-Path -LiteralPath $Path)) {
+        throw "Shared folder path must exist and be a directory: $Path"
+    }
 
-    if (-not (Test-Path -LiteralPath $normalizedPath -PathType Container)) {
-        throw "Shared folder path must exist and be a directory: $normalizedPath"
+    if (-not (Test-Path -LiteralPath $Path -PathType Container)) {
+        throw "Shared folder path must exist and be a directory: $Path"
+    }
+
+    try {
+        $normalizedPath = Get-NormalizedFullPath -Path $Path
+    } catch {
+        throw "Shared folder path could not be resolved: $Path. $($_.Exception.Message)"
     }
 
     if (Test-SharedFolderTargetIsReparsePoint -Path $normalizedPath) {
@@ -138,14 +167,17 @@ function Assert-SafeSharedFolderPath {
     }
 
     foreach ($entry in Get-ResolvedSharedFolderBlockedPathPolicy -RepoRoot $RepoRoot) {
+        if ($entry.Kind -eq 'drive-root') {
+            $pathRoot = [System.IO.Path]::GetPathRoot($normalizedPath).TrimEnd('\')
+            if ($normalizedPath -ieq $pathRoot) {
+                throw "Shared folder path is not allowed: '$normalizedPath' matches blocked category '$($entry.Category)' because $($entry.Rationale)."
+            }
+            continue
+        }
+
         if ($normalizedPath -ieq $entry.Path) {
             throw "Shared folder path is not allowed: '$normalizedPath' matches blocked category '$($entry.Category)' because $($entry.Rationale). Use a dedicated analysis ingress folder."
         }
-    }
-
-    $pathRoot = [System.IO.Path]::GetPathRoot($normalizedPath).TrimEnd('\')
-    if ($normalizedPath -ieq $pathRoot) {
-        throw "Shared folder path is not allowed: '$normalizedPath' matches blocked category 'drive root' because mapping a full drive is overly broad."
     }
 
     $relativeFromRoot = $normalizedPath.Substring([System.IO.Path]::GetPathRoot($normalizedPath).Length).Trim('\')

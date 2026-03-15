@@ -182,7 +182,8 @@ Describe 'Assert-SafeSharedFolderPath blocked-path policy' {
     It 'rejects Downloads root with clear error' {
         $downloadsPath = Join-Path $env:USERPROFILE 'Downloads'
         if (-not (Test-Path -LiteralPath $downloadsPath -PathType Container)) {
-            New-Item -ItemType Directory -Path $downloadsPath -Force | Out-Null
+            Set-TestInconclusive -Message "Downloads path does not exist on this host: $downloadsPath"
+            return
         }
 
         $message = Invoke-AndCaptureErrorMessage {
@@ -191,6 +192,28 @@ Describe 'Assert-SafeSharedFolderPath blocked-path policy' {
 
         $message | Should Not BeNullOrEmpty
         $message | Should Match "blocked category 'Downloads root'"
+    }
+
+    It 'rejects non-existent paths with clear error' {
+        $missingPath = Join-Path $policyTestRepo 'does-not-exist'
+        $message = Invoke-AndCaptureErrorMessage {
+            Assert-SafeSharedFolderPath -Path $missingPath -RepoRoot $policyTestRepo
+        }
+
+        $message | Should Not BeNullOrEmpty
+        $message | Should Match 'must exist and be a directory'
+    }
+
+    It 'rejects file paths with clear error' {
+        $filePath = Join-Path $policyTestRepo 'not-a-directory.txt'
+        Set-Content -Path $filePath -Value 'x' -Encoding UTF8
+
+        $message = Invoke-AndCaptureErrorMessage {
+            Assert-SafeSharedFolderPath -Path $filePath -RepoRoot $policyTestRepo
+        }
+
+        $message | Should Not BeNullOrEmpty
+        $message | Should Match 'must exist and be a directory'
     }
 
     if (Test-Path -LiteralPath $policyTestRepo) {

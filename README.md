@@ -32,7 +32,7 @@ Use this when you need to transfer files from host to sandbox for triage.
 ```
 
 The default shared folder is repo-local `shared/` (auto-created, gitignored).
-Do not map broad/sensitive host paths such as repo root, `C:\`, `%USERPROFILE%`, Desktop, Documents, or Downloads.
+Do not map broad/sensitive host paths such as repo root, `C:\`, `%WINDIR%`, Program Files roots, `%USERPROFILE%`, Desktop, Documents, or Downloads.
 
 Clipboard paste and drag/drop support can vary by environment and policy. Treat the mapped shared folder as the primary transfer path.
 

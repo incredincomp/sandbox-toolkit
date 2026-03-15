@@ -101,7 +101,7 @@ Use this when you need to stage files from host into sandbox. No extra mapping i
 ```
 
 `-UseDefaultSharedFolder` creates repo-local `shared/` if needed and keeps it gitignored.
-Avoid broad or sensitive host folders (repo root, `C:\`, `%USERPROFILE%`, Desktop, Documents, Downloads).
+Avoid broad or sensitive host folders (repo root, `C:\`, `%WINDIR%`, Program Files roots, `%USERPROFILE%`, Desktop, Documents, Downloads).
 Clipboard and drag/drop may work on some hosts, but this mapped folder workflow should be your primary transfer path.
 
 ---
