@@ -109,7 +109,7 @@ $resolvedSharedFolder = $null
 
 # -- Load helper modules -------------------------------------------------------
 
-foreach ($module in @('Manifest.ps1', 'Download.ps1', 'SandboxConfig.ps1', 'SharedFolderValidation.ps1')) {
+foreach ($module in @('Manifest.ps1', 'Download.ps1', 'SandboxConfig.ps1', 'SharedFolderValidation.ps1', 'Session.ps1')) {
     . (Join-Path $srcDir $module)
 }
 
@@ -203,22 +203,16 @@ Write-StatusLine ''
 
 Write-StatusLine '[4/5] Configuring...' -ForegroundColor Yellow
 
-# Write session manifest for the in-sandbox installer to consume
-$sessionManifest = [ordered]@{
-    generated_at = (Get-Date -Format 'o')
-    profile      = $SandboxProfile
-    tools        = @($tools)
-}
-$sessionManifest | ConvertTo-Json -Depth 10 | Set-Content -Path $installManifestPath -Encoding UTF8
-Write-StatusLine "  [OK]  Install manifest: $installManifestPath" -ForegroundColor Green
-
-# Generate sandbox.wsb with profile-appropriate settings
-New-SandboxConfig `
+$artifacts = New-SandboxSessionArtifacts `
     -RepoRoot $repoRoot `
     -SandboxProfile $SandboxProfile `
-    -OutputPath $wsbPath `
+    -Tools $tools `
+    -InstallManifestPath $installManifestPath `
+    -WsbPath $wsbPath `
     -SharedHostFolder $resolvedSharedFolder `
     -SharedFolderWritable:$SharedFolderWritable
+
+Write-StatusLine "  [OK]  Install manifest: $($artifacts.InstallManifestPath)" -ForegroundColor Green
 
 if ($resolvedSharedFolder) {
     $access = if ($SharedFolderWritable) { 'writable' } else { 'read-only' }

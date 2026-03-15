@@ -91,3 +91,25 @@ Acceptance criteria:
 - Running the full validation suite succeeds locally.
 
 Estimated size: Small (1–2 files)
+
+---
+
+## 2026-03-14 Session log (CLI foundation pass)
+
+### Scope
+- Isolate selection/config artifact generation seams required for upcoming `-DryRun` support.
+
+### Decisions made
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Add `src/Session.ps1` for session manifest + `.wsb` artifact generation helpers | Reuse exact generation logic across real launch and dry-run flows with minimal churn | Keep artifact generation inline in `Start-Sandbox.ps1` (would duplicate logic for dry-run) |
+
+### Files modified
+- `src/Session.ps1` (new)
+- `Start-Sandbox.ps1`
+- `tests/Session.Tests.ps1` (new)
+
+### Validation
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Pester tests | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
