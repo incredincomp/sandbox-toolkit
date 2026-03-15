@@ -170,6 +170,22 @@ Describe 'Test-SandboxSessionLifecycleReadiness' {
 
         @($checks | Where-Object { $_.Name -eq 'session-mode' -and $_.Status -eq 'FAIL' }).Count | Should Be 1
     }
+
+    It 'warns when warm session discovery output cannot be parsed' {
+        $checks = Test-SandboxSessionLifecycleReadiness -SessionLifecycleState ([pscustomobject]@{
+            RequestedMode = 'Warm'
+            EffectiveMode = 'Warm'
+            WarmSupport = [pscustomobject]@{
+                Supported = $true
+                Reason = 'wsb available'
+            }
+            RunningSessionCount = 0
+            InventoryError = 'unsupported JSON shape'
+        })
+
+        @($checks | Where-Object { $_.Name -eq 'session-mode' -and $_.Status -eq 'WARN' }).Count | Should Be 1
+        (@($checks | Where-Object { $_.Name -eq 'session-mode' })[0].Message) | Should Match 'discovery failed'
+    }
 }
 
 Describe 'Test-SandboxWslHelperReadiness' {
