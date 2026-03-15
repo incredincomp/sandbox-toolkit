@@ -1,7 +1,7 @@
 # src/Session.ps1
 # Shared helpers for session data and generated artifacts.
 
-function New-SandboxSessionManifestData {
+function Get-SandboxSessionManifestData {
     <#
     .SYNOPSIS
         Builds the install-manifest payload consumed by scripts/Install-Tools.ps1.
@@ -18,6 +18,23 @@ function New-SandboxSessionManifestData {
     }
 }
 
+function Resolve-SandboxSessionSelection {
+    <#
+    .SYNOPSIS
+        Resolves effective tool selection for a profile.
+    #>
+    param(
+        [Parameter(Mandatory)][PSCustomObject]$Manifest,
+        [Parameter(Mandatory)][string]$SandboxProfile
+    )
+
+    $tools = Get-ToolsForProfile -Manifest $Manifest -SandboxProfile $SandboxProfile
+    return [pscustomobject]@{
+        Profile = $SandboxProfile
+        Tools   = @($tools)
+    }
+}
+
 function Write-SandboxSessionManifest {
     <#
     .SYNOPSIS
@@ -29,12 +46,12 @@ function Write-SandboxSessionManifest {
         [Parameter(Mandatory)][string]$ManifestPath
     )
 
-    $sessionManifest = New-SandboxSessionManifestData -SandboxProfile $SandboxProfile -Tools $Tools
+    $sessionManifest = Get-SandboxSessionManifestData -SandboxProfile $SandboxProfile -Tools $Tools
     $sessionManifest | ConvertTo-Json -Depth 10 | Set-Content -Path $ManifestPath -Encoding UTF8
     return $ManifestPath
 }
 
-function New-SandboxSessionArtifacts {
+function Invoke-SandboxSessionArtifactGeneration {
     <#
     .SYNOPSIS
         Writes session artifacts required by launch and dry-run flows.

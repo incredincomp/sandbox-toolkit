@@ -1,6 +1,16 @@
 # src/Manifest.ps1
 # Loads and filters the tools.json manifest.
 
+$script:SupportedSandboxProfiles = @('minimal', 'reverse-engineering', 'network-analysis', 'full')
+
+function Get-SandboxProfileSupport {
+    <#
+    .SYNOPSIS
+        Returns profiles supported by Start-Sandbox.ps1.
+    #>
+    return @($script:SupportedSandboxProfiles)
+}
+
 function Import-ToolManifest {
     <#
     .SYNOPSIS
@@ -41,13 +51,32 @@ function Get-ToolsForProfile {
         [Parameter(Mandatory)][string]$SandboxProfile
     )
 
-    $validProfiles = @('minimal', 'reverse-engineering', 'network-analysis', 'full')
+    $validProfiles = Get-SandboxProfileSupport
     if ($SandboxProfile -notin $validProfiles) {
         throw "Invalid profile '$SandboxProfile'. Valid profiles: $($validProfiles -join ', ')"
     }
 
     $tools = $Manifest.tools | Where-Object { $SandboxProfile -in $_.profiles }
     return $tools | Sort-Object install_order
+}
+
+function Get-ManifestProfile {
+    <#
+    .SYNOPSIS
+        Returns built-in profiles present in the manifest today.
+    #>
+    param(
+        [Parameter(Mandatory)][PSCustomObject]$Manifest
+    )
+
+    $manifestProfiles = $Manifest.tools |
+        ForEach-Object { $_.profiles } |
+        Where-Object { $_ } |
+        Select-Object -Unique
+
+    return @(
+        Get-SandboxProfileSupport | Where-Object { $_ -in $manifestProfiles }
+    )
 }
 
 function Test-ManifestIntegrity {

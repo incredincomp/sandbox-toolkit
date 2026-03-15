@@ -113,3 +113,29 @@ Estimated size: Small (1–2 files)
 | Check | Result | Method | Date |
 |-------|--------|--------|------|
 | Pester tests | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
+
+### Scope (feature pass)
+- Add CLI discovery and simulation switches: `-ListTools`, `-ListProfiles`, `-DryRun`.
+- Keep normal launch behavior unchanged.
+
+### Decisions made (feature pass)
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Add `src/Cli.ps1` for invocation-mode validation and launch suppression helper | Keeps command-mode decisions testable outside top-level script flow | Keep all mode branching inline in `Start-Sandbox.ps1` |
+| `-DryRun` writes install-manifest and `.wsb`, but skips downloads and launch | Provides actionable output for CI/debugging while avoiding network/download side effects | Perform full download queue in dry-run (too heavy and mutative) |
+| List modes reject execution/shared-folder switches | Prevent ambiguous invocations and accidental side effects | Silently ignore unrelated switches |
+
+### Files modified (feature pass)
+- `Start-Sandbox.ps1`
+- `src/Cli.ps1` (new)
+- `src/Manifest.ps1`
+- `src/SandboxConfig.ps1`
+- `src/Session.ps1`
+- `tests/Cli.Tests.ps1` (new)
+- `tests/Session.Tests.ps1`
+
+### Validation (feature pass)
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Pester tests | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
+| PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer ... }` | 2026-03-14 |

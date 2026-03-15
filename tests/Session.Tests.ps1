@@ -2,16 +2,17 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $repoRoot = Split-Path -Path $PSScriptRoot -Parent
+. (Join-Path $repoRoot 'src\Manifest.ps1')
 . (Join-Path $repoRoot 'src\Session.ps1')
 
-Describe 'New-SandboxSessionManifestData' {
+Describe 'Get-SandboxSessionManifestData' {
     It 'returns expected profile and tools payload' {
         $tools = @(
             [pscustomobject]@{ id = 'tool-a'; display_name = 'Tool A' },
             [pscustomobject]@{ id = 'tool-b'; display_name = 'Tool B' }
         )
 
-        $manifest = New-SandboxSessionManifestData -SandboxProfile 'minimal' -Tools $tools
+        $manifest = Get-SandboxSessionManifestData -SandboxProfile 'minimal' -Tools $tools
 
         $manifest.profile | Should Be 'minimal'
         $manifest.tools.Count | Should Be 2
@@ -41,5 +42,17 @@ Describe 'Write-SandboxSessionManifest' {
                 Remove-Item -LiteralPath $tempRoot -Recurse -Force
             }
         }
+    }
+}
+
+Describe 'Resolve-SandboxSessionSelection' {
+    It 'uses profile selection logic from manifest helpers' {
+        $manifest = Import-ToolManifest -ManifestPath (Join-Path $repoRoot 'tools.json')
+        $selection = Resolve-SandboxSessionSelection -Manifest $manifest -SandboxProfile 'minimal'
+        $expected = Get-ToolsForProfile -Manifest $manifest -SandboxProfile 'minimal'
+
+        $selection.Profile | Should Be 'minimal'
+        $selection.Tools.Count | Should Be $expected.Count
+        ($selection.Tools | Select-Object -ExpandProperty id) -join ',' | Should Be (($expected | Select-Object -ExpandProperty id) -join ',')
     }
 }

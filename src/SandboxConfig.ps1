@@ -10,6 +10,22 @@ $script:NetworkingByProfile = @{
     'full'                = 'Enable'   # Networking enabled -- use with caution.
 }
 
+function Get-SandboxNetworkingMode {
+    <#
+    .SYNOPSIS
+        Returns networking mode configured for a profile.
+    #>
+    param(
+        [Parameter(Mandatory)][string]$SandboxProfile
+    )
+
+    $networking = $script:NetworkingByProfile[$SandboxProfile]
+    if (-not $networking) {
+        throw "No sandbox settings defined for profile '$SandboxProfile'."
+    }
+    return $networking
+}
+
 function New-SandboxConfig {
     <#
     .SYNOPSIS
@@ -38,10 +54,7 @@ function New-SandboxConfig {
         $OutputPath = Join-Path $RepoRoot 'sandbox.wsb'
     }
 
-    $networking = $script:NetworkingByProfile[$SandboxProfile]
-    if (-not $networking) {
-        throw "No sandbox settings defined for profile '$SandboxProfile'."
-    }
+    $networking = Get-SandboxNetworkingMode -SandboxProfile $SandboxProfile
 
     $scriptsHostPath = Join-Path $RepoRoot 'scripts'
     if (-not (Test-Path $scriptsHostPath)) {
