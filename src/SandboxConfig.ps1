@@ -26,6 +26,33 @@ function Get-SandboxNetworkingMode {
     return $networking
 }
 
+function Get-SandboxHostInteractionPolicy {
+    <#
+    .SYNOPSIS
+        Resolves effective host-interaction policy for generated sandbox configuration.
+    #>
+    param(
+        [switch]$DisableClipboard,
+        [switch]$DisableAudioInput,
+        [switch]$DisableStartupCommands
+    )
+
+    $effectiveAudioInput = 'Disable'
+    if (-not $DisableAudioInput) {
+        # Preserve existing default behavior: audio input remains disabled.
+        $effectiveAudioInput = 'Disable'
+    }
+
+    return [pscustomobject]@{
+        RequestedDisableClipboard      = [bool]$DisableClipboard
+        RequestedDisableAudioInput     = [bool]$DisableAudioInput
+        RequestedDisableStartupCommands = [bool]$DisableStartupCommands
+        ClipboardRedirection           = if ($DisableClipboard) { 'Disable' } else { 'Enable' }
+        AudioInput                     = $effectiveAudioInput
+        StartupCommandsEnabled         = -not [bool]$DisableStartupCommands
+    }
+}
+
 function New-SandboxConfig {
     <#
     .SYNOPSIS
@@ -40,6 +67,8 @@ function New-SandboxConfig {
         Optional extra host folder mapped into the sandbox at Desktop\shared.
     .PARAMETER SharedFolderWritable
         If set, the optional shared folder is writable from inside the sandbox.
+    .PARAMETER HostInteractionPolicy
+        Effective host-interaction policy object returned by Get-SandboxHostInteractionPolicy.
     #>
     [CmdletBinding(SupportsShouldProcess)]
     param(
@@ -47,7 +76,8 @@ function New-SandboxConfig {
         [Parameter(Mandatory)][string]$SandboxProfile,
         [string]$OutputPath,
         [string]$SharedHostFolder,
-        [switch]$SharedFolderWritable
+        [switch]$SharedFolderWritable,
+        [PSCustomObject]$HostInteractionPolicy
     )
 
     if (-not $OutputPath) {
@@ -55,6 +85,9 @@ function New-SandboxConfig {
     }
 
     $networking = Get-SandboxNetworkingMode -SandboxProfile $SandboxProfile
+    if (-not $HostInteractionPolicy) {
+        $HostInteractionPolicy = Get-SandboxHostInteractionPolicy
+    }
 
     $scriptsHostPath = Join-Path $RepoRoot 'scripts'
     if (-not (Test-Path $scriptsHostPath)) {
@@ -84,23 +117,29 @@ function New-SandboxConfig {
     }
 
     $mappedFoldersXml = ($mappedFolders -join [Environment]::NewLine)
+    $logonCommandXml = ''
+    if ($HostInteractionPolicy.StartupCommandsEnabled) {
+        $logonCommandXml = @"
+  <LogonCommand>
+    <Command>C:\Users\WDAGUtilityAccount\Desktop\scripts\autostart.cmd</Command>
+  </LogonCommand>
+"@
+    }
 
     # Use a here-string: networking and mapped folders vary per run.
     $wsbContent = @"
 <Configuration>
   <VGpu>Disable</VGpu>
   <Networking>$networking</Networking>
-  <AudioInput>Disable</AudioInput>
+  <AudioInput>$($HostInteractionPolicy.AudioInput)</AudioInput>
   <VideoInput>Disable</VideoInput>
   <ProtectedClient>True</ProtectedClient>
   <PrinterRedirection>Disable</PrinterRedirection>
-  <ClipboardRedirection>Enable</ClipboardRedirection>
+  <ClipboardRedirection>$($HostInteractionPolicy.ClipboardRedirection)</ClipboardRedirection>
   <MappedFolders>
 ${mappedFoldersXml}
   </MappedFolders>
-  <LogonCommand>
-    <Command>C:\Users\WDAGUtilityAccount\Desktop\scripts\autostart.cmd</Command>
-  </LogonCommand>
+$logonCommandXml
 </Configuration>
 "@
 

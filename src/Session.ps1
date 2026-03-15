@@ -200,7 +200,8 @@ function Invoke-SandboxSessionArtifactGeneration {
         [Parameter(Mandatory)][string]$InstallManifestPath,
         [Parameter(Mandatory)][string]$WsbPath,
         [string]$SharedHostFolder,
-        [switch]$SharedFolderWritable
+        [switch]$SharedFolderWritable,
+        [PSCustomObject]$HostInteractionPolicy
     )
 
     $writtenManifestPath = Write-SandboxSessionManifest `
@@ -213,7 +214,8 @@ function Invoke-SandboxSessionArtifactGeneration {
         -SandboxProfile $SandboxProfile `
         -OutputPath $WsbPath `
         -SharedHostFolder $SharedHostFolder `
-        -SharedFolderWritable:$SharedFolderWritable
+        -SharedFolderWritable:$SharedFolderWritable `
+        -HostInteractionPolicy $HostInteractionPolicy
 
     return [pscustomobject]@{
         InstallManifestPath = $writtenManifestPath
