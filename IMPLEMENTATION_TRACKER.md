@@ -347,3 +347,34 @@ Estimated size: Small (1–2 files)
 |-------|--------|--------|------|
 | Pester tests | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
 | PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer ... }` | 2026-03-14 |
+
+### Scope (list json output completion pass)
+- Extend `-OutputJson` support to list discovery modes: `-ListTools` and `-ListProfiles`.
+- Preserve default human-readable list output.
+
+### Decisions made (list json output completion pass)
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Add list-mode JSON projection helpers in `src/Output.ps1` | Keep output rendering thin and aligned with existing validate/dry-run JSON projection pattern | Build list JSON inline in `Start-Sandbox.ps1` |
+| Reject `-OutputJson` when both `-ListTools` and `-ListProfiles` are passed together | Avoid ambiguous JSON payload shape for automation consumers | Emit combined mixed list payload in a single response object |
+| Reuse existing manifest/custom-profile catalog helpers for JSON list data | Prevent duplicated parsing/selection logic in output layer | Rebuild catalogs independently for JSON rendering |
+
+### Files modified (list json output completion pass)
+- `Start-Sandbox.ps1`
+- `src/Cli.ps1`
+- `src/Output.ps1`
+- `tests/Cli.Tests.ps1`
+- `tests/Output.Tests.ps1`
+- `tests/StartSandboxJson.Tests.ps1`
+- `README.md`
+- `docs/QUICKSTART.md`
+- `IMPLEMENTATION_TRACKER.md`
+
+### Validation (list json output completion pass)
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Pester tests (output projections) | ✅ | `Invoke-Pester -Path tests/Output.Tests.ps1` | 2026-03-14 |
+| Pester tests (CLI rules) | ✅ | `Invoke-Pester -Path tests/Cli.Tests.ps1` | 2026-03-14 |
+| Pester tests (JSON integration) | ✅ | `Invoke-Pester -Path tests/StartSandboxJson.Tests.ps1` | 2026-03-14 |
+| Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
+| PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-14 |

@@ -93,26 +93,31 @@ Exit behavior:
 
 ### Machine-readable JSON output
 
-Use `-OutputJson` with `-Validate` or `-DryRun` to emit JSON to stdout for CI/automation.
+Use `-OutputJson` with `-Validate`, `-DryRun`, `-ListTools`, or `-ListProfiles` to emit JSON to stdout for CI/automation.
 Human-readable console output remains the default.
 
 ```powershell
 .\Start-Sandbox.ps1 -Validate -OutputJson
 .\Start-Sandbox.ps1 -Validate -Profile net-re-lite -OutputJson
 .\Start-Sandbox.ps1 -DryRun -Profile net-re-lite -AddTools floss -OutputJson
+.\Start-Sandbox.ps1 -ListTools -OutputJson
+.\Start-Sandbox.ps1 -ListProfiles -OutputJson
 ```
 
 Supported modes:
 - `-Validate -OutputJson`
 - `-DryRun -OutputJson`
+- `-ListTools -OutputJson`
+- `-ListProfiles -OutputJson`
 
 Intentional exclusions:
 - `-OutputJson` is not enabled for normal launch mode.
-- `-OutputJson` is not enabled for list modes in this pass.
 
 JSON stability notes:
 - Validate JSON includes stable `checks[]` records (`id`, `status`, `summary`, `remediation`) plus overall status and `exit_code`.
 - Dry-run JSON includes profile resolution, runtime overrides, final effective tool list, effective networking, stage skip details, and generated artifact paths.
+- List-tools JSON includes `command.mode` and `tools[]` with stable catalog fields (`id`, `display_name`, `installer_type`, `install_order`, `category`, `profiles`).
+- List-profiles JSON includes `command.mode` and `profiles[]` with explicit `type` (`built-in` or `custom`) and `base_profile`.
 
 ### Custom profiles and runtime overrides
 
