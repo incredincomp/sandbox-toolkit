@@ -49,8 +49,8 @@ Describe 'Template store helpers' {
 
         try {
             $storePath = Join-Path $tempRoot 'saved-sessions.local.json'
-            $first = New-SandboxTemplateDefinition -TemplateName 'zeta' -SandboxProfile 'minimal'
-            $second = New-SandboxTemplateDefinition -TemplateName 'alpha' -SandboxProfile 'reverse-engineering'
+            $first = Get-SandboxTemplateDefinition -TemplateName 'zeta' -SandboxProfile 'minimal'
+            $second = Get-SandboxTemplateDefinition -TemplateName 'alpha' -SandboxProfile 'reverse-engineering'
             Save-SandboxTemplateDefinition -TemplateStorePath $storePath -TemplateDefinition $first | Out-Null
             Save-SandboxTemplateDefinition -TemplateStorePath $storePath -TemplateDefinition $second | Out-Null
 
@@ -71,12 +71,12 @@ Describe 'Template store helpers' {
 Describe 'Template definition and resolution' {
     It 'rejects invalid template names' {
         {
-            New-SandboxTemplateDefinition -TemplateName 'bad name' -SandboxProfile 'minimal' | Out-Null
+            Get-SandboxTemplateDefinition -TemplateName 'bad name' -SandboxProfile 'minimal' | Out-Null
         } | Should Throw 'Template name'
     }
 
     It 'resolves invocation defaults from template and runtime overrides explicitly' {
-        $template = New-SandboxTemplateDefinition `
+        $template = Get-SandboxTemplateDefinition `
             -TemplateName 'lab-default' `
             -SandboxProfile 'minimal' `
             -AddTools @('ghidra') `
@@ -111,7 +111,7 @@ Describe 'Template definition and resolution' {
 
 Describe 'Template readiness validation' {
     It 'fails clearly for unknown profile references' {
-        $template = New-SandboxTemplateDefinition -TemplateName 'bad-profile' -SandboxProfile 'no-such-profile'
+        $template = Get-SandboxTemplateDefinition -TemplateName 'bad-profile' -SandboxProfile 'no-such-profile'
 
         {
             Test-SandboxTemplateDefinitionReadiness `
@@ -123,7 +123,7 @@ Describe 'Template readiness validation' {
     }
 
     It 'fails clearly for unknown tool references in template deltas' {
-        $template = New-SandboxTemplateDefinition -TemplateName 'bad-tools' -SandboxProfile 'minimal' -AddTools @('not-a-real-tool')
+        $template = Get-SandboxTemplateDefinition -TemplateName 'bad-tools' -SandboxProfile 'minimal' -AddTools @('not-a-real-tool')
 
         {
             Test-SandboxTemplateDefinitionReadiness `
@@ -135,7 +135,7 @@ Describe 'Template readiness validation' {
     }
 
     It 'fails clearly for unsafe shared-folder references' {
-        $template = New-SandboxTemplateDefinition -TemplateName 'bad-shared' -SandboxProfile 'minimal' -SharedFolder $repoRoot
+        $template = Get-SandboxTemplateDefinition -TemplateName 'bad-shared' -SandboxProfile 'minimal' -SharedFolder $repoRoot
 
         {
             Test-SandboxTemplateDefinitionReadiness `

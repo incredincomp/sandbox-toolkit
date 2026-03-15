@@ -77,8 +77,8 @@ function ConvertTo-SandboxTemplateNormalizedEntry {
     }
 
     $name = Assert-SandboxTemplateName -TemplateName ([string]$RawTemplate.name)
-    $profile = [string]$RawTemplate.profile
-    if ([string]::IsNullOrWhiteSpace($profile)) {
+    $templateProfile = [string]$RawTemplate.profile
+    if ([string]::IsNullOrWhiteSpace($templateProfile)) {
         throw "Malformed template config '$SourcePath': templates[$Index] has empty 'profile'."
     }
 
@@ -156,7 +156,7 @@ function ConvertTo-SandboxTemplateNormalizedEntry {
 
     return [pscustomobject]@{
         name                       = $name
-        profile                    = $profile.Trim()
+        profile                    = $templateProfile.Trim()
         add_tools                  = @($addTools)
         remove_tools               = @($removeTools)
         shared_folder              = $sharedFolder
@@ -282,7 +282,7 @@ function Get-SandboxTemplateCatalog {
     )
 }
 
-function New-SandboxTemplateDefinition {
+function Get-SandboxTemplateDefinition {
     <#
     .SYNOPSIS
         Creates normalized template definition payload from invocation values.

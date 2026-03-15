@@ -245,6 +245,67 @@ Use this sequence for the safest host-side workflow:
 
 Automation note: use `-OutputJson` with `-Validate`, `-DryRun`, or `-Audit` in CI/wrappers.
 
+### Saved sessions/templates
+
+Use saved templates when you run the same sandbox workflow repeatedly.
+
+Commands:
+
+```powershell
+# Save a template
+.\Start-Sandbox.ps1 -SaveTemplate daily-re -Profile reverse-engineering -SessionMode Warm -SkipPrereqCheck
+
+# List templates
+.\Start-Sandbox.ps1 -ListTemplates
+
+# Inspect one template
+.\Start-Sandbox.ps1 -ShowTemplate daily-re
+
+# Execute from template defaults (runtime flags still allowed)
+.\Start-Sandbox.ps1 -Template daily-re
+.\Start-Sandbox.ps1 -Template daily-re -DryRun -OutputJson
+.\Start-Sandbox.ps1 -Template daily-re -Validate
+```
+
+Storage model:
+- Templates are stored in repo-local `saved-sessions.local.json`.
+- File is deterministic JSON (`schema_version`, `templates[]`) and is gitignored.
+- Each template stores invocation defaults (profile, tool deltas, session/helper/shared-folder/policy switches).
+
+Precedence rules when using `-Template <name>`:
+1. Template base values.
+2. Profile/custom-profile resolution referenced by the template.
+3. Template tool deltas (`add_tools`, then `remove_tools`).
+4. Runtime overrides (`-AddTools`, then `-RemoveTools`).
+5. Explicit command-line flags override template defaults for matching options (`-Profile`, shared-folder/session/helper/policy switches when specified).
+
+Validation behavior:
+- Save-time: template references are validated against manifest/custom profiles and shared-folder safety rules.
+- Execute-time: template is revalidated before run/validate/dry-run/audit execution proceeds.
+- Unknown template names, malformed template files, and unknown profile/tool references fail fast with actionable errors.
+
+Safety guidance:
+- Templates can persist risky defaults (for example network-enabled profiles, writable shared folders, warm mode).
+- Run `-ShowTemplate <name>` before reuse and keep template names purpose-specific.
+- Prefer separate templates for internet-enabled workflows and strict offline/restricted workflows.
+
+Workflow recipes:
+
+```powershell
+# Recipe: repeat reverse-engineering prep with warm reuse
+.\Start-Sandbox.ps1 -SaveTemplate re-warm -Profile reverse-engineering -SessionMode Warm -SkipPrereqCheck
+.\Start-Sandbox.ps1 -Template re-warm -DryRun
+.\Start-Sandbox.ps1 -Template re-warm
+
+# Recipe: preserve a safer ingress workflow with explicit shared folder
+.\Start-Sandbox.ps1 -SaveTemplate triage-ro -Profile minimal -SharedFolder "C:\Lab\Ingress" -SkipPrereqCheck
+.\Start-Sandbox.ps1 -Template triage-ro -Validate
+.\Start-Sandbox.ps1 -Template triage-ro
+
+# Recipe: temporary runtime override on top of a template
+.\Start-Sandbox.ps1 -Template triage-ro -AddTools floss -RemoveTools notepadpp -DryRun
+```
+
 ### Discoverability and dry-run
 
 ```powershell

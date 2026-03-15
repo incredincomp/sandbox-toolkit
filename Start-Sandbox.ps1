@@ -382,7 +382,7 @@ $prerequisiteChecks = @()
 $wslHelperResult = $null
 
 if ($commandMode -eq 'SaveTemplate') {
-    $templateDefinition = New-SandboxTemplateDefinition `
+    $templateDefinition = Get-SandboxTemplateDefinition `
         -TemplateName $SaveTemplate `
         -SandboxProfile $effectiveSandboxProfile `
         -AddTools $effectiveRuntimeAddTools `

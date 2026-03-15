@@ -74,6 +74,13 @@ See [PROFILES.md](PROFILES.md) for what each profile includes.
 .\Start-Sandbox.ps1 -ListProfiles
 .\Start-Sandbox.ps1 -ListTools
 
+# Saved template workflows
+.\Start-Sandbox.ps1 -SaveTemplate daily-re -Profile reverse-engineering -SessionMode Warm -SkipPrereqCheck
+.\Start-Sandbox.ps1 -ListTemplates
+.\Start-Sandbox.ps1 -ShowTemplate daily-re
+.\Start-Sandbox.ps1 -Template daily-re -DryRun -OutputJson
+.\Start-Sandbox.ps1 -Template daily-re -Validate
+
 # Clean repo-owned disposable download/session artifacts
 .\Start-Sandbox.ps1 -CleanDownloads
 
@@ -291,6 +298,32 @@ Notes:
 - `-ListProfiles` shows both built-in and custom profiles distinctly.
 - Custom profiles in this pass inherit networking behavior from their built-in `base_profile`.
 - JSON output mode is intentionally excluded from normal launch mode (`Run`).
+- Saved templates are repo-local in `saved-sessions.local.json` (gitignored) and are revalidated on save and execution.
+
+Template precedence:
+1. Template base values.
+2. Referenced profile/custom-profile resolution.
+3. Template tool deltas (`add_tools`, then `remove_tools`).
+4. Runtime overrides (`-AddTools`, then `-RemoveTools`).
+5. Explicit command-line flags override template defaults for matching options.
+
+Template safety:
+- Treat templates as persistent defaults that can include warm mode, network-enabled profiles, and shared-folder settings.
+- Use `-ShowTemplate <name>` before reuse and keep high-risk templates clearly named/separated.
+
+Workflow recipes:
+
+```powershell
+# Repeat warm reverse-engineering runs
+.\Start-Sandbox.ps1 -SaveTemplate re-warm -Profile reverse-engineering -SessionMode Warm -SkipPrereqCheck
+.\Start-Sandbox.ps1 -Template re-warm -DryRun
+.\Start-Sandbox.ps1 -Template re-warm
+
+# Reuse read-only ingress setup
+.\Start-Sandbox.ps1 -SaveTemplate triage-ro -Profile minimal -SharedFolder "C:\Lab\Ingress" -SkipPrereqCheck
+.\Start-Sandbox.ps1 -Template triage-ro -Validate
+.\Start-Sandbox.ps1 -Template triage-ro
+```
 
 `-CleanDownloads` scope:
 - Removes only toolkit-owned disposable artifacts (`scripts/setups/*`, `scripts/install-manifest.json`, `sandbox.wsb`).

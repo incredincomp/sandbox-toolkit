@@ -4,6 +4,33 @@ All notable changes to this project will be documented here.
 
 ---
 
+## [2.0.6] — 2026-03-15
+
+### Features
+
+- Added saved session/template workflows:
+  - `-SaveTemplate <name>`
+  - `-ListTemplates`
+  - `-ShowTemplate <name>`
+  - `-Template <name>` for run/validate/dry-run/audit execution.
+- Added repo-local template persistence at `saved-sessions.local.json` (gitignored), using deterministic human-readable JSON.
+- Reused existing selection/validation pipeline for template execution by layering template tool deltas before runtime overrides.
+- Added execute/save-time validation for template profile/tool/shared-folder references.
+
+### Precedence
+
+- Defined deterministic precedence for template-driven runs:
+  1. template base values
+  2. profile/custom-profile resolution
+  3. template `add_tools` / `remove_tools`
+  4. runtime `-AddTools` / `-RemoveTools`
+  5. explicit command-line flags overriding matching template defaults
+
+### Testing
+
+- Added unit coverage for template store parsing, malformed content handling, name validation, invocation resolution, and readiness checks.
+- Added integrated CLI coverage for save/list/show/template execution via `-DryRun`/`-Validate`, plus malformed/unknown template failures.
+
 ## [2.0.5] — 2026-03-15
 
 ### Hardening

@@ -952,3 +952,39 @@ Estimated size: Small (1–2 files)
 - `tests/StartSandboxJson.Tests.ps1`
 - `CHANGELOG.md`
 - `IMPLEMENTATION_TRACKER.md`
+
+### Scope (saved template/session workflow pass)
+- Add a bounded saved-template persistence layer for repeat sandbox invocations.
+- Add CLI surfaces for save/list/show/use-template while preserving existing run/validate/dry-run/audit execution seams.
+- Keep effective-selection precedence deterministic across template defaults, profile/custom-profile resolution, and runtime overrides.
+
+### Decisions made (saved template/session workflow pass)
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Use repo-local `saved-sessions.local.json` store instead of a template-per-file directory | Aligns with existing repo-local config pattern (`custom-profiles.local.json`) and keeps implementation/review scope small | Create a new templates directory with one file per entry |
+| Add `src/Templates.ps1` as a dedicated persistence/validation/resolution seam | Prevents template logic from leaking into command handlers and keeps behavior testable | Inline template read/merge logic in `Start-Sandbox.ps1` |
+| Extend `Resolve-SandboxSessionSelection` with optional template add/remove layers | Reuses authoritative selection path and preserves dry-run/validate/audit parity | Build a separate template execution selection path |
+| Revalidate template references at both save time and execution time | Prevents stale or malformed templates from bypassing current manifest/profile/path checks | Validate only when saving templates |
+
+### Files modified (saved template/session workflow pass)
+- `.gitignore`
+- `Start-Sandbox.ps1`
+- `src/Cli.ps1`
+- `src/Session.ps1`
+- `src/Templates.ps1` (new)
+- `src/Validation.ps1`
+- `tests/Cli.Tests.ps1`
+- `tests/Session.Tests.ps1`
+- `tests/Templates.Tests.ps1` (new)
+- `tests/StartSandboxCliIntegration.Tests.ps1`
+- `README.md`
+- `docs/QUICKSTART.md`
+- `CHANGELOG.md`
+- `IMPLEMENTATION_TRACKER.md`
+
+### Validation (saved template/session workflow pass)
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Pester tests (targeted affected suites) | ✅ | `Invoke-Pester -Path tests/Cli.Tests.ps1,tests/Session.Tests.ps1,tests/Templates.Tests.ps1,tests/Validation.Tests.ps1,tests/StartSandboxJson.Tests.ps1,tests/StartSandboxCliIntegration.Tests.ps1` | 2026-03-15 |
+| Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-15 |
+| PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' \| ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-15 |
