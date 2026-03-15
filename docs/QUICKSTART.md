@@ -74,6 +74,10 @@ See [PROFILES.md](PROFILES.md) for what each profile includes.
 .\Start-Sandbox.ps1 -ListProfiles
 .\Start-Sandbox.ps1 -ListTools
 
+# Validate host/input readiness without running setup
+.\Start-Sandbox.ps1 -Validate
+.\Start-Sandbox.ps1 -Validate -Profile network-analysis -SharedFolder "C:\Lab\Ingress"
+
 # Simulate selection/config generation without downloading or launching
 .\Start-Sandbox.ps1 -DryRun -Profile reverse-engineering -SkipPrereqCheck
 
@@ -89,6 +93,15 @@ See [PROFILES.md](PROFILES.md) for what each profile includes.
 # Verbose output
 .\Start-Sandbox.ps1 -Verbose
 ```
+
+`-Validate` vs `-DryRun`:
+- `-Validate` answers: "Can I safely/run this on this host now?" It does not download, generate artifacts, or launch.
+- `-DryRun` answers: "What would be selected/generated?" It still writes generated host artifacts (`install-manifest.json`, `sandbox.wsb`) but skips download and launch.
+
+Common `-Validate` remediations:
+- Shared-folder path rejected: choose a dedicated local non-reparse ingress path (for example `C:\Lab\Ingress`).
+- Windows Sandbox feature not enabled: run `Enable-WindowsOptionalFeature -FeatureName Containers-DisposableClientVM -Online` as Administrator and reboot.
+- Prerequisite check warning due limited host visibility: re-run without `-SkipPrereqCheck` and with sufficient privileges.
 
 ---
 

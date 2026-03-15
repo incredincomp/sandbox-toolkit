@@ -66,6 +66,31 @@ See [QUICKSTART.md](docs/QUICKSTART.md) for a step-by-step guide including prere
 .\Start-Sandbox.ps1 -DryRun -Profile network-analysis -SkipPrereqCheck
 ```
 
+### Validate readiness (non-destructive)
+
+```powershell
+# Preflight checks only (no downloads, no .wsb/install-manifest generation, no launch)
+.\Start-Sandbox.ps1 -Validate
+
+# Validate a specific profile and shared-folder input
+.\Start-Sandbox.ps1 -Validate -Profile network-analysis -SharedFolder "C:\Lab\Ingress"
+```
+
+`-Validate` checks:
+- CLI compatibility for the current invocation.
+- Manifest/profile/tool-selection readiness.
+- Shared-folder safety using the same hardened path rules.
+- Host prerequisite checks (PowerShell version, Windows Sandbox feature state when detectable).
+
+`-Validate` does not check:
+- In-sandbox runtime behavior (installer success, clipboard/audio policy behavior, sample behavior).
+- Download/source availability.
+- Generated artifact contents (use `-DryRun` for generation-preview workflows).
+
+Exit behavior:
+- `0`: validation passed (warnings may still be present).
+- `1`: one or more validation checks failed.
+
 ---
 
 ## Profiles
