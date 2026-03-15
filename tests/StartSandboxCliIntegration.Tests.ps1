@@ -110,6 +110,35 @@ Describe 'Start-Sandbox integrated command combinations' {
         (($toolIds -contains 'notepadpp')) | Should Be $false
     }
 
+    It 'supports -DryRun across new curated built-in profiles' {
+        $cases = @(
+            [pscustomobject]@{
+                Profile = 'triage-plus'
+                MustContain = @('sysinternals', 'detectiteasy', 'dependencies', 'wireshark')
+            }
+            [pscustomobject]@{
+                Profile = 'reverse-windows'
+                MustContain = @('x64dbg', 'detectiteasy', 'dependencies', 'api-monitor', 'procdot')
+            }
+            [pscustomobject]@{
+                Profile = 'behavior-net'
+                MustContain = @('sysinternals', 'wireshark', 'api-monitor', 'procdot')
+            }
+        )
+
+        foreach ($case in $cases) {
+            $result = Invoke-StartSandboxJson -Arguments @('-DryRun', '-SkipPrereqCheck', '-OutputJson', '-Profile', $case.Profile)
+            $toolIds = @($result.Json.effective.tools | Select-Object -ExpandProperty id)
+
+            $result.ExitCode | Should Be 0
+            $result.Json.command.mode | Should Be 'dry-run'
+            $result.Json.profile.selected | Should Be $case.Profile
+            foreach ($toolId in $case.MustContain) {
+                (($toolIds -contains $toolId)) | Should Be $true
+            }
+        }
+    }
+
     It 'supports -Validate with built-in profile selection' {
         $result = Invoke-StartSandboxJson -Arguments @('-Validate', '-SkipPrereqCheck', '-OutputJson', '-Profile', 'minimal')
 
@@ -185,8 +214,14 @@ Describe 'Start-Sandbox integrated command combinations' {
 
         $listProfiles.ExitCode | Should Be 0
         (($listProfiles.Json.profiles | Where-Object { $_.name -eq 'list-state-check' -and $_.type -eq 'custom' }).Count) | Should Be 1
+        (($listProfiles.Json.profiles | Where-Object { $_.name -eq 'triage-plus' -and $_.type -eq 'built-in' }).Count) | Should Be 1
+        (($listProfiles.Json.profiles | Where-Object { $_.name -eq 'reverse-windows' -and $_.type -eq 'built-in' }).Count) | Should Be 1
+        (($listProfiles.Json.profiles | Where-Object { $_.name -eq 'behavior-net' -and $_.type -eq 'built-in' }).Count) | Should Be 1
         $listTools.ExitCode | Should Be 0
         $listTools.Json.tools.Count | Should Be $script:manifest.tools.Count
+        (($listTools.Json.tools | Where-Object { $_.id -eq 'dependencies' }).Count) | Should Be 1
+        (($listTools.Json.tools | Where-Object { $_.id -eq 'api-monitor' }).Count) | Should Be 1
+        (($listTools.Json.tools | Where-Object { $_.id -eq 'procdot' }).Count) | Should Be 1
     }
 
     It 'supports save/list/show template workflows' {

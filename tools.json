@@ -6,7 +6,7 @@
       "id": "7zip",
       "display_name": "7-Zip",
       "category": "utility",
-      "profiles": ["minimal", "reverse-engineering", "network-analysis", "full"],
+      "profiles": ["minimal", "reverse-engineering", "network-analysis", "full", "triage-plus", "reverse-windows", "behavior-net", "dev-windows"],
       "source_type": "vendor",
       "source_url": "https://www.7-zip.org/a/7z2409-x64.msi",
       "version": "24.09",
@@ -106,7 +106,7 @@
       "id": "sysinternals",
       "display_name": "Sysinternals Suite",
       "category": "sysanalysis",
-      "profiles": ["minimal", "reverse-engineering", "network-analysis", "full"],
+      "profiles": ["minimal", "reverse-engineering", "network-analysis", "triage-plus", "behavior-net", "dev-windows", "full"],
       "source_type": "vendor",
       "source_url": "https://download.sysinternals.com/files/SysinternalsSuite.zip",
       "version": "latest",
@@ -140,7 +140,7 @@
       "id": "x64dbg",
       "display_name": "x64dbg",
       "category": "reversing",
-      "profiles": ["reverse-engineering", "network-analysis", "full"],
+      "profiles": ["reverse-engineering", "network-analysis", "reverse-windows", "full"],
       "source_type": "sourceforge",
       "source_url": "https://sourceforge.net/projects/x64dbg/files/latest/download",
       "version": "latest",
@@ -173,7 +173,7 @@
       "id": "detectiteasy",
       "display_name": "Detect-It-Easy",
       "category": "reversing",
-      "profiles": ["reverse-engineering", "network-analysis", "full"],
+      "profiles": ["reverse-engineering", "network-analysis", "triage-plus", "reverse-windows", "full"],
       "source_type": "github_release",
       "github_repo": "horsicq/DIE-engine",
       "asset_pattern": "die_win64_portable_*.zip",
@@ -187,6 +187,25 @@
       "extract_dest": "%USERPROFILE%\\Desktop\\DetectItEasy",
       "install_order": 23,
       "notes": "Packer/compiler/protector identifier."
+    },
+    {
+      "id": "dependencies",
+      "display_name": "Dependencies",
+      "category": "reversing",
+      "profiles": ["triage-plus", "reverse-windows", "full"],
+      "source_type": "github_release",
+      "github_repo": "lucasg/Dependencies",
+      "asset_pattern": "Dependencies_x64_Release.zip",
+      "version": "latest",
+      "update": {
+        "strategy": "github_release",
+        "source_confidence": "high"
+      },
+      "filename": "dependencies.zip",
+      "installer_type": "zip",
+      "extract_dest": "%USERPROFILE%\\Desktop\\Dependencies",
+      "install_order": 29,
+      "notes": "Portable PE dependency analysis tool."
     },
     {
       "id": "upx",
@@ -279,7 +298,7 @@
       "id": "wireshark",
       "display_name": "Wireshark",
       "category": "network",
-      "profiles": ["network-analysis", "full"],
+      "profiles": ["network-analysis", "triage-plus", "behavior-net", "full"],
       "source_type": "vendor",
       "source_url": "https://2.na.dl.wireshark.org/win64/Wireshark-4.4.6-x64.exe",
       "version": "4.4.6",
@@ -293,7 +312,41 @@
       "installer_type": "exe",
       "install_args": "/S /desktopicon=yes",
       "install_order": 30,
-      "notes": "Network-analysis and full profiles only. Sandbox networking must be enabled."
+      "notes": "Network-capable profiles only. Sandbox networking must be enabled for live capture."
+    },
+    {
+      "id": "api-monitor",
+      "display_name": "API Monitor",
+      "category": "sysanalysis",
+      "profiles": ["reverse-windows", "behavior-net", "full"],
+      "source_type": "manual",
+      "version": "manual",
+      "update": {
+        "strategy": "unsupported",
+        "source_confidence": "low",
+        "notes": "No stable automated source adapter is configured in this pass."
+      },
+      "filename": "api-monitor-manual.url",
+      "installer_type": "manual",
+      "install_order": 34,
+      "notes": "Advanced runtime/API tracing. Manual acquisition/setup required."
+    },
+    {
+      "id": "procdot",
+      "display_name": "ProcDOT",
+      "category": "sysanalysis",
+      "profiles": ["reverse-windows", "behavior-net", "full"],
+      "source_type": "manual",
+      "version": "manual",
+      "update": {
+        "strategy": "unsupported",
+        "source_confidence": "low",
+        "notes": "Tool packaging and dependency chain are intentionally not automated in this pass."
+      },
+      "filename": "procdot-manual.url",
+      "installer_type": "manual",
+      "install_order": 35,
+      "notes": "Advanced process/network correlation workflow. Manual acquisition/setup required."
     },
     {
       "id": "npcap",

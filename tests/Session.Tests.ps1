@@ -101,6 +101,39 @@ Describe 'Resolve-SandboxSessionSelection' {
         ($selectionIds -join ',') | Should Match 'ghidra'
     }
 
+    It 'resolves curated built-in expansion profiles to expected core tool IDs' {
+        $manifest = Import-ToolManifest -ManifestPath (Join-Path $repoRoot 'tools.json')
+        $cases = @(
+            [pscustomobject]@{
+                Profile = 'triage-plus'
+                MustContain = @('sysinternals', 'detectiteasy', 'dependencies', 'wireshark')
+                MustNotContain = @('api-monitor', 'visual-studio-community')
+            }
+            [pscustomobject]@{
+                Profile = 'reverse-windows'
+                MustContain = @('x64dbg', 'detectiteasy', 'dependencies', 'api-monitor', 'procdot')
+                MustNotContain = @('wireshark', 'visual-studio-community')
+            }
+            [pscustomobject]@{
+                Profile = 'behavior-net'
+                MustContain = @('sysinternals', 'wireshark', 'api-monitor', 'procdot')
+                MustNotContain = @('visual-studio-community')
+            }
+        )
+
+        foreach ($case in $cases) {
+            $selection = Resolve-SandboxSessionSelection -Manifest $manifest -SandboxProfile $case.Profile
+            $selectionIds = @($selection.Tools | Select-Object -ExpandProperty id)
+
+            foreach ($toolId in $case.MustContain) {
+                (($selectionIds -contains $toolId)) | Should Be $true
+            }
+            foreach ($toolId in $case.MustNotContain) {
+                (($selectionIds -contains $toolId)) | Should Be $false
+            }
+        }
+    }
+
     It 'applies template deltas before runtime overrides' {
         $manifest = Import-ToolManifest -ManifestPath (Join-Path $repoRoot 'tools.json')
         $selection = Resolve-SandboxSessionSelection `

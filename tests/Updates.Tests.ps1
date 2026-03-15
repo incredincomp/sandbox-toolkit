@@ -3,6 +3,7 @@ $ErrorActionPreference = 'Stop'
 
 $repoRoot = Split-Path -Path $PSScriptRoot -Parent
 . (Join-Path $repoRoot 'src\Updates.ps1')
+. (Join-Path $repoRoot 'src\Manifest.ps1')
 
 Describe 'Compare-SandboxVersion' {
     It 'treats configured latest as up-to-date by policy' {
@@ -116,5 +117,37 @@ Describe 'Invoke-SandboxToolUpdateCheck adapters' {
         $result = Invoke-SandboxToolUpdateCheck -Tool $tool
         $result.status | Should Be 'unknown'
         $result.message | Should Match 'Could not determine latest version'
+    }
+}
+
+Describe 'Manifest update metadata compatibility for curated tool expansion' {
+    It 'keeps new update-enabled and manual tools compatible with update-check statuses' {
+        $manifest = Import-ToolManifest -ManifestPath (Join-Path $repoRoot 'tools.json')
+        Test-ManifestIntegrity -Manifest $manifest
+
+        $dependencies = @($manifest.tools | Where-Object { $_.id -eq 'dependencies' })[0]
+        $apiMonitor = @($manifest.tools | Where-Object { $_.id -eq 'api-monitor' })[0]
+
+        $dependencies | Should Not BeNullOrEmpty
+        $apiMonitor | Should Not BeNullOrEmpty
+        [string]$dependencies.update.strategy | Should Be 'github_release'
+        [string]$apiMonitor.update.strategy | Should Be 'unsupported'
+
+        Mock Invoke-RestMethod -ParameterFilter { $Uri -like 'https://api.github.com/repos/*/releases/latest' } {
+            return [pscustomobject]@{
+                tag_name = 'v1.11.1'
+                assets = @(
+                    [pscustomobject]@{ name = 'Dependencies_x64_Release.zip' }
+                )
+            }
+        }
+
+        $dependenciesResult = Invoke-SandboxToolUpdateCheck -Tool $dependencies
+        $apiMonitorResult = Invoke-SandboxToolUpdateCheck -Tool $apiMonitor
+
+        ($dependenciesResult.status -in @('up-to-date', 'outdated', 'unknown')) | Should Be $true
+        $dependenciesResult.source_type | Should Be 'github_release'
+        $apiMonitorResult.status | Should Be 'unsupported-for-checking'
+        $apiMonitorResult.source_type | Should Be 'unsupported'
     }
 }
