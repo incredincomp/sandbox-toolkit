@@ -6,6 +6,7 @@ $scriptPath = Join-Path $repoRoot 'Start-Sandbox.ps1'
 $manifestOut = Join-Path $repoRoot 'scripts\install-manifest.json'
 $wsbOut = Join-Path $repoRoot 'sandbox.wsb'
 $customProfilesPath = Join-Path $repoRoot 'custom-profiles.local.json'
+$templateStorePath = Join-Path $repoRoot 'saved-sessions.local.json'
 
 function Invoke-StartSandboxJsonHardening {
     param(
@@ -156,6 +157,43 @@ Describe 'Release hardening command-surface characterization' {
         } finally {
             if (Test-Path -LiteralPath $sentinelPath -PathType Leaf) {
                 Remove-Item -LiteralPath $sentinelPath -Force
+            }
+        }
+    }
+
+    It 'fails list modes for unsupported parameter combinations with consistent errors' {
+        $noLaunchList = Invoke-StartSandboxRawHardening -Arguments @('-ListTools', '-NoLaunch')
+        $skipPrereqList = Invoke-StartSandboxRawHardening -Arguments @('-ListProfiles', '-SkipPrereqCheck')
+
+        $noLaunchList.ExitCode | Should Be 1
+        $noLaunchList.Output | Should Match 'Invalid parameter combination'
+        $noLaunchList.Output | Should Match '-NoLaunch cannot be combined with -ListTools or -ListProfiles'
+
+        $skipPrereqList.ExitCode | Should Be 1
+        $skipPrereqList.Output | Should Match 'Invalid parameter combination'
+        $skipPrereqList.Output | Should Match '-SkipPrereqCheck cannot be combined with -ListTools or -ListProfiles'
+    }
+
+    It 'keeps -CleanDownloads scoped away from local profile/template config surfaces' {
+        $setupCacheItem = Join-Path $repoRoot 'scripts\setups\release-hardening-cleanup-config-scope.tmp'
+        New-Item -ItemType Directory -Path (Split-Path -Parent $setupCacheItem) -Force | Out-Null
+        Set-Content -Path $setupCacheItem -Value 'cache'
+        Set-Content -Path $manifestOut -Value '{}'
+        Set-Content -Path $wsbOut -Value '<Configuration />'
+        Set-Content -Path $templateStorePath -Value '{ "schema_version": "1.0", "templates": [] }'
+
+        try {
+            $cleanup = Invoke-StartSandboxRawHardening -Arguments @('-CleanDownloads')
+
+            $cleanup.ExitCode | Should Be 0
+            (Test-Path -LiteralPath $setupCacheItem -PathType Leaf) | Should Be $false
+            (Test-Path -LiteralPath $manifestOut -PathType Leaf) | Should Be $false
+            (Test-Path -LiteralPath $wsbOut -PathType Leaf) | Should Be $false
+            (Test-Path -LiteralPath $customProfilesPath -PathType Leaf) | Should Be $true
+            (Test-Path -LiteralPath $templateStorePath -PathType Leaf) | Should Be $true
+        } finally {
+            if (Test-Path -LiteralPath $templateStorePath -PathType Leaf) {
+                Remove-Item -LiteralPath $templateStorePath -Force
             }
         }
     }
