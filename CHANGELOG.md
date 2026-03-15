@@ -4,6 +4,38 @@ All notable changes to this project will be documented here.
 
 ---
 
+## [2.0.8] — 2026-03-15
+
+### Features
+
+- Added read-only tool update reporting mode:
+  - `-CheckForUpdates`
+- Added centralized update-check adapters with explicit source strategies:
+  - `github_release`
+  - `rss`
+  - `static`
+  - `unsupported`
+- Added update/version comparison reporting for resolved effective selection, including:
+  - configured version
+  - discovered latest version
+  - status (`up-to-date`, `outdated`, `unknown`, `unsupported-for-checking`)
+  - source type and confidence
+
+### Tool metadata / schema
+
+- Extended `tools.json` schema with optional per-tool `update` metadata block.
+- Added manifest integrity checks for update metadata strategy requirements.
+- Seeded update metadata for supported tools to establish maintainable update-check coverage.
+
+### Testing
+
+- Added deterministic update-check unit coverage for:
+  - GitHub adapter behavior (mocked API responses)
+  - RSS adapter behavior (mocked feed fixtures)
+  - static/manual marker behavior
+  - version normalization/comparison edge cases
+- Added integration coverage for `-CheckForUpdates` JSON reporting and read-only behavior.
+
 ## [2.0.7] — 2026-03-15
 
 ### Hardening

@@ -74,6 +74,10 @@ See [PROFILES.md](PROFILES.md) for what each profile includes.
 .\Start-Sandbox.ps1 -ListProfiles
 .\Start-Sandbox.ps1 -ListTools
 
+# Read-only tool update drift checks for effective selection
+.\Start-Sandbox.ps1 -CheckForUpdates
+.\Start-Sandbox.ps1 -CheckForUpdates -Profile minimal -RemoveTools notepadpp
+
 # Saved template workflows
 .\Start-Sandbox.ps1 -SaveTemplate daily-re -Profile reverse-engineering -SessionMode Warm -SkipPrereqCheck
 .\Start-Sandbox.ps1 -ListTemplates
@@ -115,6 +119,7 @@ See [PROFILES.md](PROFILES.md) for what each profile includes.
 .\Start-Sandbox.ps1 -Validate -OutputJson
 .\Start-Sandbox.ps1 -Validate -Profile net-re-lite -OutputJson
 .\Start-Sandbox.ps1 -Audit -Profile minimal -OutputJson
+.\Start-Sandbox.ps1 -CheckForUpdates -Profile reverse-engineering -OutputJson
 .\Start-Sandbox.ps1 -ListTools -OutputJson
 .\Start-Sandbox.ps1 -ListProfiles -OutputJson
 
@@ -143,7 +148,7 @@ Follow this compact sequence:
 6. Run `.\Start-Sandbox.ps1 -Audit -Profile <name>` (`-Audit` checks host-side/config-side evidence, not runtime enforcement).
 7. Run actual execution with `.\Start-Sandbox.ps1 -Profile <name>` (default fresh lifecycle).
 
-For automation, add `-OutputJson` to `-Validate`, `-DryRun`, or `-Audit`.
+For automation, add `-OutputJson` to `-Validate`, `-DryRun`, `-Audit`, or `-CheckForUpdates`.
 
 Release-hardening summary (2.0.7):
 - Discoverability: `-ListTools`, `-ListProfiles` align to current manifest/custom profile state.
@@ -152,11 +157,17 @@ Release-hardening summary (2.0.7):
 - Maintenance seam: `-CleanDownloads` removes only toolkit-owned disposable cache/session artifacts.
 - List-mode parameter consistency: `-NoLaunch` and `-SkipPrereqCheck` are invalid with `-ListTools` / `-ListProfiles`.
 
+Update-check summary (2.0.8):
+- `-CheckForUpdates` is read-only and does not mutate `tools.json`.
+- Update status reports one of: `up-to-date`, `outdated`, `unknown`, `unsupported-for-checking`.
+- Update metadata lives in optional per-tool `update` blocks in `tools.json`.
+- Source adapters are explicit (`github_release`, `rss`, `static`, `unsupported`) to keep behavior deterministic.
+
 `-Validate` vs `-DryRun` vs `-Audit`:
 - `-Validate` answers: "Can I safely/run this on this host now?" It does not download, generate artifacts, or launch.
 - `-DryRun` answers: "What would be selected/generated?" It still writes generated host artifacts (`install-manifest.json`, `sandbox.wsb`) but skips download and launch.
 - `-Audit` answers: "Do generated artifacts reflect my configured/requested settings?" It generates artifacts and checks host-visible evidence, but does not launch or runtime-verify sandbox enforcement.
-- Add `-OutputJson` to `-Validate`, `-Audit`, `-DryRun`, `-ListTools`, or `-ListProfiles` when automation needs stable machine-readable output from stdout.
+- Add `-OutputJson` to `-Validate`, `-Audit`, `-DryRun`, `-CheckForUpdates`, `-ListTools`, or `-ListProfiles` when automation needs stable machine-readable output from stdout.
 
 Audit trust boundary:
 - Audit findings are based on configured/requested settings and generated artifact contents.
@@ -291,6 +302,7 @@ Exit-code behavior:
 - `-Validate`: `0` pass/warn, `1` fail.
 - `-Audit`: `0` pass/warn, `1` fail.
 - `-DryRun`: `0` success, `1` fatal input/config error.
+- `-CheckForUpdates`: `0` success, `1` fatal input/config error.
 - `-ListTools` / `-ListProfiles`: `0` success, `1` fatal input/config error.
 - `-CleanDownloads`: `0` success (including no-op), `1` deletion failures.
 

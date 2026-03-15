@@ -94,6 +94,48 @@ Estimated size: Small (1–2 files)
 
 ---
 
+## 2026-03-15 Session log (tool update/versioning pass)
+
+### Scope
+- Add a bounded, read-only tool update visibility workflow without redesigning package management.
+- Extend manifest metadata/schema for maintainable update-source definitions.
+- Add deterministic adapter seams and tests for update detection behavior.
+
+### Decisions made
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Add optional per-tool `update` metadata block in `tools.json` (`strategy`, source details, confidence) | Least disruptive way to layer update checks onto existing manifest model | Separate external config store (unnecessary complexity for current scope) |
+| Implement `-CheckForUpdates` as read-only command mode that reuses existing profile/custom/template/override selection resolution | Keeps one effective-config path; avoids drift from run/validate/dry-run behavior | Build a parallel "all-tools updater" flow |
+| Centralize source-specific behavior in `src/Updates.ps1` adapters (`github_release`, `rss`, `static`, `unsupported`) | Deterministic seam for tests and future optional bump mode | Inline source lookups inside `Start-Sandbox.ps1` |
+| Treat discovery failures as per-tool `unknown` status (not fatal mode failure) | Prevent brittle network/source behavior from breaking whole report mode | Hard-fail command on first source lookup error |
+| Keep bumping/version mutation out of scope in this release | Requirement is read-only visibility first | Add auto-bump mode in same pass |
+
+### Files modified
+- `Start-Sandbox.ps1`
+- `src/Cli.ps1`
+- `src/Manifest.ps1`
+- `src/Output.ps1`
+- `src/Updates.ps1` (new)
+- `schemas/tools.schema.json`
+- `tools.json`
+- `tests/Cli.Tests.ps1`
+- `tests/Manifest.Tests.ps1`
+- `tests/Output.Tests.ps1`
+- `tests/StartSandboxCliIntegration.Tests.ps1`
+- `tests/StartSandboxJson.Tests.ps1`
+- `tests/Updates.Tests.ps1` (new)
+- `README.md`
+- `docs/QUICKSTART.md`
+- `CHANGELOG.md`
+
+### Validation
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Pester tests | ✅ | `Invoke-Pester -Path tests` | 2026-03-15 |
+| PSScriptAnalyzer (Error,Warning) | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' \| ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-15 |
+
+---
+
 ## 2026-03-14 Session log (CLI foundation pass)
 
 ### Scope

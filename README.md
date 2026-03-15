@@ -15,6 +15,21 @@ The default posture is safer-by-default: disposable fresh sandbox sessions, read
 
 ---
 
+## What changed (2.0.8)
+
+- Added richer optional per-tool update metadata in `tools.json` via `tool.update`.
+- Added read-only `-CheckForUpdates` mode to report configured vs discovered latest versions for the resolved effective selection.
+- Added centralized update adapters with deterministic source types:
+  - `github_release`
+  - `rss`
+  - `static`
+  - explicit `unsupported` state
+- Added test coverage for update metadata validation, version comparison, adapter behavior, CLI reporting, and read-only guarantees.
+
+`-CheckForUpdates` does not modify `tools.json` or bump versions automatically.
+
+---
+
 ## What changed (2.0.7)
 
 - Hardened integrated command-surface characterization for:
@@ -266,7 +281,7 @@ Use this sequence for the safest host-side workflow:
    .\Start-Sandbox.ps1 -Profile net-re-lite
    ```
 
-Automation note: use `-OutputJson` with `-Validate`, `-DryRun`, or `-Audit` in CI/wrappers.
+Automation note: use `-OutputJson` with `-Validate`, `-DryRun`, `-Audit`, or `-CheckForUpdates` in CI/wrappers.
 
 ### Saved sessions/templates
 
@@ -328,6 +343,53 @@ Workflow recipes:
 # Recipe: temporary runtime override on top of a template
 .\Start-Sandbox.ps1 -Template triage-ro -AddTools floss -RemoveTools notepadpp -DryRun
 ```
+
+### Tool update checks (read-only)
+
+Use `-CheckForUpdates` to evaluate effective selected tools against configured update metadata.
+
+```powershell
+# Check the default profile selection
+.\Start-Sandbox.ps1 -CheckForUpdates
+
+# Check with explicit profile + runtime overrides
+.\Start-Sandbox.ps1 -CheckForUpdates -Profile minimal -RemoveTools notepadpp
+
+# Machine-readable output
+.\Start-Sandbox.ps1 -CheckForUpdates -Profile reverse-engineering -OutputJson
+```
+
+Status categories:
+- `up-to-date`: configured version matches discovered latest (or configured as floating `latest`).
+- `outdated`: configured version compares older than discovered latest.
+- `unknown`: latest version could not be discovered or compared reliably.
+- `unsupported-for-checking`: tool has no automation metadata (or is explicitly marked unsupported).
+
+Metadata model (`tools.json`, per tool, optional):
+
+```json
+{
+  "update": {
+    "strategy": "github_release|rss|static|unsupported",
+    "source_confidence": "high|medium|low",
+    "github_repo": "owner/repo",
+    "asset_pattern": "tool-*-win64.zip",
+    "rss_url": "https://vendor.example/releases.xml",
+    "version_regex": "v(\\d+\\.\\d+\\.\\d+)",
+    "static_latest_version": "1.2.3",
+    "notes": "maintainer notes"
+  }
+}
+```
+
+Current practical coverage:
+- Auto-checkable today: tools configured with `update.strategy = github_release`.
+- Maintainer-tracked static markers: tools configured with `update.strategy = static`.
+- Not currently auto-checkable: tools without `update` metadata (reported as `unsupported-for-checking`).
+
+Future foundation:
+- Update adapter seams are in place for a separate optional bump workflow.
+- This release intentionally keeps update checking read-only.
 
 ### Discoverability and dry-run
 
@@ -394,6 +456,7 @@ Exit behavior:
 
 General exit-code expectations:
 - `-ListTools` / `-ListProfiles`: `0` on success, `1` on fatal input/config errors.
+- `-CheckForUpdates`: `0` on successful report generation, `1` on fatal input/config errors.
 - `-DryRun`: `0` on successful resolution/artifact generation preview, `1` on fatal input/config errors.
 - `-Audit`: `0` when no audit failures are present, `1` when audit failures are present.
 - `-CleanDownloads`: `0` when cleanup completes (including "Nothing to clean"), `1` on deletion failures.
@@ -424,7 +487,7 @@ General exit-code expectations:
 
 ### Machine-readable JSON output
 
-Use `-OutputJson` with `-Validate`, `-Audit`, `-DryRun`, `-ListTools`, or `-ListProfiles` to emit JSON to stdout for CI/automation.
+Use `-OutputJson` with `-Validate`, `-Audit`, `-DryRun`, `-CheckForUpdates`, `-ListTools`, or `-ListProfiles` to emit JSON to stdout for CI/automation.
 Human-readable console output remains the default.
 
 ```powershell
@@ -432,6 +495,7 @@ Human-readable console output remains the default.
 .\Start-Sandbox.ps1 -Validate -Profile net-re-lite -OutputJson
 .\Start-Sandbox.ps1 -Audit -Profile minimal -OutputJson
 .\Start-Sandbox.ps1 -DryRun -Profile net-re-lite -AddTools floss -OutputJson
+.\Start-Sandbox.ps1 -CheckForUpdates -Profile reverse-engineering -OutputJson
 .\Start-Sandbox.ps1 -ListTools -OutputJson
 .\Start-Sandbox.ps1 -ListProfiles -OutputJson
 ```
@@ -440,6 +504,7 @@ Supported modes:
 - `-Validate -OutputJson`
 - `-Audit -OutputJson`
 - `-DryRun -OutputJson`
+- `-CheckForUpdates -OutputJson`
 - `-ListTools -OutputJson`
 - `-ListProfiles -OutputJson`
 
