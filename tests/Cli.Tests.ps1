@@ -74,10 +74,24 @@ Describe 'Resolve-StartSandboxCommandMode' {
         $message | Should Match '-AddTools and -RemoveTools cannot be combined'
     }
 
-    It 'rejects -OutputJson without validate or dry-run mode' {
+    It 'accepts -OutputJson with -ListTools' {
+        Resolve-StartSandboxCommandMode -ListTools:$true -OutputJson:$true | Should Be 'List'
+    }
+
+    It 'accepts -OutputJson with -ListProfiles' {
+        Resolve-StartSandboxCommandMode -ListProfiles:$true -OutputJson:$true | Should Be 'List'
+    }
+
+    It 'rejects -OutputJson with both list switches' {
+        $message = Get-ErrorMessage { Resolve-StartSandboxCommandMode -OutputJson:$true -ListTools:$true -ListProfiles:$true }
+        $message | Should Not BeNullOrEmpty
+        $message | Should Match '-OutputJson cannot be combined with both -ListTools and -ListProfiles'
+    }
+
+    It 'rejects -OutputJson without a JSON-capable mode' {
         $message = Get-ErrorMessage { Resolve-StartSandboxCommandMode -OutputJson:$true }
         $message | Should Not BeNullOrEmpty
-        $message | Should Match '-OutputJson is supported only with -Validate or -DryRun'
+        $message | Should Match '-OutputJson is supported only with -Validate, -DryRun, -ListTools, or -ListProfiles'
     }
 }
 

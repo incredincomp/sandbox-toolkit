@@ -58,8 +58,11 @@ function Resolve-StartSandboxCommandMode {
     if ($Validate -and $NoLaunch) {
         throw "-NoLaunch cannot be combined with -Validate."
     }
-    if ($OutputJson -and -not ($Validate -or $DryRun)) {
-        throw "-OutputJson is supported only with -Validate or -DryRun."
+    if ($OutputJson -and $ListTools -and $ListProfiles) {
+        throw "-OutputJson cannot be combined with both -ListTools and -ListProfiles. Choose one list mode."
+    }
+    if ($OutputJson -and -not ($Validate -or $DryRun -or $isListMode)) {
+        throw "-OutputJson is supported only with -Validate, -DryRun, -ListTools, or -ListProfiles."
     }
 
     if ($isListMode) {

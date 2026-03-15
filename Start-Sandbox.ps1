@@ -46,7 +46,7 @@
     Optional tool IDs to remove from the selected profile at runtime.
 
 .PARAMETER OutputJson
-    Emit machine-readable JSON for -Validate or -DryRun modes.
+    Emit machine-readable JSON for -Validate, -DryRun, -ListTools, or -ListProfiles modes.
 
 .PARAMETER SkipPrereqCheck
     Skip the Windows Sandbox feature check (useful for CI or offline use).
@@ -196,16 +196,37 @@ if ($commandMode -eq 'List') {
     $manifest = Import-ToolManifest -ManifestPath $manifestPath
     Test-ManifestIntegrity -Manifest $manifest
     $customProfileConfig = $null
+    $toolCatalog = $null
+    $profileCatalog = $null
 
     if ($ListProfiles) {
         $customProfileConfig = Import-CustomProfileConfig -CustomProfilePath $customProfilePath
         Test-CustomProfileConfigIntegrity -CustomProfileConfig $customProfileConfig -Manifest $manifest
+        $profileCatalog = @(Get-SandboxProfileCatalog -Manifest $manifest -CustomProfileConfig $customProfileConfig)
+    }
+
+    if ($ListTools) {
+        $toolCatalog = @(Get-ManifestToolCatalog -Manifest $manifest)
+    }
+
+    if ($OutputJson) {
+        if ($ListProfiles) {
+            $listProfilesJsonResult = Get-SandboxListProfilesJsonResult -Profiles $profileCatalog
+            Write-SandboxJsonOutput -Data $listProfilesJsonResult
+            return
+        }
+
+        if ($ListTools) {
+            $listToolsJsonResult = Get-SandboxListToolsJsonResult -Tools $toolCatalog
+            Write-SandboxJsonOutput -Data $listToolsJsonResult
+            return
+        }
     }
 
     if ($ListProfiles) {
         Write-StatusLine ''
         Write-StatusLine 'Available profiles:' -ForegroundColor Cyan
-        Get-SandboxProfileCatalog -Manifest $manifest -CustomProfileConfig $customProfileConfig | ForEach-Object {
+        $profileCatalog | ForEach-Object {
             if ($_.profile_type -eq 'custom') {
                 Write-StatusLine "  - $($_.name) (custom; base=$($_.base_profile))" -ForegroundColor White
             } else {
@@ -217,7 +238,7 @@ if ($commandMode -eq 'List') {
     if ($ListTools) {
         Write-StatusLine ''
         Write-StatusLine 'Available tools:' -ForegroundColor Cyan
-        Get-ManifestToolCatalog -Manifest $manifest | ForEach-Object {
+        $toolCatalog | ForEach-Object {
             $profiles = $_.profiles -join ', '
             Write-StatusLine ("  - {0,-15} | {1} [{2}] (profiles: {3})" -f $_.id, $_.display_name, $_.installer_type, $profiles) -ForegroundColor White
         }

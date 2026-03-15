@@ -21,6 +21,18 @@ function Invoke-StartSandboxJson {
     }
 }
 
+function Invoke-StartSandboxRaw {
+    param(
+        [Parameter(Mandatory)][string[]]$Arguments
+    )
+
+    $output = & powershell -NoProfile -ExecutionPolicy Bypass -File $scriptPath @Arguments 2>&1 | Out-String
+    return [pscustomobject]@{
+        Output = $output
+        ExitCode = $LASTEXITCODE
+    }
+}
+
 Describe 'Start-Sandbox JSON output modes' {
     AfterEach {
         if (Test-Path -LiteralPath $manifestOut -PathType Leaf) {
@@ -105,5 +117,46 @@ Describe 'Start-Sandbox JSON output modes' {
         $result.Json.command.mode | Should Be 'DryRun'
         $result.Json.overall_status | Should Be 'FAIL'
         $result.Json.error.summary | Should Match '-AddTools contains unknown tool id'
+    }
+
+    It 'returns parseable JSON for list-tools mode with stable catalog fields' {
+        $result = Invoke-StartSandboxJson -Arguments @('-ListTools', '-OutputJson')
+
+        $result.ExitCode | Should Be 0
+        $result.Json.command.mode | Should Be 'list-tools'
+        $result.Json.tools.Count | Should BeGreaterThan 0
+        (($result.Json.tools | Where-Object { $_.id -eq 'ghidra' }).Count) | Should Be 1
+        (($result.Json.tools | Where-Object { $_.id -eq 'ghidra' })[0].install_order) | Should Not BeNullOrEmpty
+    }
+
+    It 'returns parseable JSON for list-profiles mode with built-in and custom distinctions' {
+        @'
+{
+  "schema_version": "1.0",
+  "profiles": [
+    {
+      "name": "net-re-lite",
+      "base_profile": "reverse-engineering",
+      "add_tools": ["wireshark"],
+      "remove_tools": ["ghidra"]
+    }
+  ]
+}
+'@ | Set-Content -Path $customProfilesPath -Encoding UTF8
+
+        $result = Invoke-StartSandboxJson -Arguments @('-ListProfiles', '-OutputJson')
+
+        $result.ExitCode | Should Be 0
+        $result.Json.command.mode | Should Be 'list-profiles'
+        (($result.Json.profiles | Where-Object { $_.name -eq 'minimal' -and $_.type -eq 'built-in' }).Count) | Should Be 1
+        (($result.Json.profiles | Where-Object { $_.name -eq 'net-re-lite' -and $_.type -eq 'custom' -and $_.base_profile -eq 'reverse-engineering' }).Count) | Should Be 1
+    }
+
+    It 'preserves default human-readable list output when -OutputJson is not used' {
+        $result = Invoke-StartSandboxRaw -Arguments @('-ListTools')
+
+        $result.ExitCode | Should Be 0
+        $result.Output | Should Match 'Available tools:'
+        $result.Output | Should Match 'ghidra'
     }
 }
