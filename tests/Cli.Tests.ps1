@@ -145,6 +145,24 @@ Describe 'Resolve-StartSandboxCommandMode' {
     It 'keeps existing dry-run mode unaffected' {
         Resolve-StartSandboxCommandMode -DryRun:$true -SkipPrereqCheck:$true | Should Be 'DryRun'
     }
+
+    It 'rejects -SessionMode with list mode' {
+        $message = Get-ErrorMessage { Resolve-StartSandboxCommandMode -ListTools:$true -SessionMode 'Warm' }
+        $message | Should Not BeNullOrEmpty
+        $message | Should Match '-SessionMode cannot be combined'
+    }
+
+    It 'rejects WSL helper options with clean mode' {
+        $message = Get-ErrorMessage { Resolve-StartSandboxCommandMode -CleanDownloads:$true -UseWslHelper:$true }
+        $message | Should Not BeNullOrEmpty
+        $message | Should Match 'WSL helper options cannot be combined'
+    }
+
+    It 'requires -UseWslHelper when -WslDistro is specified' {
+        $message = Get-ErrorMessage { Resolve-StartSandboxCommandMode -DryRun:$true -WslDistro 'Ubuntu' -ExplicitWslDistro:$true }
+        $message | Should Not BeNullOrEmpty
+        $message | Should Match 'require -UseWslHelper'
+    }
 }
 
 Describe 'Get-StartSandboxModePlan' {

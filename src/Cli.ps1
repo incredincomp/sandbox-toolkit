@@ -26,6 +26,10 @@ function Resolve-StartSandboxCommandMode {
         [switch]$DisableClipboard,
         [switch]$DisableAudioInput,
         [switch]$DisableStartupCommands,
+        [ValidateSet('Fresh', 'Warm')][string]$SessionMode = 'Fresh',
+        [switch]$UseWslHelper,
+        [switch]$ExplicitWslDistro,
+        [switch]$ExplicitWslHelperStagePath,
         [switch]$ExplicitSandboxProfile
     )
 
@@ -63,6 +67,12 @@ function Resolve-StartSandboxCommandMode {
         if ($DisableClipboard -or $DisableAudioInput -or $DisableStartupCommands) {
             throw "Host-interaction policy options cannot be combined with -CleanDownloads."
         }
+        if ($SessionMode -ne 'Fresh') {
+            throw "-SessionMode cannot be specified with -CleanDownloads."
+        }
+        if ($UseWslHelper -or $ExplicitWslDistro -or $ExplicitWslHelperStagePath) {
+            throw "WSL helper options cannot be combined with -CleanDownloads."
+        }
         if ($ExplicitSandboxProfile) {
             throw "-SandboxProfile cannot be specified with -CleanDownloads."
         }
@@ -87,6 +97,12 @@ function Resolve-StartSandboxCommandMode {
         }
         if ($DisableClipboard -or $DisableAudioInput -or $DisableStartupCommands) {
             throw "Host-interaction policy options cannot be combined with -ListTools or -ListProfiles."
+        }
+        if ($SessionMode -ne 'Fresh') {
+            throw "-SessionMode cannot be combined with -ListTools or -ListProfiles."
+        }
+        if ($UseWslHelper -or $ExplicitWslDistro -or $ExplicitWslHelperStagePath) {
+            throw "WSL helper options cannot be combined with -ListTools or -ListProfiles."
         }
         if ($AddTools -or $RemoveTools) {
             throw "-AddTools and -RemoveTools cannot be combined with -ListTools or -ListProfiles."
@@ -126,6 +142,9 @@ function Resolve-StartSandboxCommandMode {
     }
     if ($OutputJson -and -not ($Validate -or $Audit -or $DryRun -or $isListMode)) {
         throw "-OutputJson is supported only with -Validate, -Audit, -DryRun, -ListTools, or -ListProfiles."
+    }
+    if (-not $UseWslHelper -and ($ExplicitWslDistro -or $ExplicitWslHelperStagePath)) {
+        throw "-WslDistro and -WslHelperStagePath require -UseWslHelper."
     }
 
     if ($CleanDownloads) {
