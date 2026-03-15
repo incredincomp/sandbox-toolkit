@@ -986,5 +986,6 @@ Write-StatusLine ''
         exit 1
     }
 
-    throw
+    Write-Error $_.Exception.Message
+    exit 1
 }
