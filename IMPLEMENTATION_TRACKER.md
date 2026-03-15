@@ -262,3 +262,34 @@ Estimated size: Small (1–2 files)
 |-------|--------|--------|------|
 | Pester tests | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
 | PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer ... }` | 2026-03-14 |
+
+### Scope (runtime override feature pass)
+- Add `-AddTools` and `-RemoveTools` runtime override options.
+- Apply override precedence consistently across run, dry-run, and validate flows.
+- Document custom-profile and override usage.
+
+### Decisions made (runtime override feature pass)
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Validate override tool IDs in authoritative selection seam (`Resolve-SandboxSessionSelection`) | Ensures one source of truth for run/validate/dry-run behavior | Validate overrides separately in each command mode |
+| Runtime precedence is add-then-remove | Deterministic conflict resolution and explicit “remove wins last” semantics | Reject add/remove overlap as hard error |
+| Keep `-RemoveTools` harmless for valid but absent IDs | Supports additive/removal workflows without brittle failures | Fail when removing a valid but currently-unselected tool |
+
+### Files modified (runtime override feature pass)
+- `.gitignore`
+- `Start-Sandbox.ps1`
+- `src/Cli.ps1`
+- `src/Session.ps1`
+- `src/Validation.ps1`
+- `tests/Cli.Tests.ps1`
+- `tests/Session.Tests.ps1`
+- `tests/StartSandboxDryRun.Tests.ps1` (new)
+- `tests/Validation.Tests.ps1`
+- `README.md`
+- `docs/QUICKSTART.md`
+
+### Validation (runtime override feature pass)
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Pester tests | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
+| PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer ... }` | 2026-03-14 |

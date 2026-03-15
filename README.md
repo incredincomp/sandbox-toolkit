@@ -91,6 +91,53 @@ Exit behavior:
 - `0`: validation passed (warnings may still be present).
 - `1`: one or more validation checks failed.
 
+### Custom profiles and runtime overrides
+
+User-defined profiles live in optional repo-local `custom-profiles.local.json`:
+
+```json
+{
+  "schema_version": "1.0",
+  "profiles": [
+    {
+      "name": "net-re-lite",
+      "base_profile": "reverse-engineering",
+      "add_tools": ["wireshark"],
+      "remove_tools": ["ghidra"]
+    }
+  ]
+}
+```
+
+Runtime override parameters:
+- `-AddTools <id[]>`
+- `-RemoveTools <id[]>`
+
+Precedence rules:
+1. Start with selected built-in profile, or custom profile `base_profile`.
+2. Apply custom profile `add_tools`, then custom profile `remove_tools`.
+3. Apply runtime `-AddTools`, then runtime `-RemoveTools`.
+4. Final selection is deduplicated and ordered by manifest `install_order`.
+
+Examples:
+
+```powershell
+# Built-in profile + add tools
+.\Start-Sandbox.ps1 -Profile minimal -AddTools ghidra,wireshark
+
+# Built-in profile + remove tools
+.\Start-Sandbox.ps1 -Profile reverse-engineering -RemoveTools ghidra,hxd
+
+# Custom profile run
+.\Start-Sandbox.ps1 -Profile net-re-lite
+
+# Custom profile validate
+.\Start-Sandbox.ps1 -Validate -Profile net-re-lite
+
+# Custom profile dry-run
+.\Start-Sandbox.ps1 -DryRun -Profile net-re-lite -AddTools floss
+```
+
 ---
 
 ## Profiles

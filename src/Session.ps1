@@ -26,7 +26,9 @@ function Resolve-SandboxSessionSelection {
     param(
         [Parameter(Mandatory)][PSCustomObject]$Manifest,
         [Parameter(Mandatory)][string]$SandboxProfile,
-        [PSCustomObject]$CustomProfileConfig
+        [PSCustomObject]$CustomProfileConfig,
+        [string[]]$AddTools,
+        [string[]]$RemoveTools
     )
 
     if (-not $CustomProfileConfig) {
@@ -39,6 +41,8 @@ function Resolve-SandboxSessionSelection {
     $resolvedProfileType = 'built-in'
     $baseProfile = $SandboxProfile
     $customProfile = $null
+    $runtimeAddToolIds = Resolve-SandboxKnownToolIdList -Manifest $Manifest -ToolIds $AddTools -ArgumentName 'AddTools'
+    $runtimeRemoveToolIds = Resolve-SandboxKnownToolIdList -Manifest $Manifest -ToolIds $RemoveTools -ArgumentName 'RemoveTools'
 
     if ($SandboxProfile -notin (Get-SandboxProfileSupport)) {
         $customProfile = Get-CustomProfileEntry -CustomProfileConfig $CustomProfileConfig |
@@ -80,12 +84,28 @@ function Resolve-SandboxSessionSelection {
         }
     }
 
+    foreach ($toolId in $runtimeAddToolIds) {
+        $effectiveToolIds.Add($toolId)
+    }
+
+    foreach ($toolId in $runtimeRemoveToolIds) {
+        $filteredToolIds = [System.Collections.Generic.List[string]]::new()
+        foreach ($effectiveToolId in $effectiveToolIds) {
+            if ($effectiveToolId -ine $toolId) {
+                $filteredToolIds.Add($effectiveToolId)
+            }
+        }
+        $effectiveToolIds = $filteredToolIds
+    }
+
     $tools = Resolve-SandboxEffectiveToolSelection -Manifest $Manifest -ToolIds @($effectiveToolIds)
 
     return [pscustomobject]@{
         Profile = $SandboxProfile
         BaseProfile = $baseProfile
         ProfileType = $resolvedProfileType
+        RuntimeAddTools = @($runtimeAddToolIds)
+        RuntimeRemoveTools = @($runtimeRemoveToolIds)
         Tools   = @($tools)
     }
 }
@@ -112,6 +132,44 @@ function Resolve-SandboxEffectiveToolSelection {
             Sort-Object install_order |
             Where-Object { $selectedToolIds.Contains($_.id) }
     )
+}
+
+function Resolve-SandboxKnownToolIdList {
+    <#
+    .SYNOPSIS
+        Validates requested tool IDs against manifest and returns canonical IDs.
+    #>
+    param(
+        [Parameter(Mandatory)][PSCustomObject]$Manifest,
+        [string[]]$ToolIds,
+        [Parameter(Mandatory)][string]$ArgumentName
+    )
+
+    $toolById = @{}
+    foreach ($tool in $Manifest.tools) {
+        $toolById[$tool.id.ToLowerInvariant()] = $tool.id
+    }
+
+    $canonical = [System.Collections.Generic.List[string]]::new()
+    $seen = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+
+    foreach ($toolId in @($ToolIds)) {
+        if ([string]::IsNullOrWhiteSpace($toolId)) {
+            continue
+        }
+
+        $lookupKey = $toolId.ToLowerInvariant()
+        if (-not $toolById.ContainsKey($lookupKey)) {
+            throw "-$ArgumentName contains unknown tool id '$toolId'. Run -ListTools to see valid IDs."
+        }
+
+        $resolvedId = $toolById[$lookupKey]
+        if ($seen.Add($resolvedId)) {
+            $canonical.Add($resolvedId)
+        }
+    }
+
+    return @($canonical)
 }
 
 function Write-SandboxSessionManifest {

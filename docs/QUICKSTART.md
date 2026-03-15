@@ -81,6 +81,10 @@ See [PROFILES.md](PROFILES.md) for what each profile includes.
 # Simulate selection/config generation without downloading or launching
 .\Start-Sandbox.ps1 -DryRun -Profile reverse-engineering -SkipPrereqCheck
 
+# Runtime tool overrides
+.\Start-Sandbox.ps1 -Profile minimal -AddTools ghidra,wireshark
+.\Start-Sandbox.ps1 -Profile reverse-engineering -RemoveTools ghidra,hxd
+
 # Download tools without launching (prepare cache for offline use)
 .\Start-Sandbox.ps1 -NoLaunch
 
@@ -102,6 +106,44 @@ Common `-Validate` remediations:
 - Shared-folder path rejected: choose a dedicated local non-reparse ingress path (for example `C:\Lab\Ingress`).
 - Windows Sandbox feature not enabled: run `Enable-WindowsOptionalFeature -FeatureName Containers-DisposableClientVM -Online` as Administrator and reboot.
 - Prerequisite check warning due limited host visibility: re-run without `-SkipPrereqCheck` and with sufficient privileges.
+
+---
+
+## Custom profiles
+
+Create optional `custom-profiles.local.json` in repo root:
+
+```json
+{
+  "schema_version": "1.0",
+  "profiles": [
+    {
+      "name": "net-re-lite",
+      "base_profile": "reverse-engineering",
+      "add_tools": ["wireshark"],
+      "remove_tools": ["ghidra"]
+    }
+  ]
+}
+```
+
+Usage:
+
+```powershell
+.\Start-Sandbox.ps1 -Profile net-re-lite
+.\Start-Sandbox.ps1 -Validate -Profile net-re-lite
+.\Start-Sandbox.ps1 -DryRun -Profile net-re-lite -AddTools floss
+```
+
+Selection precedence:
+1. Built-in profile, or custom profile `base_profile`.
+2. Custom profile `add_tools`, then `remove_tools`.
+3. Runtime `-AddTools`, then `-RemoveTools`.
+
+Notes:
+- Unknown profile names and unknown tool IDs fail fast with actionable errors.
+- `-ListProfiles` shows both built-in and custom profiles distinctly.
+- Custom profiles in this pass inherit networking behavior from their built-in `base_profile`.
 
 ---
 

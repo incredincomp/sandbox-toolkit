@@ -13,6 +13,8 @@ function Resolve-StartSandboxCommandMode {
         [switch]$DryRun,
         [switch]$Force,
         [switch]$NoLaunch,
+        [string[]]$AddTools,
+        [string[]]$RemoveTools,
         [string]$SharedFolder,
         [switch]$UseDefaultSharedFolder,
         [switch]$SharedFolderWritable,
@@ -33,6 +35,9 @@ function Resolve-StartSandboxCommandMode {
         }
         if ($SharedFolder -or $UseDefaultSharedFolder -or $SharedFolderWritable -or $SharedFolderValidationDiagnostics) {
             throw "Shared-folder options cannot be combined with -ListTools or -ListProfiles."
+        }
+        if ($AddTools -or $RemoveTools) {
+            throw "-AddTools and -RemoveTools cannot be combined with -ListTools or -ListProfiles."
         }
         if ($ExplicitSandboxProfile) {
             throw "-SandboxProfile cannot be specified with -ListTools or -ListProfiles."

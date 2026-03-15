@@ -92,7 +92,9 @@ Describe 'Invoke-SandboxPreflightValidation' {
             -RepoRoot $repoRoot `
             -ManifestPath (Join-Path $repoRoot 'tools.json') `
             -CustomProfilePath (Join-Path $fixtureDir 'custom-profiles.valid.json') `
-            -SandboxProfile 'minimal'
+            -SandboxProfile 'minimal' `
+            -AddTools @('ghidra') `
+            -RemoveTools @('notepadpp')
 
         $result.HasFailures | Should Be $false
         (@($result.Checks | Where-Object { $_.Status -eq 'PASS' }).Count) | Should BeGreaterThan 0
@@ -132,6 +134,17 @@ Describe 'Test-SandboxSelectionReadiness' {
 
         $result.Check.Status | Should Be 'FAIL'
         $result.Check.Message | Should Match "missing required 'profiles' property"
+    }
+
+    It 'surfaces invalid runtime override tool names clearly' {
+        $result = Test-SandboxSelectionReadiness `
+            -ManifestPath (Join-Path $repoRoot 'tools.json') `
+            -SandboxProfile 'minimal' `
+            -CustomProfilePath (Join-Path $fixtureDir 'custom-profiles.valid.json') `
+            -AddTools @('not-a-real-tool')
+
+        $result.Check.Status | Should Be 'FAIL'
+        $result.Check.Message | Should Match '-AddTools contains unknown tool id'
     }
 }
 

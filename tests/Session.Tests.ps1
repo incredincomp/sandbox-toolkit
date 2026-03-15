@@ -74,6 +74,34 @@ Describe 'Resolve-SandboxSessionSelection' {
         (($selectionIds -contains 'wireshark')) | Should Be $true
         (($selectionIds -contains 'ghidra')) | Should Be $false
     }
+
+    It 'applies runtime add/remove overrides deterministically' {
+        $manifest = Import-ToolManifest -ManifestPath (Join-Path $repoRoot 'tools.json')
+        $selection = Resolve-SandboxSessionSelection `
+            -Manifest $manifest `
+            -SandboxProfile 'minimal' `
+            -AddTools @('wireshark', 'ghidra', 'wireshark') `
+            -RemoveTools @('notepadpp')
+        $selectionIds = @($selection.Tools | Select-Object -ExpandProperty id)
+
+        (($selectionIds -contains 'wireshark')) | Should Be $true
+        (($selectionIds -contains 'ghidra')) | Should Be $true
+        (($selectionIds -contains 'notepadpp')) | Should Be $false
+        ($selectionIds -join ',') | Should Match 'ghidra'
+    }
+
+    It 'fails clearly when runtime overrides reference unknown tool IDs' {
+        $manifest = Import-ToolManifest -ManifestPath (Join-Path $repoRoot 'tools.json')
+        $message = $null
+        try {
+            Resolve-SandboxSessionSelection -Manifest $manifest -SandboxProfile 'minimal' -AddTools @('does-not-exist') | Out-Null
+        } catch {
+            $message = $_.Exception.Message
+        }
+
+        $message | Should Not BeNullOrEmpty
+        $message | Should Match '-AddTools contains unknown tool id'
+    }
 }
 
 Describe 'Resolve-SandboxEffectiveToolSelection' {

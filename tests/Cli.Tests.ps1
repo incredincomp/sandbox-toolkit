@@ -67,6 +67,12 @@ Describe 'Resolve-StartSandboxCommandMode' {
         $message | Should Not BeNullOrEmpty
         $message | Should Match '-NoLaunch cannot be combined with -Validate'
     }
+
+    It 'rejects -AddTools with list mode' {
+        $message = Get-ErrorMessage { Resolve-StartSandboxCommandMode -ListProfiles:$true -AddTools @('ghidra') }
+        $message | Should Not BeNullOrEmpty
+        $message | Should Match '-AddTools and -RemoveTools cannot be combined'
+    }
 }
 
 Describe 'Get-StartSandboxModePlan' {

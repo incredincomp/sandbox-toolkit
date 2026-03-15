@@ -88,7 +88,9 @@ function Test-SandboxSelectionReadiness {
     param(
         [Parameter(Mandatory)][string]$ManifestPath,
         [Parameter(Mandatory)][string]$SandboxProfile,
-        [Parameter(Mandatory)][string]$CustomProfilePath
+        [Parameter(Mandatory)][string]$CustomProfilePath,
+        [string[]]$AddTools,
+        [string[]]$RemoveTools
     )
 
     try {
@@ -99,14 +101,16 @@ function Test-SandboxSelectionReadiness {
         $selection = Resolve-SandboxSessionSelection `
             -Manifest $manifest `
             -SandboxProfile $SandboxProfile `
-            -CustomProfileConfig $customProfileConfig
+            -CustomProfileConfig $customProfileConfig `
+            -AddTools $AddTools `
+            -RemoveTools $RemoveTools
         $networking = Get-SandboxNetworkingMode -SandboxProfile $selection.BaseProfile
 
         return [pscustomobject]@{
             Check = Get-SandboxValidationCheck `
                 -Name 'selection' `
                 -Status 'PASS' `
-                -Message "Profile '$SandboxProfile' selected $($selection.Tools.Count) tool(s); base=$($selection.BaseProfile); networking=$networking."
+                -Message "Profile '$SandboxProfile' selected $($selection.Tools.Count) tool(s); base=$($selection.BaseProfile); networking=$networking; add=$(@($selection.RuntimeAddTools).Count); remove=$(@($selection.RuntimeRemoveTools).Count)."
             Manifest = $manifest
             Selection = $selection
             NetworkingMode = $networking
@@ -219,6 +223,8 @@ function Invoke-SandboxPreflightValidation {
         [Parameter(Mandatory)][string]$ManifestPath,
         [Parameter(Mandatory)][string]$CustomProfilePath,
         [Parameter(Mandatory)][string]$SandboxProfile,
+        [string[]]$AddTools,
+        [string[]]$RemoveTools,
         [switch]$SkipPrereqCheck,
         [string]$SharedFolder,
         [switch]$UseDefaultSharedFolder,
@@ -235,7 +241,9 @@ function Invoke-SandboxPreflightValidation {
     $selectionResult = Test-SandboxSelectionReadiness `
         -ManifestPath $ManifestPath `
         -SandboxProfile $SandboxProfile `
-        -CustomProfilePath $CustomProfilePath
+        -CustomProfilePath $CustomProfilePath `
+        -AddTools $AddTools `
+        -RemoveTools $RemoveTools
     $checks.Add($selectionResult.Check)
 
     $sharedFolderResult = Test-SandboxSharedFolderReadiness `

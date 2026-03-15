@@ -39,6 +39,12 @@
 .PARAMETER ListProfiles
     Print supported profiles present in tools.json and exit.
 
+.PARAMETER AddTools
+    Optional tool IDs to add to the selected profile at runtime.
+
+.PARAMETER RemoveTools
+    Optional tool IDs to remove from the selected profile at runtime.
+
 .PARAMETER SkipPrereqCheck
     Skip the Windows Sandbox feature check (useful for CI or offline use).
 
@@ -76,6 +82,10 @@
     # Runs preflight checks without downloading, generating artifacts, or launching.
 
 .EXAMPLE
+    .\Start-Sandbox.ps1 -Profile minimal -AddTools ghidra,wireshark -RemoveTools notepadpp
+    # Starts from minimal profile, adds/removes tools at runtime, then launches.
+
+.EXAMPLE
     .\Start-Sandbox.ps1 -ListProfiles
     # Prints supported profiles from the current manifest.
 
@@ -106,6 +116,8 @@ param(
     [switch]$Validate,
     [switch]$ListTools,
     [switch]$ListProfiles,
+    [string[]]$AddTools,
+    [string[]]$RemoveTools,
     [switch]$SkipPrereqCheck,
     [string]$SharedFolder,
     [switch]$UseDefaultSharedFolder,
@@ -152,6 +164,8 @@ $commandMode = Resolve-StartSandboxCommandMode `
     -DryRun:$DryRun `
     -Force:$Force `
     -NoLaunch:$NoLaunch `
+    -AddTools $AddTools `
+    -RemoveTools $RemoveTools `
     -SharedFolder $SharedFolder `
     -UseDefaultSharedFolder:$UseDefaultSharedFolder `
     -SharedFolderWritable:$SharedFolderWritable `
@@ -210,6 +224,8 @@ if ($commandMode -eq 'Validate') {
         -ManifestPath $manifestPath `
         -CustomProfilePath $customProfilePath `
         -SandboxProfile $SandboxProfile `
+        -AddTools $AddTools `
+        -RemoveTools $RemoveTools `
         -SkipPrereqCheck:$SkipPrereqCheck `
         -SharedFolder $SharedFolder `
         -UseDefaultSharedFolder:$UseDefaultSharedFolder `
@@ -278,13 +294,21 @@ Test-CustomProfileConfigIntegrity -CustomProfileConfig $customProfileConfig -Man
 $selection = Resolve-SandboxSessionSelection `
     -Manifest $manifest `
     -SandboxProfile $SandboxProfile `
-    -CustomProfileConfig $customProfileConfig
+    -CustomProfileConfig $customProfileConfig `
+    -AddTools $AddTools `
+    -RemoveTools $RemoveTools
 $tools      = $selection.Tools
 $networkingMode = Get-SandboxNetworkingMode -SandboxProfile $selection.BaseProfile
 
 Write-StatusLine "  [OK]  $($tools.Count) tool(s) selected for profile '$SandboxProfile'." -ForegroundColor Green
 if ($selection.ProfileType -eq 'custom') {
     Write-StatusLine "        Base profile: $($selection.BaseProfile)" -ForegroundColor DarkGray
+}
+if ($selection.RuntimeAddTools.Count -gt 0) {
+    Write-StatusLine "        Runtime add: $($selection.RuntimeAddTools -join ', ')" -ForegroundColor DarkGray
+}
+if ($selection.RuntimeRemoveTools.Count -gt 0) {
+    Write-StatusLine "        Runtime remove: $($selection.RuntimeRemoveTools -join ', ')" -ForegroundColor DarkGray
 }
 Write-StatusLine "        Networking: $networkingMode" -ForegroundColor DarkGray
 $tools | ForEach-Object {
