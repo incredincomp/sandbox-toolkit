@@ -7,6 +7,7 @@ $fixtureDir = Join-Path $PSScriptRoot 'fixtures'
 . (Join-Path $repoRoot 'src\Session.ps1')
 . (Join-Path $repoRoot 'src\SandboxConfig.ps1')
 . (Join-Path $repoRoot 'src\SharedFolderValidation.ps1')
+. (Join-Path $repoRoot 'src\Workflow.ps1')
 . (Join-Path $repoRoot 'src\Validation.ps1')
 
 Describe 'Test-SandboxHostPrerequisite' {
@@ -207,6 +208,32 @@ Describe 'Test-SandboxWslHelperReadiness' {
 
         @($checks | Where-Object { $_.Name -eq 'wsl-helper' -and $_.Status -eq 'PASS' }).Count | Should Be 1
         @($checks | Where-Object { $_.Name -eq 'wsl-helper-hardening' -and $_.Status -eq 'WARN' }).Count | Should Be 1
+    }
+
+    It 'keeps repository wsl helper sample aligned with expected hardening state' {
+        $samplePath = Join-Path $repoRoot 'wsl-helper.example.wsl.conf'
+
+        Test-Path -LiteralPath $samplePath | Should Be $true
+        $content = Get-Content -Raw -Path $samplePath
+        [string]::IsNullOrWhiteSpace($content) | Should Be $false
+
+        $ini = ConvertFrom-SandboxIniContent -Content $content
+        $checks = Test-SandboxWslHelperReadiness -WslHelperState ([pscustomobject]@{
+            Enabled = $true
+            WslCommandAvailable = $true
+            DistroAvailable = $true
+            SupportReason = 'ok'
+            EffectiveDistro = 'Ubuntu'
+            StagePath = '~/.sandbox-toolkit-helper'
+            Hardening = [pscustomobject]@{
+                Available = $true
+                AutomountEnabled = $ini['automount']['enabled']
+                InteropEnabled = $ini['interop']['enabled']
+                AppendWindowsPath = $ini['interop']['appendwindowspath']
+            }
+        })
+
+        @($checks | Where-Object { $_.Name -eq 'wsl-helper-hardening' -and $_.Status -eq 'PASS' }).Count | Should Be 1
     }
 }
 
