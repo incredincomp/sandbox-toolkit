@@ -15,6 +15,10 @@ function Resolve-StartSandboxCommandMode {
         Resolves Start-Sandbox invocation mode and validates incompatible combinations.
     #>
     param(
+        [string]$Template,
+        [string]$SaveTemplate,
+        [switch]$ListTemplates,
+        [string]$ShowTemplate,
         [switch]$CleanDownloads,
         [switch]$ListTools,
         [switch]$ListProfiles,
@@ -40,6 +44,51 @@ function Resolve-StartSandboxCommandMode {
         [switch]$ExplicitWslHelperStagePath,
         [switch]$ExplicitSandboxProfile
     )
+
+    if ($Template) {
+        if ($SaveTemplate -or $ListTemplates -or $ShowTemplate) {
+            throw (Get-StartSandboxParameterCombinationError -Message '-Template cannot be combined with -SaveTemplate, -ListTemplates, or -ShowTemplate.')
+        }
+        if ($ListTools -or $ListProfiles) {
+            throw (Get-StartSandboxParameterCombinationError -Message '-Template cannot be combined with -ListTools or -ListProfiles.')
+        }
+        if ($CleanDownloads) {
+            throw (Get-StartSandboxParameterCombinationError -Message '-Template cannot be combined with -CleanDownloads.')
+        }
+    }
+
+    if ($SaveTemplate) {
+        if ($ListTemplates -or $ShowTemplate) {
+            throw (Get-StartSandboxParameterCombinationError -Message '-SaveTemplate cannot be combined with -ListTemplates or -ShowTemplate.')
+        }
+        if ($CleanDownloads -or $ListTools -or $ListProfiles -or $Validate -or $Audit -or $DryRun) {
+            throw (Get-StartSandboxParameterCombinationError -Message '-SaveTemplate cannot be combined with command-mode switches.')
+        }
+        if ($Force -or $NoLaunch -or $OutputJson) {
+            throw (Get-StartSandboxParameterCombinationError -Message '-SaveTemplate cannot be combined with -Force, -NoLaunch, or -OutputJson.')
+        }
+    }
+
+    if ($ListTemplates) {
+        if ($ShowTemplate) {
+            throw (Get-StartSandboxParameterCombinationError -Message '-ListTemplates cannot be combined with -ShowTemplate.')
+        }
+        if ($SaveTemplate -or $CleanDownloads -or $ListTools -or $ListProfiles -or $Validate -or $Audit -or $DryRun) {
+            throw (Get-StartSandboxParameterCombinationError -Message '-ListTemplates cannot be combined with other command-mode switches.')
+        }
+        if ($Force -or $NoLaunch -or $OutputJson) {
+            throw (Get-StartSandboxParameterCombinationError -Message '-ListTemplates cannot be combined with -Force, -NoLaunch, or -OutputJson.')
+        }
+    }
+
+    if ($ShowTemplate) {
+        if ($SaveTemplate -or $ListTemplates -or $CleanDownloads -or $ListTools -or $ListProfiles -or $Validate -or $Audit -or $DryRun) {
+            throw (Get-StartSandboxParameterCombinationError -Message '-ShowTemplate cannot be combined with other command-mode switches.')
+        }
+        if ($Force -or $NoLaunch -or $OutputJson) {
+            throw (Get-StartSandboxParameterCombinationError -Message '-ShowTemplate cannot be combined with -Force, -NoLaunch, or -OutputJson.')
+        }
+    }
 
     if ($CleanDownloads) {
         if ($ListTools -or $ListProfiles) {
@@ -158,6 +207,15 @@ function Resolve-StartSandboxCommandMode {
     if ($CleanDownloads) {
         return 'CleanDownloads'
     }
+    if ($SaveTemplate) {
+        return 'SaveTemplate'
+    }
+    if ($ListTemplates) {
+        return 'ListTemplates'
+    }
+    if ($ShowTemplate) {
+        return 'ShowTemplate'
+    }
     if ($isListMode) {
         return 'List'
     }
@@ -179,11 +237,38 @@ function Get-StartSandboxModePlan {
         Returns stage execution flags for each command mode.
     #>
     param(
-        [Parameter(Mandatory)][ValidateSet('CleanDownloads', 'List', 'Validate', 'Audit', 'DryRun', 'Run')][string]$CommandMode
+        [Parameter(Mandatory)][ValidateSet('CleanDownloads', 'SaveTemplate', 'ListTemplates', 'ShowTemplate', 'List', 'Validate', 'Audit', 'DryRun', 'Run')][string]$CommandMode
     )
 
     switch ($CommandMode) {
         'CleanDownloads' {
+            return [pscustomobject]@{
+                CheckPrerequisites = $false
+                ResolveSharedFolder = $false
+                DownloadTools = $false
+                GenerateArtifacts = $false
+                LaunchSandbox = $false
+            }
+        }
+        'SaveTemplate' {
+            return [pscustomobject]@{
+                CheckPrerequisites = $false
+                ResolveSharedFolder = $false
+                DownloadTools = $false
+                GenerateArtifacts = $false
+                LaunchSandbox = $false
+            }
+        }
+        'ListTemplates' {
+            return [pscustomobject]@{
+                CheckPrerequisites = $false
+                ResolveSharedFolder = $false
+                DownloadTools = $false
+                GenerateArtifacts = $false
+                LaunchSandbox = $false
+            }
+        }
+        'ShowTemplate' {
             return [pscustomobject]@{
                 CheckPrerequisites = $false
                 ResolveSharedFolder = $false

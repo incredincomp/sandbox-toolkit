@@ -54,7 +54,12 @@ function Test-SandboxTemplateValueArray {
         return $true
     }
 
-    return ($Value -is [System.Array])
+    if ($Value -is [System.Array]) {
+        return $true
+    }
+
+    # PowerShell 5.1 may deserialize single-item JSON arrays as scalars.
+    return ($Value -is [string])
 }
 
 function ConvertTo-SandboxTemplateNormalizedEntry {
@@ -77,10 +82,13 @@ function ConvertTo-SandboxTemplateNormalizedEntry {
         throw "Malformed template config '$SourcePath': templates[$Index] has empty 'profile'."
     }
 
-    if (-not (Test-SandboxTemplateValueArray -Value $RawTemplate.add_tools)) {
+    $rawAddTools = if ($RawTemplate.PSObject.Properties['add_tools']) { $RawTemplate.add_tools } else { $null }
+    $rawRemoveTools = if ($RawTemplate.PSObject.Properties['remove_tools']) { $RawTemplate.remove_tools } else { $null }
+
+    if (-not (Test-SandboxTemplateValueArray -Value $rawAddTools)) {
         throw "Malformed template config '$SourcePath': templates[$Index].add_tools must be an array when provided."
     }
-    if (-not (Test-SandboxTemplateValueArray -Value $RawTemplate.remove_tools)) {
+    if (-not (Test-SandboxTemplateValueArray -Value $rawRemoveTools)) {
         throw "Malformed template config '$SourcePath': templates[$Index].remove_tools must be an array when provided."
     }
 
@@ -137,15 +145,14 @@ function ConvertTo-SandboxTemplateNormalizedEntry {
         throw "Malformed template config '$SourcePath': templates[$Index] cannot set both shared_folder and use_default_shared_folder."
     }
 
-    $addTools = @()
-    if ($RawTemplate.PSObject.Properties['add_tools']) {
-        $addTools = @($RawTemplate.add_tools | ForEach-Object { [string]$_ } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
-    }
+    $addTools = @(@($rawAddTools) | ForEach-Object { [string]$_ } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+    $removeTools = @(@($rawRemoveTools) | ForEach-Object { [string]$_ } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
 
-    $removeTools = @()
-    if ($RawTemplate.PSObject.Properties['remove_tools']) {
-        $removeTools = @($RawTemplate.remove_tools | ForEach-Object { [string]$_ } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
-    }
+    $sharedFolderWritable = if ($RawTemplate.PSObject.Properties['shared_folder_writable']) { [bool]$RawTemplate.shared_folder_writable } else { $false }
+    $disableClipboard = if ($RawTemplate.PSObject.Properties['disable_clipboard']) { [bool]$RawTemplate.disable_clipboard } else { $false }
+    $disableAudioInput = if ($RawTemplate.PSObject.Properties['disable_audio_input']) { [bool]$RawTemplate.disable_audio_input } else { $false }
+    $disableStartupCommands = if ($RawTemplate.PSObject.Properties['disable_startup_commands']) { [bool]$RawTemplate.disable_startup_commands } else { $false }
+    $skipPrereqCheck = if ($RawTemplate.PSObject.Properties['skip_prereq_check']) { [bool]$RawTemplate.skip_prereq_check } else { $false }
 
     return [pscustomobject]@{
         name                       = $name
@@ -154,15 +161,15 @@ function ConvertTo-SandboxTemplateNormalizedEntry {
         remove_tools               = @($removeTools)
         shared_folder              = $sharedFolder
         use_default_shared_folder  = [bool]$useDefaultSharedFolder
-        shared_folder_writable     = [bool]$RawTemplate.shared_folder_writable
-        disable_clipboard          = [bool]$RawTemplate.disable_clipboard
-        disable_audio_input        = [bool]$RawTemplate.disable_audio_input
-        disable_startup_commands   = [bool]$RawTemplate.disable_startup_commands
+        shared_folder_writable     = $sharedFolderWritable
+        disable_clipboard          = $disableClipboard
+        disable_audio_input        = $disableAudioInput
+        disable_startup_commands   = $disableStartupCommands
         session_mode               = $sessionMode
         use_wsl_helper             = [bool]$useWslHelper
         wsl_distro                 = $wslDistro
         wsl_helper_stage_path      = $wslHelperStagePath
-        skip_prereq_check          = [bool]$RawTemplate.skip_prereq_check
+        skip_prereq_check          = $skipPrereqCheck
         updated_at                 = if ($RawTemplate.PSObject.Properties['updated_at']) { [string]$RawTemplate.updated_at } else { $null }
     }
 }

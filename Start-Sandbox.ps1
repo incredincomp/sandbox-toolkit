@@ -21,6 +21,18 @@
 .PARAMETER Profile
     Install profile to use (built-in or custom). Default: reverse-engineering.
 
+.PARAMETER Template
+    Optional saved session/template name to load as invocation defaults.
+
+.PARAMETER SaveTemplate
+    Save current invocation defaults to the named template and exit.
+
+.PARAMETER ListTemplates
+    List saved session/template names and summary metadata, then exit.
+
+.PARAMETER ShowTemplate
+    Print a saved session/template definition and exit.
+
 .PARAMETER Force
     Re-download all files even if they already exist locally.
 
@@ -140,11 +152,27 @@
     # Prints supported profiles from the current manifest.
 
 .EXAMPLE
-    .\Start-Sandbox.ps1 -ListTools
+.\Start-Sandbox.ps1 -ListTools
     # Prints available tools from the current manifest.
 
 .EXAMPLE
-    .\Start-Sandbox.ps1 -Profile network-analysis -Force
+.\Start-Sandbox.ps1 -SaveTemplate daily-re -Profile reverse-engineering -SessionMode Warm
+    # Saves a named template for repeat workflow invocations.
+
+.EXAMPLE
+.\Start-Sandbox.ps1 -ListTemplates
+    # Lists saved templates.
+
+.EXAMPLE
+.\Start-Sandbox.ps1 -ShowTemplate daily-re
+    # Shows one saved template definition.
+
+.EXAMPLE
+.\Start-Sandbox.ps1 -Template daily-re -DryRun -OutputJson
+    # Runs dry-run using saved template defaults plus explicit runtime mode flags.
+
+.EXAMPLE
+.\Start-Sandbox.ps1 -Profile network-analysis -Force
     # Re-downloads all network-analysis tools and launches.
 
 .EXAMPLE
@@ -172,6 +200,10 @@ param(
     [Alias('Profile')]
     [string]$SandboxProfile = 'reverse-engineering',
 
+    [string]$Template,
+    [string]$SaveTemplate,
+    [switch]$ListTemplates,
+    [string]$ShowTemplate,
     [switch]$Force,
     [switch]$NoLaunch,
     [switch]$DryRun,
@@ -221,6 +253,7 @@ $repoRoot            = $PSScriptRoot
 $srcDir              = Join-Path $repoRoot 'src'
 $manifestPath        = Join-Path $repoRoot 'tools.json'
 $customProfilePath   = Join-Path $repoRoot 'custom-profiles.local.json'
+$templateStorePath   = Join-Path $repoRoot 'saved-sessions.local.json'
 $setupDir            = Join-Path $repoRoot 'scripts\setups'
 $installManifestPath = Join-Path $repoRoot 'scripts\install-manifest.json'
 $wsbPath             = Join-Path $repoRoot 'sandbox.wsb'
@@ -228,11 +261,15 @@ $resolvedSharedFolder = $null
 
 # -- Load helper modules -------------------------------------------------------
 
-foreach ($module in @('Manifest.ps1', 'Download.ps1', 'SandboxConfig.ps1', 'SharedFolderValidation.ps1', 'Session.ps1', 'Workflow.ps1', 'Validation.ps1', 'Audit.ps1', 'Output.ps1', 'Maintenance.ps1', 'Cli.ps1')) {
+foreach ($module in @('Manifest.ps1', 'Download.ps1', 'SandboxConfig.ps1', 'SharedFolderValidation.ps1', 'Session.ps1', 'Templates.ps1', 'Workflow.ps1', 'Validation.ps1', 'Audit.ps1', 'Output.ps1', 'Maintenance.ps1', 'Cli.ps1')) {
     . (Join-Path $srcDir $module)
 }
 
 $commandMode = Resolve-StartSandboxCommandMode `
+    -Template $Template `
+    -SaveTemplate $SaveTemplate `
+    -ListTemplates:$ListTemplates `
+    -ShowTemplate $ShowTemplate `
     -CleanDownloads:$CleanDownloads `
     -ListTools:$ListTools `
     -ListProfiles:$ListProfiles `
@@ -259,22 +296,174 @@ $commandMode = Resolve-StartSandboxCommandMode `
     -ExplicitSandboxProfile:$($PSBoundParameters.ContainsKey('SandboxProfile'))
 $modePlan = Get-StartSandboxModePlan -CommandMode $commandMode
 $script:EmitHumanOutput = -not $OutputJson
+
+try {
+$effectiveSandboxProfile = $SandboxProfile
+$effectiveTemplateAddTools = @()
+$effectiveTemplateRemoveTools = @()
+$effectiveRuntimeAddTools = @($AddTools)
+$effectiveRuntimeRemoveTools = @($RemoveTools)
+$effectiveSkipPrereqCheck = [bool]$SkipPrereqCheck
+$effectiveSharedFolder = $SharedFolder
+$effectiveUseDefaultSharedFolder = [bool]$UseDefaultSharedFolder
+$effectiveSharedFolderWritable = [bool]$SharedFolderWritable
+$effectiveDisableClipboard = [bool]$DisableClipboard
+$effectiveDisableAudioInput = [bool]$DisableAudioInput
+$effectiveDisableStartupCommands = [bool]$DisableStartupCommands
+$effectiveSessionMode = $SessionMode
+$effectiveUseWslHelper = [bool]$UseWslHelper
+$effectiveWslDistro = $WslDistro
+$effectiveWslHelperStagePath = $WslHelperStagePath
+$templateDefinition = $null
+
+if ($Template) {
+    $templateStore = Import-SandboxTemplateStore -TemplateStorePath $templateStorePath
+    $templateDefinition = @(Get-SandboxTemplateEntry -TemplateStore $templateStore -TemplateName $Template) | Select-Object -First 1
+    if (-not $templateDefinition) {
+        throw "Unknown template '$Template'. Run -ListTemplates to see valid names."
+    }
+
+    Test-SandboxTemplateDefinitionReadiness `
+        -TemplateDefinition $templateDefinition `
+        -RepoRoot $repoRoot `
+        -ManifestPath $manifestPath `
+        -CustomProfilePath $customProfilePath
+
+    $resolvedTemplateInvocation = Resolve-SandboxTemplateInvocation `
+        -TemplateDefinition $templateDefinition `
+        -BoundParameters $PSBoundParameters `
+        -SandboxProfile $SandboxProfile `
+        -AddTools $AddTools `
+        -RemoveTools $RemoveTools `
+        -SkipPrereqCheck:$SkipPrereqCheck `
+        -SharedFolder $SharedFolder `
+        -UseDefaultSharedFolder:$UseDefaultSharedFolder `
+        -SharedFolderWritable:$SharedFolderWritable `
+        -SharedFolderValidationDiagnostics:$SharedFolderValidationDiagnostics `
+        -DisableClipboard:$DisableClipboard `
+        -DisableAudioInput:$DisableAudioInput `
+        -DisableStartupCommands:$DisableStartupCommands `
+        -SessionMode $SessionMode `
+        -UseWslHelper:$UseWslHelper `
+        -WslDistro $WslDistro `
+        -WslHelperStagePath $WslHelperStagePath
+
+    $effectiveSandboxProfile = $resolvedTemplateInvocation.SandboxProfile
+    $effectiveTemplateAddTools = @($resolvedTemplateInvocation.TemplateAddTools)
+    $effectiveTemplateRemoveTools = @($resolvedTemplateInvocation.TemplateRemoveTools)
+    $effectiveRuntimeAddTools = @($resolvedTemplateInvocation.RuntimeAddTools)
+    $effectiveRuntimeRemoveTools = @($resolvedTemplateInvocation.RuntimeRemoveTools)
+    $effectiveSkipPrereqCheck = [bool]$resolvedTemplateInvocation.SkipPrereqCheck
+    $effectiveSharedFolder = $resolvedTemplateInvocation.SharedFolder
+    $effectiveUseDefaultSharedFolder = [bool]$resolvedTemplateInvocation.UseDefaultSharedFolder
+    $effectiveSharedFolderWritable = [bool]$resolvedTemplateInvocation.SharedFolderWritable
+    $effectiveDisableClipboard = [bool]$resolvedTemplateInvocation.DisableClipboard
+    $effectiveDisableAudioInput = [bool]$resolvedTemplateInvocation.DisableAudioInput
+    $effectiveDisableStartupCommands = [bool]$resolvedTemplateInvocation.DisableStartupCommands
+    $effectiveSessionMode = $resolvedTemplateInvocation.SessionMode
+    $effectiveUseWslHelper = [bool]$resolvedTemplateInvocation.UseWslHelper
+    $effectiveWslDistro = $resolvedTemplateInvocation.WslDistro
+    $effectiveWslHelperStagePath = $resolvedTemplateInvocation.WslHelperStagePath
+}
+
 $hostInteractionPolicy = Get-SandboxHostInteractionPolicy `
-    -DisableClipboard:$DisableClipboard `
-    -DisableAudioInput:$DisableAudioInput `
-    -DisableStartupCommands:$DisableStartupCommands
-$sessionLifecycleState = Get-SandboxSessionLifecycleState -SessionMode $SessionMode
+    -DisableClipboard:$effectiveDisableClipboard `
+    -DisableAudioInput:$effectiveDisableAudioInput `
+    -DisableStartupCommands:$effectiveDisableStartupCommands
+$sessionLifecycleState = Get-SandboxSessionLifecycleState -SessionMode $effectiveSessionMode
 $wslHelperState = Get-SandboxWslHelperState `
-    -UseWslHelper:$UseWslHelper `
-    -WslDistro $WslDistro `
-    -WslHelperStagePath $WslHelperStagePath
+    -UseWslHelper:$effectiveUseWslHelper `
+    -WslDistro $effectiveWslDistro `
+    -WslHelperStagePath $effectiveWslHelperStagePath
 
 $setupState = @()
 $artifacts = $null
 $prerequisiteChecks = @()
 $wslHelperResult = $null
 
-try {
+if ($commandMode -eq 'SaveTemplate') {
+    $templateDefinition = New-SandboxTemplateDefinition `
+        -TemplateName $SaveTemplate `
+        -SandboxProfile $effectiveSandboxProfile `
+        -AddTools $effectiveRuntimeAddTools `
+        -RemoveTools $effectiveRuntimeRemoveTools `
+        -SharedFolder $effectiveSharedFolder `
+        -UseDefaultSharedFolder:$effectiveUseDefaultSharedFolder `
+        -SharedFolderWritable:$effectiveSharedFolderWritable `
+        -DisableClipboard:$effectiveDisableClipboard `
+        -DisableAudioInput:$effectiveDisableAudioInput `
+        -DisableStartupCommands:$effectiveDisableStartupCommands `
+        -SessionMode $effectiveSessionMode `
+        -UseWslHelper:$effectiveUseWslHelper `
+        -WslDistro $effectiveWslDistro `
+        -WslHelperStagePath $effectiveWslHelperStagePath `
+        -SkipPrereqCheck:$effectiveSkipPrereqCheck
+
+    Test-SandboxTemplateDefinitionReadiness `
+        -TemplateDefinition $templateDefinition `
+        -RepoRoot $repoRoot `
+        -ManifestPath $manifestPath `
+        -CustomProfilePath $customProfilePath
+
+    $saveResult = Save-SandboxTemplateDefinition -TemplateStorePath $templateStorePath -TemplateDefinition $templateDefinition
+    $action = if ($saveResult.Updated) { 'Updated' } else { 'Saved' }
+    Write-StatusLine ''
+    Write-StatusLine ("[{0}] template '{1}' at {2}" -f $action, $saveResult.Template.name, $saveResult.Path) -ForegroundColor Green
+    Write-StatusLine ''
+    return
+}
+
+if ($commandMode -eq 'ListTemplates') {
+    $templateStore = Import-SandboxTemplateStore -TemplateStorePath $templateStorePath
+    $templateCatalog = @(Get-SandboxTemplateCatalog -TemplateStore $templateStore)
+
+    Write-StatusLine ''
+    if ($templateCatalog.Count -eq 0) {
+        Write-StatusLine 'No saved templates found.' -ForegroundColor Yellow
+        Write-StatusLine ''
+        return
+    }
+
+    Write-StatusLine 'Saved templates:' -ForegroundColor Cyan
+    foreach ($entry in $templateCatalog) {
+        Write-StatusLine ("  - {0} (profile={1}; session={2}; shared_folder={3})" -f `
+                $entry.name, `
+                $entry.profile, `
+                $entry.session_mode, `
+                $(if ($entry.has_shared_folder) { 'yes' } else { 'no' })) -ForegroundColor White
+    }
+    Write-StatusLine ''
+    return
+}
+
+if ($commandMode -eq 'ShowTemplate') {
+    $templateStore = Import-SandboxTemplateStore -TemplateStorePath $templateStorePath
+    $templateEntry = @(Get-SandboxTemplateEntry -TemplateStore $templateStore -TemplateName $ShowTemplate) | Select-Object -First 1
+    if (-not $templateEntry) {
+        throw "Unknown template '$ShowTemplate'. Run -ListTemplates to see valid names."
+    }
+
+    Write-StatusLine ''
+    Write-StatusLine "Template '$($templateEntry.name)'" -ForegroundColor Cyan
+    Write-StatusLine ("  profile: {0}" -f $templateEntry.profile) -ForegroundColor White
+    Write-StatusLine ("  add_tools: {0}" -f $(if (@($templateEntry.add_tools).Count -gt 0) { $templateEntry.add_tools -join ', ' } else { '(none)' })) -ForegroundColor White
+    Write-StatusLine ("  remove_tools: {0}" -f $(if (@($templateEntry.remove_tools).Count -gt 0) { $templateEntry.remove_tools -join ', ' } else { '(none)' })) -ForegroundColor White
+    Write-StatusLine ("  shared_folder: {0}" -f $(if ($templateEntry.use_default_shared_folder) { '(default)' } elseif ($templateEntry.shared_folder) { $templateEntry.shared_folder } else { '(none)' })) -ForegroundColor White
+    Write-StatusLine ("  shared_folder_writable: {0}" -f [bool]$templateEntry.shared_folder_writable) -ForegroundColor White
+    Write-StatusLine ("  disable_clipboard: {0}" -f [bool]$templateEntry.disable_clipboard) -ForegroundColor White
+    Write-StatusLine ("  disable_audio_input: {0}" -f [bool]$templateEntry.disable_audio_input) -ForegroundColor White
+    Write-StatusLine ("  disable_startup_commands: {0}" -f [bool]$templateEntry.disable_startup_commands) -ForegroundColor White
+    Write-StatusLine ("  session_mode: {0}" -f $templateEntry.session_mode) -ForegroundColor White
+    Write-StatusLine ("  skip_prereq_check: {0}" -f [bool]$templateEntry.skip_prereq_check) -ForegroundColor White
+    Write-StatusLine ("  use_wsl_helper: {0}" -f [bool]$templateEntry.use_wsl_helper) -ForegroundColor White
+    Write-StatusLine ("  wsl_distro: {0}" -f $(if ($templateEntry.wsl_distro) { $templateEntry.wsl_distro } else { '(default)' })) -ForegroundColor White
+    Write-StatusLine ("  wsl_helper_stage_path: {0}" -f $templateEntry.wsl_helper_stage_path) -ForegroundColor White
+    if ($templateEntry.updated_at) {
+        Write-StatusLine ("  updated_at: {0}" -f $templateEntry.updated_at) -ForegroundColor DarkGray
+    }
+    Write-StatusLine ''
+    return
+}
 
 if ($commandMode -eq 'List') {
     $manifest = Import-ToolManifest -ManifestPath $manifestPath
@@ -363,9 +552,11 @@ if ($commandMode -eq 'CleanDownloads') {
 Write-StatusLine ''
 Write-StatusLine '  Windows Sandbox Toolkit' -ForegroundColor Cyan
 Write-StatusLine '  -----------------------------------------' -ForegroundColor DarkGray
-Write-StatusLine "  Profile : $SandboxProfile" -ForegroundColor White
+Write-StatusLine "  Profile : $effectiveSandboxProfile" -ForegroundColor White
 Write-StatusLine "  Mode    : $commandMode" -ForegroundColor White
 Write-StatusLine "  Session : $($sessionLifecycleState.RequestedMode)" -ForegroundColor White
+$templateLabel = if ($templateDefinition) { $templateDefinition.name } else { '(none)' }
+Write-StatusLine "  Template: $templateLabel" -ForegroundColor White
 $helperStateLabel = if ($wslHelperState.Enabled) { 'enabled' } else { 'disabled' }
 Write-StatusLine ("  Helper  : WSL {0}" -f $helperStateLabel) -ForegroundColor White
 Write-StatusLine "  Repo    : $repoRoot" -ForegroundColor DarkGray
@@ -376,13 +567,15 @@ if ($commandMode -eq 'Validate') {
         -RepoRoot $repoRoot `
         -ManifestPath $manifestPath `
         -CustomProfilePath $customProfilePath `
-        -SandboxProfile $SandboxProfile `
-        -AddTools $AddTools `
-        -RemoveTools $RemoveTools `
-        -SkipPrereqCheck:$SkipPrereqCheck `
-        -SharedFolder $SharedFolder `
-        -UseDefaultSharedFolder:$UseDefaultSharedFolder `
-        -SharedFolderWritable:$SharedFolderWritable `
+        -SandboxProfile $effectiveSandboxProfile `
+        -AddTools $effectiveRuntimeAddTools `
+        -RemoveTools $effectiveRuntimeRemoveTools `
+        -TemplateAddTools $effectiveTemplateAddTools `
+        -TemplateRemoveTools $effectiveTemplateRemoveTools `
+        -SkipPrereqCheck:$effectiveSkipPrereqCheck `
+        -SharedFolder $effectiveSharedFolder `
+        -UseDefaultSharedFolder:$effectiveUseDefaultSharedFolder `
+        -SharedFolderWritable:$effectiveSharedFolderWritable `
         -SharedFolderValidationDiagnostics:$SharedFolderValidationDiagnostics `
         -HostInteractionPolicy $hostInteractionPolicy `
         -SessionLifecycleState $sessionLifecycleState `
@@ -392,11 +585,11 @@ if ($commandMode -eq 'Validate') {
     if ($OutputJson) {
         $validateJsonResult = Get-SandboxValidateJsonResult `
             -PreflightResult $preflightResult `
-            -SandboxProfile $SandboxProfile `
+            -SandboxProfile $effectiveSandboxProfile `
             -ExitCode $validationExitCode `
-            -SkipPrereqCheck:$SkipPrereqCheck `
-            -SharedFolder $SharedFolder `
-            -UseDefaultSharedFolder:$UseDefaultSharedFolder `
+            -SkipPrereqCheck:$effectiveSkipPrereqCheck `
+            -SharedFolder $effectiveSharedFolder `
+            -UseDefaultSharedFolder:$effectiveUseDefaultSharedFolder `
             -HostInteractionPolicy $hostInteractionPolicy `
             -SessionLifecycleState $sessionLifecycleState `
             -WslHelperState $wslHelperState
@@ -414,9 +607,9 @@ if ($commandMode -eq 'Validate') {
 
 $sharedFolderRequest = Resolve-SharedFolderRequest `
     -RepoRoot $repoRoot `
-    -SharedFolder $SharedFolder `
-    -UseDefaultSharedFolder:$UseDefaultSharedFolder `
-    -SharedFolderWritable:$SharedFolderWritable `
+    -SharedFolder $effectiveSharedFolder `
+    -UseDefaultSharedFolder:$effectiveUseDefaultSharedFolder `
+    -SharedFolderWritable:$effectiveSharedFolderWritable `
     -SharedFolderValidationDiagnostics:$SharedFolderValidationDiagnostics `
     -OnDefaultSharedFolderCreated {
         param($Path)
@@ -430,7 +623,7 @@ $resolvedSharedFolder = $sharedFolderRequest.SharedHostFolder
 if ($modePlan.CheckPrerequisites) {
     Write-StatusLine '[1/5] Checking prerequisites...' -ForegroundColor Yellow
 
-    $prerequisiteChecks = @(Test-SandboxHostPrerequisite -SkipPrereqCheck:$SkipPrereqCheck)
+    $prerequisiteChecks = @(Test-SandboxHostPrerequisite -SkipPrereqCheck:$effectiveSkipPrereqCheck)
     foreach ($check in $prerequisiteChecks) {
         switch ($check.Status) {
             'PASS' {
@@ -450,7 +643,7 @@ if ($modePlan.CheckPrerequisites) {
                         Checks = @($prerequisiteChecks)
                         Selection = $null
                         SharedHostFolder = $resolvedSharedFolder
-                        SharedFolderWritable = [bool]$SharedFolderWritable
+                        SharedFolderWritable = [bool]$effectiveSharedFolderWritable
                     }
                     if ($commandMode -eq 'Audit') {
                         Write-StatusLine "  [FAIL] $($check.Message)" -ForegroundColor Red
@@ -460,11 +653,11 @@ if ($modePlan.CheckPrerequisites) {
                     } else {
                         $validateJsonResult = Get-SandboxValidateJsonResult `
                             -PreflightResult $preflightResult `
-                            -SandboxProfile $SandboxProfile `
+                            -SandboxProfile $effectiveSandboxProfile `
                             -ExitCode 1 `
-                            -SkipPrereqCheck:$SkipPrereqCheck `
-                            -SharedFolder $SharedFolder `
-                            -UseDefaultSharedFolder:$UseDefaultSharedFolder `
+                            -SkipPrereqCheck:$effectiveSkipPrereqCheck `
+                            -SharedFolder $effectiveSharedFolder `
+                            -UseDefaultSharedFolder:$effectiveUseDefaultSharedFolder `
                             -HostInteractionPolicy $hostInteractionPolicy
                         Write-SandboxJsonOutput -Data $validateJsonResult
                     }
@@ -500,16 +693,24 @@ $customProfileConfig = Import-CustomProfileConfig -CustomProfilePath $customProf
 Test-CustomProfileConfigIntegrity -CustomProfileConfig $customProfileConfig -Manifest $manifest
 $selection = Resolve-SandboxSessionSelection `
     -Manifest $manifest `
-    -SandboxProfile $SandboxProfile `
+    -SandboxProfile $effectiveSandboxProfile `
     -CustomProfileConfig $customProfileConfig `
-    -AddTools $AddTools `
-    -RemoveTools $RemoveTools
+    -TemplateAddTools $effectiveTemplateAddTools `
+    -TemplateRemoveTools $effectiveTemplateRemoveTools `
+    -AddTools $effectiveRuntimeAddTools `
+    -RemoveTools $effectiveRuntimeRemoveTools
 $tools      = $selection.Tools
 $networkingMode = Get-SandboxNetworkingMode -SandboxProfile $selection.BaseProfile
 
-Write-StatusLine "  [OK]  $($tools.Count) tool(s) selected for profile '$SandboxProfile'." -ForegroundColor Green
+Write-StatusLine "  [OK]  $($tools.Count) tool(s) selected for profile '$effectiveSandboxProfile'." -ForegroundColor Green
 if ($selection.ProfileType -eq 'custom') {
     Write-StatusLine "        Base profile: $($selection.BaseProfile)" -ForegroundColor DarkGray
+}
+if ($selection.TemplateAddTools.Count -gt 0) {
+    Write-StatusLine "        Template add: $($selection.TemplateAddTools -join ', ')" -ForegroundColor DarkGray
+}
+if ($selection.TemplateRemoveTools.Count -gt 0) {
+    Write-StatusLine "        Template remove: $($selection.TemplateRemoveTools -join ', ')" -ForegroundColor DarkGray
 }
 if ($selection.RuntimeAddTools.Count -gt 0) {
     Write-StatusLine "        Runtime add: $($selection.RuntimeAddTools -join ', ')" -ForegroundColor DarkGray
@@ -597,14 +798,14 @@ $artifacts = Invoke-SandboxSessionArtifactGeneration `
     -InstallManifestPath $installManifestPath `
     -WsbPath $wsbPath `
     -SharedHostFolder $resolvedSharedFolder `
-    -SharedFolderWritable:$SharedFolderWritable `
+    -SharedFolderWritable:$effectiveSharedFolderWritable `
     -HostInteractionPolicy $hostInteractionPolicy
 
 Write-StatusLine "  [OK]  Install manifest: $($artifacts.InstallManifestPath)" -ForegroundColor Green
 Write-StatusLine "  [OK]  Sandbox config: $($artifacts.WsbPath)" -ForegroundColor Green
 
 if ($resolvedSharedFolder) {
-    $access = if ($SharedFolderWritable) { 'writable' } else { 'read-only' }
+    $access = if ($effectiveSharedFolderWritable) { 'writable' } else { 'read-only' }
     Write-StatusLine "  [OK]  Shared folder mapped: $resolvedSharedFolder ($access)" -ForegroundColor Green
     Write-StatusLine '        In sandbox: C:\Users\WDAGUtilityAccount\Desktop\shared' -ForegroundColor DarkGray
 }
@@ -621,8 +822,8 @@ if ($commandMode -eq 'Audit') {
         -HostInteractionPolicy $hostInteractionPolicy `
         -Artifacts $artifacts `
         -SharedHostFolder $resolvedSharedFolder `
-        -SharedFolderWritable:$SharedFolderWritable `
-        -SkipPrereqCheck:$SkipPrereqCheck `
+        -SharedFolderWritable:$effectiveSharedFolderWritable `
+        -SkipPrereqCheck:$effectiveSkipPrereqCheck `
         -PrerequisiteChecks $prerequisiteChecks
 
     $auditExitCode = Get-SandboxAuditExitCode -AuditResult $auditResult
@@ -633,11 +834,11 @@ if ($commandMode -eq 'Audit') {
             -NetworkingMode $networkingMode `
             -Artifacts $artifacts `
             -ExitCode $auditExitCode `
-            -SkipPrereqCheck:$SkipPrereqCheck `
-            -SharedFolder $SharedFolder `
-            -UseDefaultSharedFolder:$UseDefaultSharedFolder `
+            -SkipPrereqCheck:$effectiveSkipPrereqCheck `
+            -SharedFolder $effectiveSharedFolder `
+            -UseDefaultSharedFolder:$effectiveUseDefaultSharedFolder `
             -ResolvedSharedFolder $resolvedSharedFolder `
-            -SharedFolderWritable:$SharedFolderWritable `
+            -SharedFolderWritable:$effectiveSharedFolderWritable `
             -HostInteractionPolicy $hostInteractionPolicy `
             -SessionLifecycleState $sessionLifecycleState `
             -WslHelperState $wslHelperState
@@ -690,11 +891,11 @@ if ($OutputJson -and $commandMode -eq 'DryRun') {
         -SetupState $setupState `
         -Artifacts $artifacts `
         -PrerequisiteChecks $prerequisiteChecks `
-        -SkipPrereqCheck:$SkipPrereqCheck `
-        -SharedFolder $SharedFolder `
-        -UseDefaultSharedFolder:$UseDefaultSharedFolder `
+        -SkipPrereqCheck:$effectiveSkipPrereqCheck `
+        -SharedFolder $effectiveSharedFolder `
+        -UseDefaultSharedFolder:$effectiveUseDefaultSharedFolder `
         -ResolvedSharedFolder $resolvedSharedFolder `
-        -SharedFolderWritable:$SharedFolderWritable `
+        -SharedFolderWritable:$effectiveSharedFolderWritable `
         -HostInteractionPolicy $hostInteractionPolicy `
         -SessionLifecycleState $sessionLifecycleState `
         -WslHelperState $wslHelperState `

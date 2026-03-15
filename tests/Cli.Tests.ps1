@@ -40,6 +40,18 @@ Describe 'Resolve-StartSandboxCommandMode' {
         Resolve-StartSandboxCommandMode -CleanDownloads | Should Be 'CleanDownloads'
     }
 
+    It 'returns SaveTemplate when -SaveTemplate is specified' {
+        Resolve-StartSandboxCommandMode -SaveTemplate 'daily-re' | Should Be 'SaveTemplate'
+    }
+
+    It 'returns ListTemplates when -ListTemplates is specified' {
+        Resolve-StartSandboxCommandMode -ListTemplates | Should Be 'ListTemplates'
+    }
+
+    It 'returns ShowTemplate when -ShowTemplate is specified' {
+        Resolve-StartSandboxCommandMode -ShowTemplate 'daily-re' | Should Be 'ShowTemplate'
+    }
+
     It 'rejects -DryRun with list mode' {
         $message = Get-ErrorMessage { Resolve-StartSandboxCommandMode -ListTools:$true -DryRun:$true }
         $message | Should Not BeNullOrEmpty
@@ -163,6 +175,18 @@ Describe 'Resolve-StartSandboxCommandMode' {
         $message | Should Not BeNullOrEmpty
         $message | Should Match 'require -UseWslHelper'
     }
+
+    It 'rejects -Template with list mode switches' {
+        $message = Get-ErrorMessage { Resolve-StartSandboxCommandMode -Template 'daily-re' -ListTools:$true }
+        $message | Should Not BeNullOrEmpty
+        $message | Should Match '-Template cannot be combined with -ListTools or -ListProfiles'
+    }
+
+    It 'rejects -SaveTemplate with output mode switches' {
+        $message = Get-ErrorMessage { Resolve-StartSandboxCommandMode -SaveTemplate 'daily-re' -OutputJson:$true }
+        $message | Should Not BeNullOrEmpty
+        $message | Should Match '-SaveTemplate cannot be combined with -Force, -NoLaunch, or -OutputJson'
+    }
 }
 
 Describe 'Get-StartSandboxModePlan' {
@@ -194,6 +218,15 @@ Describe 'Get-StartSandboxModePlan' {
 
     It 'disables all execution stages for CleanDownloads mode' {
         $plan = Get-StartSandboxModePlan -CommandMode 'CleanDownloads'
+
+        $plan.CheckPrerequisites | Should Be $false
+        $plan.DownloadTools | Should Be $false
+        $plan.GenerateArtifacts | Should Be $false
+        $plan.LaunchSandbox | Should Be $false
+    }
+
+    It 'disables all execution stages for SaveTemplate mode' {
+        $plan = Get-StartSandboxModePlan -CommandMode 'SaveTemplate'
 
         $plan.CheckPrerequisites | Should Be $false
         $plan.DownloadTools | Should Be $false

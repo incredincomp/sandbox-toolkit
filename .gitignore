@@ -7,6 +7,7 @@ scripts/install-manifest.json
 sandbox.wsb
 shared/
 custom-profiles.local.json
+saved-sessions.local.json
 
 # Installer file types (belt-and-suspenders in case setups/ is not enough)
 *.exe

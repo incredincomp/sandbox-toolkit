@@ -6,6 +6,7 @@ $scriptPath = Join-Path $repoRoot 'Start-Sandbox.ps1'
 $manifestOut = Join-Path $repoRoot 'scripts\install-manifest.json'
 $wsbOut = Join-Path $repoRoot 'sandbox.wsb'
 $customProfilesPath = Join-Path $repoRoot 'custom-profiles.local.json'
+$templateStorePath = Join-Path $repoRoot 'saved-sessions.local.json'
 
 function Invoke-StartSandboxJson {
     param(
@@ -46,6 +47,9 @@ Describe 'Start-Sandbox integrated command combinations' {
         }
         if (Test-Path -LiteralPath $customProfilesPath -PathType Leaf) {
             Remove-Item -LiteralPath $customProfilesPath -Force
+        }
+        if (Test-Path -LiteralPath $templateStorePath -PathType Leaf) {
+            Remove-Item -LiteralPath $templateStorePath -Force
         }
     }
 
@@ -183,6 +187,115 @@ Describe 'Start-Sandbox integrated command combinations' {
         (($listProfiles.Json.profiles | Where-Object { $_.name -eq 'list-state-check' -and $_.type -eq 'custom' }).Count) | Should Be 1
         $listTools.ExitCode | Should Be 0
         $listTools.Json.tools.Count | Should Be $script:manifest.tools.Count
+    }
+
+    It 'supports save/list/show template workflows' {
+        $save = Invoke-StartSandboxRaw -Arguments @(
+            '-SaveTemplate', 'daily-re',
+            '-Profile', 'minimal',
+            '-AddTools', 'ghidra',
+            '-RemoveTools', 'notepadpp',
+            '-DisableClipboard',
+            '-SessionMode', 'Warm',
+            '-SkipPrereqCheck'
+        )
+        $list = Invoke-StartSandboxRaw -Arguments @('-ListTemplates')
+        $show = Invoke-StartSandboxRaw -Arguments @('-ShowTemplate', 'daily-re')
+
+        $save.ExitCode | Should Be 0
+        $save.Output | Should Match "template 'daily-re'"
+        $list.ExitCode | Should Be 0
+        $list.Output | Should Match 'daily-re'
+        $show.ExitCode | Should Be 0
+        $show.Output | Should Match 'profile: minimal'
+        $show.Output | Should Match 'add_tools: ghidra'
+        $show.Output | Should Match 'remove_tools: notepadpp'
+    }
+
+    It 'executes template defaults through dry-run and allows runtime overrides to win' {
+        Invoke-StartSandboxRaw -Arguments @(
+            '-SaveTemplate', 'precedence-template',
+            '-Profile', 'minimal',
+            '-AddTools', 'ghidra',
+            '-RemoveTools', 'notepadpp',
+            '-SkipPrereqCheck'
+        ) | Out-Null
+
+        $result = Invoke-StartSandboxJson -Arguments @(
+            '-DryRun',
+            '-OutputJson',
+            '-Template', 'precedence-template',
+            '-AddTools', 'notepadpp',
+            '-RemoveTools', 'ghidra'
+        )
+
+        $toolIds = @($result.Json.effective.tools | Select-Object -ExpandProperty id)
+        $result.ExitCode | Should Be 0
+        $result.Json.profile.selected | Should Be 'minimal'
+        (($toolIds -contains 'notepadpp')) | Should Be $true
+        (($toolIds -contains 'ghidra')) | Should Be $false
+    }
+
+    It 'supports validate mode from template defaults' {
+        Invoke-StartSandboxRaw -Arguments @(
+            '-SaveTemplate', 'validate-template',
+            '-Profile', 'minimal',
+            '-SkipPrereqCheck'
+        ) | Out-Null
+
+        $result = Invoke-StartSandboxJson -Arguments @(
+            '-Validate',
+            '-OutputJson',
+            '-Template', 'validate-template'
+        )
+
+        $result.ExitCode | Should Be 0
+        $result.Json.command.mode | Should Be 'validate'
+        $result.Json.profile.selected | Should Be 'minimal'
+    }
+
+    It 'fails clearly for bad template names and malformed/unknown template references' {
+        $invalidName = Invoke-StartSandboxRaw -Arguments @('-SaveTemplate', 'bad name')
+        $invalidName.ExitCode | Should Be 1
+        $invalidName.Output | Should Match 'Template name'
+
+        '{ "schema_version": "1.0", "templates": "bad" }' | Set-Content -Path $templateStorePath -Encoding UTF8
+        $malformed = Invoke-StartSandboxRaw -Arguments @('-ListTemplates')
+        $malformed.ExitCode | Should Be 1
+        $malformed.Output | Should Match 'Malformed template config'
+
+        @'
+{
+  "schema_version": "1.0",
+  "templates": [
+    {
+      "name": "bad-template-profile",
+      "profile": "not-a-profile",
+      "session_mode": "Fresh"
+    }
+  ]
+}
+'@ | Set-Content -Path $templateStorePath -Encoding UTF8
+        $unknownProfile = Invoke-StartSandboxJson -Arguments @('-DryRun', '-OutputJson', '-Template', 'bad-template-profile')
+        $unknownProfile.ExitCode | Should Be 1
+        $unknownProfile.Json.error.summary | Should Match 'Unknown profile'
+
+        @'
+{
+  "schema_version": "1.0",
+  "templates": [
+    {
+      "name": "bad-template-tool",
+      "profile": "minimal",
+      "add_tools": ["not-a-real-tool"],
+      "session_mode": "Fresh"
+    }
+  ]
+}
+'@ | Set-Content -Path $templateStorePath -Encoding UTF8
+        $unknownTool = Invoke-StartSandboxJson -Arguments @('-DryRun', '-OutputJson', '-Template', 'bad-template-tool')
+        $unknownTool.ExitCode | Should Be 1
+        $unknownTool.Json.error.summary | Should Match 'Unknown tool id'
     }
 
     It 'keeps -CleanDownloads scoped to disposable cache/session surfaces' {

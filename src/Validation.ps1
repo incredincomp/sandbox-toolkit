@@ -89,6 +89,8 @@ function Test-SandboxSelectionReadiness {
         [Parameter(Mandatory)][string]$ManifestPath,
         [Parameter(Mandatory)][string]$SandboxProfile,
         [Parameter(Mandatory)][string]$CustomProfilePath,
+        [string[]]$TemplateAddTools,
+        [string[]]$TemplateRemoveTools,
         [string[]]$AddTools,
         [string[]]$RemoveTools
     )
@@ -102,6 +104,8 @@ function Test-SandboxSelectionReadiness {
             -Manifest $manifest `
             -SandboxProfile $SandboxProfile `
             -CustomProfileConfig $customProfileConfig `
+            -TemplateAddTools $TemplateAddTools `
+            -TemplateRemoveTools $TemplateRemoveTools `
             -AddTools $AddTools `
             -RemoveTools $RemoveTools
         $networking = Get-SandboxNetworkingMode -SandboxProfile $selection.BaseProfile
@@ -374,6 +378,8 @@ function Invoke-SandboxPreflightValidation {
         [Parameter(Mandatory)][string]$ManifestPath,
         [Parameter(Mandatory)][string]$CustomProfilePath,
         [Parameter(Mandatory)][string]$SandboxProfile,
+        [string[]]$TemplateAddTools,
+        [string[]]$TemplateRemoveTools,
         [string[]]$AddTools,
         [string[]]$RemoveTools,
         [switch]$SkipPrereqCheck,
@@ -396,6 +402,8 @@ function Invoke-SandboxPreflightValidation {
         -ManifestPath $ManifestPath `
         -SandboxProfile $SandboxProfile `
         -CustomProfilePath $CustomProfilePath `
+        -TemplateAddTools $TemplateAddTools `
+        -TemplateRemoveTools $TemplateRemoveTools `
         -AddTools $AddTools `
         -RemoveTools $RemoveTools
     $checks.Add($selectionResult.Check)
