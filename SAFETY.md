@@ -32,7 +32,18 @@ The `scripts/` folder is mapped **read-only** into the sandbox. This means:
 
 - The sandbox can read downloaded tools from the host.
 - The sandbox **cannot write back** to your host filesystem via this mapping.
-- No other host folders are mapped.
+- No other host folders are mapped unless you explicitly opt in.
+
+Optional shared-folder mapping is available for sample transfer:
+
+- `.\Start-Sandbox.ps1 -UseDefaultSharedFolder` creates/maps repo-local `shared/`.
+- `.\Start-Sandbox.ps1 -SharedFolder <path>` maps one explicit existing folder.
+- Shared-folder mapping is **read-only by default**.
+- Writable mode requires explicit `-SharedFolderWritable` and increases host risk.
+- In sandbox, the mapped path is `C:\Users\WDAGUtilityAccount\Desktop\shared`.
+
+Avoid mapping broad or sensitive host paths (drive root, Windows folders, Program Files,
+profile root, Desktop, Documents, Downloads).
 
 **Do not map** additional writable host folders when working with untrusted samples.
 
@@ -41,8 +52,9 @@ The `scripts/` folder is mapped **read-only** into the sandbox. This means:
 ## Sample handling
 
 - **Do not auto-execute samples** from the host. If you need to analyze a sample,
-  copy it into the sandbox manually via clipboard or a sandboxed network share.
+  use the opt-in mapped shared folder workflow as the primary transfer path.
 - Samples are isolated inside the sandbox and are discarded when the sandbox closes.
+- Clipboard and drag/drop behavior may vary by policy/host; do not rely on these paths.
 - Do not enable ClipboardRedirection if you are pasting from a session where you have
   handled malicious content.
 

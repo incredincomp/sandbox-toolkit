@@ -15,6 +15,28 @@ The default posture is safer-by-default: disposable sandbox sessions, read-only 
 
 ---
 
+## Opt-in shared folder workflow
+
+Use this when you need to transfer files from host to sandbox for triage.
+
+- Opt-in only: no extra folder is mapped unless you pass `-UseDefaultSharedFolder` or `-SharedFolder`.
+- Default access is read-only (safer).
+- Writable mapping requires explicit `-SharedFolderWritable`.
+- In-sandbox destination is fixed: `C:\Users\WDAGUtilityAccount\Desktop\shared`.
+
+```powershell
+.\Start-Sandbox.ps1 -UseDefaultSharedFolder
+.\Start-Sandbox.ps1 -SharedFolder "C:\Lab\Ingress"
+.\Start-Sandbox.ps1 -SharedFolder "C:\Lab\Ingress" -SharedFolderWritable
+```
+
+The default shared folder is repo-local `shared/` (auto-created, gitignored).
+Do not map broad/sensitive host paths such as `C:\`, `%USERPROFILE%`, Desktop, Documents, or Downloads.
+
+Clipboard paste and drag/drop support can vary by environment and policy. Treat the mapped shared folder as the primary transfer path.
+
+---
+
 ## Quick start
 
 ```powershell
@@ -100,6 +122,7 @@ sandbox-toolkit/
 │   ├── autostart.cmd          # Thin launcher (runs on sandbox startup)
 │   ├── Install-Tools.ps1      # In-sandbox install orchestrator
 │   └── setups/                # Downloaded files (gitignored, populated at runtime)
+├── shared/                    # Optional ingress folder (gitignored, created on demand)
 ├── schemas/
 │   └── tools.schema.json      # JSON Schema for tools.json validation
 ├── .github/
@@ -137,6 +160,7 @@ sandbox-toolkit/
 
 - Networking is **disabled by default** (all profiles except `network-analysis` and `full`).
 - The `scripts/` host folder is mapped **read-only**.
+- An optional extra shared folder can be mapped at `Desktop\shared` (read-only by default).
 - No samples from the host are auto-executed.
 - The sandbox is fully disposable; nothing persists after it closes.
 

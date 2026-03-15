@@ -85,6 +85,26 @@ See [PROFILES.md](PROFILES.md) for what each profile includes.
 
 ---
 
+## Optional shared folder for file transfer
+
+Use this when you need to stage files from host into sandbox. No extra mapping is added unless you opt in.
+
+- Default mode is read-only.
+- Writable mode requires explicit `-SharedFolderWritable`.
+- Files appear in the sandbox at `C:\Users\WDAGUtilityAccount\Desktop\shared`.
+
+```powershell
+.\Start-Sandbox.ps1 -UseDefaultSharedFolder
+.\Start-Sandbox.ps1 -SharedFolder "C:\Lab\Ingress"
+.\Start-Sandbox.ps1 -SharedFolder "C:\Lab\Ingress" -SharedFolderWritable
+```
+
+`-UseDefaultSharedFolder` creates repo-local `shared/` if needed and keeps it gitignored.
+Avoid broad or sensitive host folders (`C:\`, `%USERPROFILE%`, Desktop, Documents, Downloads).
+Clipboard and drag/drop may work on some hosts, but this mapped folder workflow should be your primary transfer path.
+
+---
+
 ## Subsequent runs
 
 Downloaded files are cached in `scripts/setups/` and are **not re-downloaded** unless you use `-Force`.
