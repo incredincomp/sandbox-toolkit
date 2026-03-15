@@ -198,6 +198,13 @@ Describe 'Start-Sandbox JSON output modes' {
                 Teardown = { if (Test-Path -LiteralPath $customProfilesPath -PathType Leaf) { Remove-Item -LiteralPath $customProfilesPath -Force } }
                 ExpectedMode = 'list-profiles'
             }
+            [pscustomobject]@{
+                Name = 'check-for-updates'
+                Arguments = @('-CheckForUpdates', '-OutputJson', '-AddTools', 'not-a-real-tool')
+                Setup = $null
+                Teardown = $null
+                ExpectedMode = 'check-for-updates'
+            }
         )
 
         foreach ($case in $cases) {

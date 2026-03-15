@@ -57,6 +57,9 @@
 .PARAMETER ListProfiles
     Print supported profiles present in tools.json and exit.
 
+.PARAMETER CheckForUpdates
+    Read-only update report for tools in the resolved effective selection.
+
 .PARAMETER AddTools
     Optional tool IDs to add to the selected profile at runtime.
     Applied after base/custom-profile resolution and before -RemoveTools.
@@ -66,7 +69,7 @@
     Applied last; remove overrides win over prior base/custom/runtime add layers.
 
 .PARAMETER OutputJson
-    Emit machine-readable JSON for -Validate, -Audit, -DryRun, -ListTools, or -ListProfiles modes.
+    Emit machine-readable JSON for -Validate, -Audit, -DryRun, -CheckForUpdates, -ListTools, or -ListProfiles modes.
 
 .PARAMETER SkipPrereqCheck
     Skip the Windows Sandbox feature check (useful for CI or offline use).
@@ -160,6 +163,10 @@
     # Saves a named template for repeat workflow invocations.
 
 .EXAMPLE
+.\Start-Sandbox.ps1 -CheckForUpdates -Profile minimal
+    # Reports configured vs latest tool versions for the resolved selection (read-only).
+
+.EXAMPLE
 .\Start-Sandbox.ps1 -ListTemplates
     # Lists saved templates.
 
@@ -212,6 +219,7 @@ param(
     [switch]$CleanDownloads,
     [switch]$ListTools,
     [switch]$ListProfiles,
+    [switch]$CheckForUpdates,
     [string[]]$AddTools,
     [string[]]$RemoveTools,
     [switch]$OutputJson,
@@ -261,7 +269,7 @@ $resolvedSharedFolder = $null
 
 # -- Load helper modules -------------------------------------------------------
 
-foreach ($module in @('Manifest.ps1', 'Download.ps1', 'SandboxConfig.ps1', 'SharedFolderValidation.ps1', 'Session.ps1', 'Templates.ps1', 'Workflow.ps1', 'Validation.ps1', 'Audit.ps1', 'Output.ps1', 'Maintenance.ps1', 'Cli.ps1')) {
+foreach ($module in @('Manifest.ps1', 'Download.ps1', 'SandboxConfig.ps1', 'SharedFolderValidation.ps1', 'Session.ps1', 'Templates.ps1', 'Workflow.ps1', 'Validation.ps1', 'Audit.ps1', 'Updates.ps1', 'Output.ps1', 'Maintenance.ps1', 'Cli.ps1')) {
     . (Join-Path $srcDir $module)
 }
 
@@ -273,6 +281,7 @@ $commandMode = Resolve-StartSandboxCommandMode `
     -CleanDownloads:$CleanDownloads `
     -ListTools:$ListTools `
     -ListProfiles:$ListProfiles `
+    -CheckForUpdates:$CheckForUpdates `
     -Validate:$Validate `
     -Audit:$Audit `
     -DryRun:$DryRun `
@@ -547,6 +556,66 @@ if ($commandMode -eq 'CleanDownloads') {
     return
 }
 
+if ($commandMode -eq 'CheckForUpdates') {
+    $manifest = Import-ToolManifest -ManifestPath $manifestPath
+    Test-ManifestIntegrity -Manifest $manifest
+    $customProfileConfig = Import-CustomProfileConfig -CustomProfilePath $customProfilePath
+    Test-CustomProfileConfigIntegrity -CustomProfileConfig $customProfileConfig -Manifest $manifest
+    $selection = Resolve-SandboxSessionSelection `
+        -Manifest $manifest `
+        -SandboxProfile $effectiveSandboxProfile `
+        -CustomProfileConfig $customProfileConfig `
+        -TemplateAddTools $effectiveTemplateAddTools `
+        -TemplateRemoveTools $effectiveTemplateRemoveTools `
+        -AddTools $effectiveRuntimeAddTools `
+        -RemoveTools $effectiveRuntimeRemoveTools
+
+    $updateResults = @(Invoke-SandboxToolUpdateCatalog -Tools $selection.Tools)
+    $updateSummary = Get-SandboxToolUpdateSummary -Results $updateResults
+
+    if ($OutputJson) {
+        $checkForUpdatesJsonResult = Get-SandboxCheckForUpdatesJsonResult `
+            -Selection $selection `
+            -Results $updateResults
+        Write-SandboxJsonOutput -Data $checkForUpdatesJsonResult
+        return
+    }
+
+    Write-StatusLine ''
+    Write-StatusLine 'Tool update check (read-only)' -ForegroundColor Cyan
+    Write-StatusLine ("  Profile: {0} (type={1}; base={2})" -f $selection.Profile, $selection.ProfileType, $selection.BaseProfile) -ForegroundColor White
+    Write-StatusLine ("  Summary: up-to-date={0}; outdated={1}; unknown={2}; unsupported={3}; total={4}" -f `
+            $updateSummary.up_to_date, `
+            $updateSummary.outdated, `
+            $updateSummary.unknown, `
+            $updateSummary.unsupported, `
+            $updateSummary.total) -ForegroundColor White
+    Write-StatusLine ''
+
+    foreach ($result in $updateResults) {
+        $color = switch ($result.status) {
+            'up-to-date' { [ConsoleColor]::Green }
+            'outdated' { [ConsoleColor]::Yellow }
+            'unknown' { [ConsoleColor]::DarkYellow }
+            'unsupported-for-checking' { [ConsoleColor]::DarkGray }
+            default { [ConsoleColor]::White }
+        }
+
+        $latestLabel = if ([string]::IsNullOrWhiteSpace([string]$result.latest_version)) { '(n/a)' } else { $result.latest_version }
+        $sourceLabel = if ([string]::IsNullOrWhiteSpace([string]$result.source_type)) { '(none)' } else { $result.source_type }
+        Write-StatusLine ("  - {0,-15} | {1,-24} | configured={2} | latest={3} | status={4} | source={5} ({6})" -f `
+                $result.id, `
+                $result.display_name, `
+                $result.configured_version, `
+                $latestLabel, `
+                $result.status, `
+                $sourceLabel, `
+                $result.source_confidence) -ForegroundColor $color
+    }
+    Write-StatusLine ''
+    return
+}
+
 # -- Banner -------------------------------------------------------------------
 
 Write-StatusLine ''
@@ -605,18 +674,20 @@ if ($commandMode -eq 'Validate') {
     return
 }
 
-$sharedFolderRequest = Resolve-SharedFolderRequest `
-    -RepoRoot $repoRoot `
-    -SharedFolder $effectiveSharedFolder `
-    -UseDefaultSharedFolder:$effectiveUseDefaultSharedFolder `
-    -SharedFolderWritable:$effectiveSharedFolderWritable `
-    -SharedFolderValidationDiagnostics:$SharedFolderValidationDiagnostics `
-    -OnDefaultSharedFolderCreated {
-        param($Path)
-        Write-StatusLine "  [OK]  Created default shared folder: $Path" -ForegroundColor Green
-    }
+if ($modePlan.ResolveSharedFolder) {
+    $sharedFolderRequest = Resolve-SharedFolderRequest `
+        -RepoRoot $repoRoot `
+        -SharedFolder $effectiveSharedFolder `
+        -UseDefaultSharedFolder:$effectiveUseDefaultSharedFolder `
+        -SharedFolderWritable:$effectiveSharedFolderWritable `
+        -SharedFolderValidationDiagnostics:$SharedFolderValidationDiagnostics `
+        -OnDefaultSharedFolderCreated {
+            param($Path)
+            Write-StatusLine "  [OK]  Created default shared folder: $Path" -ForegroundColor Green
+        }
 
-$resolvedSharedFolder = $sharedFolderRequest.SharedHostFolder
+    $resolvedSharedFolder = $sharedFolderRequest.SharedHostFolder
+}
 
 # -- [1/5] Prerequisites -------------------------------------------------------
 

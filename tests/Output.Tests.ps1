@@ -2,6 +2,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $repoRoot = Split-Path -Path $PSScriptRoot -Parent
+. (Join-Path $repoRoot 'src\Updates.ps1')
 . (Join-Path $repoRoot 'src\Output.ps1')
 
 Describe 'Get-SandboxValidateJsonResult' {
@@ -51,6 +52,51 @@ Describe 'Get-SandboxValidateJsonResult' {
         $jsonObject.checks.Count | Should Be 2
         $jsonObject.profile.selected | Should Be 'minimal'
         $jsonObject.context.host_interaction_effective.clipboard_redirection | Should Be 'Enable'
+    }
+}
+
+Describe 'Get-SandboxCheckForUpdatesJsonResult' {
+    It 'projects update status details with stable summary fields' {
+        $selection = [pscustomobject]@{
+            Profile = 'minimal'
+            ProfileType = 'built-in'
+            BaseProfile = 'minimal'
+            TemplateAddTools = @()
+            TemplateRemoveTools = @()
+            RuntimeAddTools = @()
+            RuntimeRemoveTools = @()
+        }
+        $results = @(
+            [pscustomobject]@{
+                id = '7zip'
+                display_name = '7-Zip'
+                configured_version = '24.09'
+                latest_version = '24.09'
+                status = 'up-to-date'
+                source_type = 'static'
+                source_confidence = 'medium'
+                message = 'ok'
+            },
+            [pscustomobject]@{
+                id = 'vscode'
+                display_name = 'Visual Studio Code'
+                configured_version = 'latest'
+                latest_version = $null
+                status = 'unsupported-for-checking'
+                source_type = $null
+                source_confidence = 'low'
+                message = 'unsupported'
+            }
+        )
+
+        $jsonObject = Get-SandboxCheckForUpdatesJsonResult -Selection $selection -Results $results
+
+        $jsonObject.command.mode | Should Be 'check-for-updates'
+        $jsonObject.profile.selected | Should Be 'minimal'
+        $jsonObject.summary.total | Should Be 2
+        $jsonObject.summary.up_to_date | Should Be 1
+        $jsonObject.summary.unsupported_for_checking | Should Be 1
+        $jsonObject.tools.Count | Should Be 2
     }
 }
 

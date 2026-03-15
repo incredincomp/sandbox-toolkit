@@ -22,6 +22,7 @@ function Resolve-StartSandboxCommandMode {
         [switch]$CleanDownloads,
         [switch]$ListTools,
         [switch]$ListProfiles,
+        [switch]$CheckForUpdates,
         [switch]$Validate,
         [switch]$Audit,
         [switch]$DryRun,
@@ -61,7 +62,7 @@ function Resolve-StartSandboxCommandMode {
         if ($ListTemplates -or $ShowTemplate) {
             throw (Get-StartSandboxParameterCombinationError -Message '-SaveTemplate cannot be combined with -ListTemplates or -ShowTemplate.')
         }
-        if ($CleanDownloads -or $ListTools -or $ListProfiles -or $Validate -or $Audit -or $DryRun) {
+        if ($CleanDownloads -or $ListTools -or $ListProfiles -or $CheckForUpdates -or $Validate -or $Audit -or $DryRun) {
             throw (Get-StartSandboxParameterCombinationError -Message '-SaveTemplate cannot be combined with command-mode switches.')
         }
         if ($Force -or $NoLaunch -or $OutputJson) {
@@ -73,7 +74,7 @@ function Resolve-StartSandboxCommandMode {
         if ($ShowTemplate) {
             throw (Get-StartSandboxParameterCombinationError -Message '-ListTemplates cannot be combined with -ShowTemplate.')
         }
-        if ($SaveTemplate -or $CleanDownloads -or $ListTools -or $ListProfiles -or $Validate -or $Audit -or $DryRun) {
+        if ($SaveTemplate -or $CleanDownloads -or $ListTools -or $ListProfiles -or $CheckForUpdates -or $Validate -or $Audit -or $DryRun) {
             throw (Get-StartSandboxParameterCombinationError -Message '-ListTemplates cannot be combined with other command-mode switches.')
         }
         if ($Force -or $NoLaunch -or $OutputJson) {
@@ -82,7 +83,7 @@ function Resolve-StartSandboxCommandMode {
     }
 
     if ($ShowTemplate) {
-        if ($SaveTemplate -or $ListTemplates -or $CleanDownloads -or $ListTools -or $ListProfiles -or $Validate -or $Audit -or $DryRun) {
+        if ($SaveTemplate -or $ListTemplates -or $CleanDownloads -or $ListTools -or $ListProfiles -or $CheckForUpdates -or $Validate -or $Audit -or $DryRun) {
             throw (Get-StartSandboxParameterCombinationError -Message '-ShowTemplate cannot be combined with other command-mode switches.')
         }
         if ($Force -or $NoLaunch -or $OutputJson) {
@@ -175,6 +176,30 @@ function Resolve-StartSandboxCommandMode {
         }
     }
 
+    if ($CheckForUpdates) {
+        if ($CleanDownloads -or $ListTools -or $ListProfiles -or $Validate -or $Audit -or $DryRun) {
+            throw (Get-StartSandboxParameterCombinationError -Message '-CheckForUpdates cannot be combined with other command-mode switches.')
+        }
+        if ($Force -or $NoLaunch) {
+            throw (Get-StartSandboxParameterCombinationError -Message '-CheckForUpdates cannot be combined with -Force or -NoLaunch.')
+        }
+        if ($SkipPrereqCheck) {
+            throw (Get-StartSandboxParameterCombinationError -Message '-SkipPrereqCheck cannot be combined with -CheckForUpdates.')
+        }
+        if ($SharedFolder -or $UseDefaultSharedFolder -or $SharedFolderWritable -or $SharedFolderValidationDiagnostics) {
+            throw (Get-StartSandboxParameterCombinationError -Message 'Shared-folder options cannot be combined with -CheckForUpdates.')
+        }
+        if ($DisableClipboard -or $DisableAudioInput -or $DisableStartupCommands) {
+            throw (Get-StartSandboxParameterCombinationError -Message 'Host-interaction policy options cannot be combined with -CheckForUpdates.')
+        }
+        if ($SessionMode -ne 'Fresh') {
+            throw (Get-StartSandboxParameterCombinationError -Message '-SessionMode cannot be combined with -CheckForUpdates.')
+        }
+        if ($UseWslHelper -or $ExplicitWslDistro -or $ExplicitWslHelperStagePath) {
+            throw (Get-StartSandboxParameterCombinationError -Message 'WSL helper options cannot be combined with -CheckForUpdates.')
+        }
+    }
+
     if ($DryRun -and $Force) {
         throw (Get-StartSandboxParameterCombinationError -Message '-Force cannot be combined with -DryRun.')
     }
@@ -203,8 +228,8 @@ function Resolve-StartSandboxCommandMode {
     if ($OutputJson -and $ListTools -and $ListProfiles) {
         throw (Get-StartSandboxParameterCombinationError -Message '-OutputJson cannot be combined with both -ListTools and -ListProfiles. Choose one list mode.')
     }
-    if ($OutputJson -and -not ($Validate -or $Audit -or $DryRun -or $isListMode)) {
-        throw (Get-StartSandboxParameterCombinationError -Message '-OutputJson is supported only with -Validate, -Audit, -DryRun, -ListTools, or -ListProfiles.')
+    if ($OutputJson -and -not ($Validate -or $Audit -or $DryRun -or $CheckForUpdates -or $isListMode)) {
+        throw (Get-StartSandboxParameterCombinationError -Message '-OutputJson is supported only with -Validate, -Audit, -DryRun, -CheckForUpdates, -ListTools, or -ListProfiles.')
     }
     if (-not $UseWslHelper -and ($ExplicitWslDistro -or $ExplicitWslHelperStagePath)) {
         throw (Get-StartSandboxParameterCombinationError -Message '-WslDistro and -WslHelperStagePath require -UseWslHelper.')
@@ -225,6 +250,9 @@ function Resolve-StartSandboxCommandMode {
     if ($isListMode) {
         return 'List'
     }
+    if ($CheckForUpdates) {
+        return 'CheckForUpdates'
+    }
     if ($Validate) {
         return 'Validate'
     }
@@ -243,7 +271,7 @@ function Get-StartSandboxModePlan {
         Returns stage execution flags for each command mode.
     #>
     param(
-        [Parameter(Mandatory)][ValidateSet('CleanDownloads', 'SaveTemplate', 'ListTemplates', 'ShowTemplate', 'List', 'Validate', 'Audit', 'DryRun', 'Run')][string]$CommandMode
+        [Parameter(Mandatory)][ValidateSet('CleanDownloads', 'SaveTemplate', 'ListTemplates', 'ShowTemplate', 'List', 'CheckForUpdates', 'Validate', 'Audit', 'DryRun', 'Run')][string]$CommandMode
     )
 
     switch ($CommandMode) {
@@ -284,6 +312,15 @@ function Get-StartSandboxModePlan {
             }
         }
         'List' {
+            return [pscustomobject]@{
+                CheckPrerequisites = $false
+                ResolveSharedFolder = $false
+                DownloadTools = $false
+                GenerateArtifacts = $false
+                LaunchSandbox = $false
+            }
+        }
+        'CheckForUpdates' {
             return [pscustomobject]@{
                 CheckPrerequisites = $false
                 ResolveSharedFolder = $false

@@ -36,6 +36,10 @@ Describe 'Resolve-StartSandboxCommandMode' {
         Resolve-StartSandboxCommandMode -ListTools | Should Be 'List'
     }
 
+    It 'returns CheckForUpdates when -CheckForUpdates is specified' {
+        Resolve-StartSandboxCommandMode -CheckForUpdates | Should Be 'CheckForUpdates'
+    }
+
     It 'returns CleanDownloads when -CleanDownloads is specified' {
         Resolve-StartSandboxCommandMode -CleanDownloads | Should Be 'CleanDownloads'
     }
@@ -141,7 +145,7 @@ Describe 'Resolve-StartSandboxCommandMode' {
     It 'rejects -OutputJson without a JSON-capable mode' {
         $message = Get-ErrorMessage { Resolve-StartSandboxCommandMode -OutputJson:$true }
         $message | Should Not BeNullOrEmpty
-        $message | Should Match '-OutputJson is supported only with -Validate, -Audit, -DryRun, -ListTools, or -ListProfiles'
+        $message | Should Match '-OutputJson is supported only with -Validate, -Audit, -DryRun, -CheckForUpdates, -ListTools, or -ListProfiles'
     }
 
     It 'accepts -OutputJson with -Audit' {
@@ -199,6 +203,22 @@ Describe 'Resolve-StartSandboxCommandMode' {
         $message | Should Not BeNullOrEmpty
         $message | Should Match '-SaveTemplate cannot be combined with -Force, -NoLaunch, or -OutputJson'
     }
+
+    It 'rejects -CheckForUpdates with another command mode' {
+        $message = Get-ErrorMessage { Resolve-StartSandboxCommandMode -CheckForUpdates:$true -DryRun:$true }
+        $message | Should Not BeNullOrEmpty
+        $message | Should Match '-CheckForUpdates cannot be combined with other command-mode switches'
+    }
+
+    It 'rejects shared-folder options with -CheckForUpdates' {
+        $message = Get-ErrorMessage { Resolve-StartSandboxCommandMode -CheckForUpdates:$true -UseDefaultSharedFolder:$true }
+        $message | Should Not BeNullOrEmpty
+        $message | Should Match 'Shared-folder options cannot be combined with -CheckForUpdates'
+    }
+
+    It 'accepts -OutputJson with -CheckForUpdates' {
+        Resolve-StartSandboxCommandMode -CheckForUpdates:$true -OutputJson:$true | Should Be 'CheckForUpdates'
+    }
 }
 
 Describe 'Get-StartSandboxModePlan' {
@@ -241,6 +261,16 @@ Describe 'Get-StartSandboxModePlan' {
         $plan = Get-StartSandboxModePlan -CommandMode 'SaveTemplate'
 
         $plan.CheckPrerequisites | Should Be $false
+        $plan.DownloadTools | Should Be $false
+        $plan.GenerateArtifacts | Should Be $false
+        $plan.LaunchSandbox | Should Be $false
+    }
+
+    It 'disables all execution stages for CheckForUpdates mode' {
+        $plan = Get-StartSandboxModePlan -CommandMode 'CheckForUpdates'
+
+        $plan.CheckPrerequisites | Should Be $false
+        $plan.ResolveSharedFolder | Should Be $false
         $plan.DownloadTools | Should Be $false
         $plan.GenerateArtifacts | Should Be $false
         $plan.LaunchSandbox | Should Be $false

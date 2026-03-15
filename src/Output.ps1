@@ -363,6 +363,56 @@ function Get-SandboxListProfilesJsonResult {
     }
 }
 
+function Get-SandboxCheckForUpdatesJsonResult {
+    <#
+    .SYNOPSIS
+        Projects check-for-updates results into stable JSON contract shape.
+    #>
+    param(
+        [Parameter(Mandatory)][PSCustomObject]$Selection,
+        [Parameter(Mandatory)][object[]]$Results
+    )
+
+    $summary = Get-SandboxToolUpdateSummary -Results $Results
+    return [ordered]@{
+        command = [ordered]@{
+            mode = 'check-for-updates'
+        }
+        profile = [ordered]@{
+            selected = $Selection.Profile
+            resolved_type = $Selection.ProfileType
+            base_profile = $Selection.BaseProfile
+        }
+        overrides = [ordered]@{
+            template_add_tools = @($Selection.TemplateAddTools)
+            template_remove_tools = @($Selection.TemplateRemoveTools)
+            add_tools = @($Selection.RuntimeAddTools)
+            remove_tools = @($Selection.RuntimeRemoveTools)
+        }
+        summary = [ordered]@{
+            total = $summary.total
+            up_to_date = $summary.up_to_date
+            outdated = $summary.outdated
+            unknown = $summary.unknown
+            unsupported_for_checking = $summary.unsupported
+        }
+        tools = @(
+            $Results | ForEach-Object {
+                [ordered]@{
+                    id = $_.id
+                    display_name = $_.display_name
+                    configured_version = $_.configured_version
+                    latest_version = $_.latest_version
+                    status = $_.status
+                    source_type = $_.source_type
+                    source_confidence = $_.source_confidence
+                    message = $_.message
+                }
+            }
+        )
+    }
+}
+
 function Get-SandboxErrorJsonResult {
     <#
     .SYNOPSIS
@@ -389,6 +439,7 @@ function Get-SandboxErrorJsonResult {
                 'list'
             }
         }
+        'CheckForUpdates' { 'check-for-updates' }
         'CleanDownloads' { 'clean-downloads' }
         default { $CommandMode }
     }

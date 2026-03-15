@@ -326,4 +326,26 @@ Describe 'Start-Sandbox integrated command combinations' {
             }
         }
     }
+
+    It 'supports read-only -CheckForUpdates reporting without mutating repo artifacts' {
+        $toolsHashBefore = (Get-FileHash -Algorithm SHA256 -Path (Join-Path $repoRoot 'tools.json')).Hash
+
+        $result = Invoke-StartSandboxJson -Arguments @(
+            '-CheckForUpdates',
+            '-OutputJson',
+            '-Profile', 'minimal',
+            '-RemoveTools', 'notepadpp'
+        )
+
+        $toolsHashAfter = (Get-FileHash -Algorithm SHA256 -Path (Join-Path $repoRoot 'tools.json')).Hash
+
+        $result.ExitCode | Should Be 0
+        $result.Json.command.mode | Should Be 'check-for-updates'
+        $result.Json.profile.selected | Should Be 'minimal'
+        $result.Json.summary.total | Should BeGreaterThan 0
+        (($result.Json.tools | Where-Object { $_.status -eq 'unsupported-for-checking' }).Count) | Should BeGreaterThan 0
+        $toolsHashAfter | Should Be $toolsHashBefore
+        (Test-Path -LiteralPath $manifestOut -PathType Leaf) | Should Be $false
+        (Test-Path -LiteralPath $wsbOut -PathType Leaf) | Should Be $false
+    }
 }
