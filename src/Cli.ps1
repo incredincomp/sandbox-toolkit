@@ -1,6 +1,14 @@
 # src/Cli.ps1
 # CLI mode and output helpers for Start-Sandbox.ps1.
 
+function Get-StartSandboxParameterCombinationError {
+    param(
+        [Parameter(Mandatory)][string]$Message
+    )
+
+    return "Invalid parameter combination: $Message"
+}
+
 function Resolve-StartSandboxCommandMode {
     <#
     .SYNOPSIS
@@ -35,116 +43,116 @@ function Resolve-StartSandboxCommandMode {
 
     if ($CleanDownloads) {
         if ($ListTools -or $ListProfiles) {
-            throw "-CleanDownloads cannot be combined with -ListTools or -ListProfiles."
+            throw (Get-StartSandboxParameterCombinationError -Message '-CleanDownloads cannot be combined with -ListTools or -ListProfiles.')
         }
         if ($Validate) {
-            throw "-CleanDownloads cannot be combined with -Validate."
+            throw (Get-StartSandboxParameterCombinationError -Message '-CleanDownloads cannot be combined with -Validate.')
         }
         if ($Audit) {
-            throw "-CleanDownloads cannot be combined with -Audit."
+            throw (Get-StartSandboxParameterCombinationError -Message '-CleanDownloads cannot be combined with -Audit.')
         }
         if ($DryRun) {
-            throw "-CleanDownloads cannot be combined with -DryRun."
+            throw (Get-StartSandboxParameterCombinationError -Message '-CleanDownloads cannot be combined with -DryRun.')
         }
         if ($Force) {
-            throw "-Force cannot be combined with -CleanDownloads."
+            throw (Get-StartSandboxParameterCombinationError -Message '-Force cannot be combined with -CleanDownloads.')
         }
         if ($NoLaunch) {
-            throw "-NoLaunch cannot be combined with -CleanDownloads."
+            throw (Get-StartSandboxParameterCombinationError -Message '-NoLaunch cannot be combined with -CleanDownloads.')
         }
         if ($OutputJson) {
-            throw "-OutputJson cannot be combined with -CleanDownloads."
+            throw (Get-StartSandboxParameterCombinationError -Message '-OutputJson cannot be combined with -CleanDownloads.')
         }
         if ($AddTools -or $RemoveTools) {
-            throw "-AddTools and -RemoveTools cannot be combined with -CleanDownloads."
+            throw (Get-StartSandboxParameterCombinationError -Message '-AddTools and -RemoveTools cannot be combined with -CleanDownloads.')
         }
         if ($SkipPrereqCheck) {
-            throw "-SkipPrereqCheck cannot be combined with -CleanDownloads."
+            throw (Get-StartSandboxParameterCombinationError -Message '-SkipPrereqCheck cannot be combined with -CleanDownloads.')
         }
         if ($SharedFolder -or $UseDefaultSharedFolder -or $SharedFolderWritable -or $SharedFolderValidationDiagnostics) {
-            throw "Shared-folder options cannot be combined with -CleanDownloads."
+            throw (Get-StartSandboxParameterCombinationError -Message 'Shared-folder options cannot be combined with -CleanDownloads.')
         }
         if ($DisableClipboard -or $DisableAudioInput -or $DisableStartupCommands) {
-            throw "Host-interaction policy options cannot be combined with -CleanDownloads."
+            throw (Get-StartSandboxParameterCombinationError -Message 'Host-interaction policy options cannot be combined with -CleanDownloads.')
         }
         if ($SessionMode -ne 'Fresh') {
-            throw "-SessionMode cannot be specified with -CleanDownloads."
+            throw (Get-StartSandboxParameterCombinationError -Message '-SessionMode cannot be specified with -CleanDownloads.')
         }
         if ($UseWslHelper -or $ExplicitWslDistro -or $ExplicitWslHelperStagePath) {
-            throw "WSL helper options cannot be combined with -CleanDownloads."
+            throw (Get-StartSandboxParameterCombinationError -Message 'WSL helper options cannot be combined with -CleanDownloads.')
         }
         if ($ExplicitSandboxProfile) {
-            throw "-SandboxProfile cannot be specified with -CleanDownloads."
+            throw (Get-StartSandboxParameterCombinationError -Message '-SandboxProfile cannot be specified with -CleanDownloads.')
         }
     }
 
     $isListMode = $ListTools -or $ListProfiles
     if ($isListMode) {
         if ($Validate) {
-            throw "-Validate cannot be combined with -ListTools or -ListProfiles."
+            throw (Get-StartSandboxParameterCombinationError -Message '-Validate cannot be combined with -ListTools or -ListProfiles.')
         }
         if ($Audit) {
-            throw "-Audit cannot be combined with -ListTools or -ListProfiles."
+            throw (Get-StartSandboxParameterCombinationError -Message '-Audit cannot be combined with -ListTools or -ListProfiles.')
         }
         if ($DryRun) {
-            throw "-DryRun cannot be combined with -ListTools or -ListProfiles."
+            throw (Get-StartSandboxParameterCombinationError -Message '-DryRun cannot be combined with -ListTools or -ListProfiles.')
         }
         if ($Force) {
-            throw "-Force cannot be combined with -ListTools or -ListProfiles."
+            throw (Get-StartSandboxParameterCombinationError -Message '-Force cannot be combined with -ListTools or -ListProfiles.')
         }
         if ($SharedFolder -or $UseDefaultSharedFolder -or $SharedFolderWritable -or $SharedFolderValidationDiagnostics) {
-            throw "Shared-folder options cannot be combined with -ListTools or -ListProfiles."
+            throw (Get-StartSandboxParameterCombinationError -Message 'Shared-folder options cannot be combined with -ListTools or -ListProfiles.')
         }
         if ($DisableClipboard -or $DisableAudioInput -or $DisableStartupCommands) {
-            throw "Host-interaction policy options cannot be combined with -ListTools or -ListProfiles."
+            throw (Get-StartSandboxParameterCombinationError -Message 'Host-interaction policy options cannot be combined with -ListTools or -ListProfiles.')
         }
         if ($SessionMode -ne 'Fresh') {
-            throw "-SessionMode cannot be combined with -ListTools or -ListProfiles."
+            throw (Get-StartSandboxParameterCombinationError -Message '-SessionMode cannot be combined with -ListTools or -ListProfiles.')
         }
         if ($UseWslHelper -or $ExplicitWslDistro -or $ExplicitWslHelperStagePath) {
-            throw "WSL helper options cannot be combined with -ListTools or -ListProfiles."
+            throw (Get-StartSandboxParameterCombinationError -Message 'WSL helper options cannot be combined with -ListTools or -ListProfiles.')
         }
         if ($AddTools -or $RemoveTools) {
-            throw "-AddTools and -RemoveTools cannot be combined with -ListTools or -ListProfiles."
+            throw (Get-StartSandboxParameterCombinationError -Message '-AddTools and -RemoveTools cannot be combined with -ListTools or -ListProfiles.')
         }
         if ($ExplicitSandboxProfile) {
-            throw "-SandboxProfile cannot be specified with -ListTools or -ListProfiles."
+            throw (Get-StartSandboxParameterCombinationError -Message '-SandboxProfile cannot be specified with -ListTools or -ListProfiles.')
         }
     }
 
     if ($DryRun -and $Force) {
-        throw "-Force cannot be combined with -DryRun."
+        throw (Get-StartSandboxParameterCombinationError -Message '-Force cannot be combined with -DryRun.')
     }
 
     if ($Validate -and $DryRun) {
-        throw "-Validate cannot be combined with -DryRun."
+        throw (Get-StartSandboxParameterCombinationError -Message '-Validate cannot be combined with -DryRun.')
     }
     if ($Validate -and $Audit) {
-        throw "-Validate cannot be combined with -Audit."
+        throw (Get-StartSandboxParameterCombinationError -Message '-Validate cannot be combined with -Audit.')
     }
     if ($Validate -and $Force) {
-        throw "-Force cannot be combined with -Validate."
+        throw (Get-StartSandboxParameterCombinationError -Message '-Force cannot be combined with -Validate.')
     }
     if ($Validate -and $NoLaunch) {
-        throw "-NoLaunch cannot be combined with -Validate."
+        throw (Get-StartSandboxParameterCombinationError -Message '-NoLaunch cannot be combined with -Validate.')
     }
     if ($Audit -and $DryRun) {
-        throw "-Audit cannot be combined with -DryRun."
+        throw (Get-StartSandboxParameterCombinationError -Message '-Audit cannot be combined with -DryRun.')
     }
     if ($Audit -and $Force) {
-        throw "-Force cannot be combined with -Audit."
+        throw (Get-StartSandboxParameterCombinationError -Message '-Force cannot be combined with -Audit.')
     }
     if ($Audit -and $NoLaunch) {
-        throw "-NoLaunch cannot be combined with -Audit."
+        throw (Get-StartSandboxParameterCombinationError -Message '-NoLaunch cannot be combined with -Audit.')
     }
     if ($OutputJson -and $ListTools -and $ListProfiles) {
-        throw "-OutputJson cannot be combined with both -ListTools and -ListProfiles. Choose one list mode."
+        throw (Get-StartSandboxParameterCombinationError -Message '-OutputJson cannot be combined with both -ListTools and -ListProfiles. Choose one list mode.')
     }
     if ($OutputJson -and -not ($Validate -or $Audit -or $DryRun -or $isListMode)) {
-        throw "-OutputJson is supported only with -Validate, -Audit, -DryRun, -ListTools, or -ListProfiles."
+        throw (Get-StartSandboxParameterCombinationError -Message '-OutputJson is supported only with -Validate, -Audit, -DryRun, -ListTools, or -ListProfiles.')
     }
     if (-not $UseWslHelper -and ($ExplicitWslDistro -or $ExplicitWslHelperStagePath)) {
-        throw "-WslDistro and -WslHelperStagePath require -UseWslHelper."
+        throw (Get-StartSandboxParameterCombinationError -Message '-WslDistro and -WslHelperStagePath require -UseWslHelper.')
     }
 
     if ($CleanDownloads) {

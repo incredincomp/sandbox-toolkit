@@ -53,7 +53,7 @@ function Get-ToolsForProfile {
 
     $validProfiles = Get-SandboxProfileSupport
     if ($SandboxProfile -notin $validProfiles) {
-        throw "Invalid profile '$SandboxProfile'. Valid profiles: $($validProfiles -join ', ')"
+        throw "Unknown profile '$SandboxProfile'. Valid built-in profiles: $($validProfiles -join ', ')"
     }
 
     $tools = $Manifest.tools | Where-Object { $SandboxProfile -in $_.profiles }
@@ -79,11 +79,11 @@ function Import-CustomProfileConfig {
     try {
         $config = Get-Content -Raw -Path $CustomProfilePath | ConvertFrom-Json
     } catch {
-        throw "Failed to parse custom profile config '$CustomProfilePath': $($_.Exception.Message)"
+        throw "Malformed custom profile config '$CustomProfilePath': $($_.Exception.Message)"
     }
 
     if (-not $config.PSObject.Properties['profiles']) {
-        throw "Custom profile config '$CustomProfilePath' is missing required 'profiles' property."
+        throw "Malformed custom profile config '$CustomProfilePath': missing required 'profiles' property."
     }
 
     if (-not $config.profiles) {

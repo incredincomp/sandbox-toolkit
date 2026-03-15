@@ -847,3 +847,36 @@ Estimated size: Small (1–2 files)
 | Check | Result | Method | Date |
 |-------|--------|--------|------|
 | Pester tests (new integration suite) | ✅ | `Invoke-Pester -Path tests/StartSandboxCliIntegration.Tests.ps1` | 2026-03-15 |
+
+### Scope (release hardening pass: integrated flow fixes)
+- Harden integrated CLI/config behavior with bounded fixes:
+  - preserve tracked `scripts/setups/.gitkeep` during `-CleanDownloads`.
+  - normalize user-facing error categories (`Unknown profile`, `Unknown tool id`, malformed custom profile parsing/shape).
+  - standardize invalid parameter-combination phrasing with a shared prefix.
+  - normalize JSON fatal error `command.mode` names to match successful mode contracts (`dry-run`, `list-profiles`, etc.).
+
+### Decisions made (release hardening pass: integrated flow fixes)
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Treat `scripts/setups/.gitkeep` as a tracked placeholder to skip during cleanup | Prevents release prep/working tree drift from maintenance mode while preserving cache cleanup behavior | Keep deleting all setup-cache children including tracked placeholders |
+| Keep error standardization bounded to existing failure seams (manifest/session/CLI validation) | Improves consistency without redesigning command behavior | Broad exception-wrapper refactor across all modules |
+| Map JSON error mode names to public contract mode strings | Removes mode-name drift between successful and fatal JSON responses | Keep internal enum names (`DryRun`, `List`) in error payloads |
+
+### Files modified (release hardening pass: integrated flow fixes)
+- `Start-Sandbox.ps1`
+- `src/Cli.ps1`
+- `src/Maintenance.ps1`
+- `src/Manifest.ps1`
+- `src/Output.ps1`
+- `src/Session.ps1`
+- `tests/Maintenance.Tests.ps1`
+- `tests/Session.Tests.ps1`
+- `tests/StartSandboxCliIntegration.Tests.ps1`
+- `tests/StartSandboxJson.Tests.ps1`
+- `tests/Validation.Tests.ps1`
+- `IMPLEMENTATION_TRACKER.md`
+
+### Validation (release hardening pass: integrated flow fixes)
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Pester tests (targeted integration + affected suites) | ✅ | `Invoke-Pester -Path tests/Maintenance.Tests.ps1,tests/Session.Tests.ps1,tests/Validation.Tests.ps1,tests/StartSandboxJson.Tests.ps1,tests/StartSandboxCliIntegration.Tests.ps1,tests/Cli.Tests.ps1,tests/StartSandboxAudit.Tests.ps1` | 2026-03-15 |

@@ -92,6 +92,15 @@ function Get-SandboxDownloadCleanupPlan {
         $children = @(Get-ChildItem -LiteralPath $locationPath -Force)
         foreach ($child in $children) {
             $childPath = $child.FullName
+            if ($location.id -eq 'setup-cache' -and -not $child.PSIsContainer -and $child.Name -ieq '.gitkeep') {
+                $skipped.Add([pscustomobject]@{
+                    location_id = $location.id
+                    path = $childPath
+                    reason = 'tracked-placeholder'
+                })
+                continue
+            }
+
             if (-not (Test-SandboxPathWithinRoot -Path $childPath -RootPath $locationPath)) {
                 $skipped.Add([pscustomobject]@{
                     location_id = $location.id

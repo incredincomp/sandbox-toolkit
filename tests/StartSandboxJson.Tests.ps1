@@ -119,9 +119,9 @@ Describe 'Start-Sandbox JSON output modes' {
         )
 
         $result.ExitCode | Should Be 1
-        $result.Json.command.mode | Should Be 'DryRun'
+        $result.Json.command.mode | Should Be 'dry-run'
         $result.Json.overall_status | Should Be 'FAIL'
-        $result.Json.error.summary | Should Match '-AddTools contains unknown tool id'
+        $result.Json.error.summary | Should Match "Unknown tool id 'not-a-real-tool' in -AddTools"
     }
 
     It 'returns parseable JSON for list-tools mode with stable catalog fields' {
@@ -155,6 +155,16 @@ Describe 'Start-Sandbox JSON output modes' {
         $result.Json.command.mode | Should Be 'list-profiles'
         (($result.Json.profiles | Where-Object { $_.name -eq 'minimal' -and $_.type -eq 'built-in' }).Count) | Should Be 1
         (($result.Json.profiles | Where-Object { $_.name -eq 'net-re-lite' -and $_.type -eq 'custom' -and $_.base_profile -eq 'reverse-engineering' }).Count) | Should Be 1
+    }
+
+    It 'keeps JSON error mode consistent for list-profiles failures' {
+        '{ "schema_version": "1.0" }' | Set-Content -Path $customProfilesPath -Encoding UTF8
+        $result = Invoke-StartSandboxJson -Arguments @('-ListProfiles', '-OutputJson')
+
+        $result.ExitCode | Should Be 1
+        $result.Json.command.mode | Should Be 'list-profiles'
+        $result.Json.overall_status | Should Be 'FAIL'
+        $result.Json.error.summary | Should Match 'Malformed custom profile config'
     }
 
     It 'preserves default human-readable list output when -OutputJson is not used' {

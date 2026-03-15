@@ -370,12 +370,32 @@ function Get-SandboxErrorJsonResult {
     #>
     param(
         [Parameter(Mandatory)][string]$CommandMode,
+        [switch]$ListTools,
+        [switch]$ListProfiles,
         [Parameter(Mandatory)][string]$Message
     )
 
+    $resolvedMode = switch ($CommandMode) {
+        'Validate' { 'validate' }
+        'Audit' { 'audit' }
+        'DryRun' { 'dry-run' }
+        'Run' { 'run' }
+        'List' {
+            if ($ListProfiles) {
+                'list-profiles'
+            } elseif ($ListTools) {
+                'list-tools'
+            } else {
+                'list'
+            }
+        }
+        'CleanDownloads' { 'clean-downloads' }
+        default { $CommandMode }
+    }
+
     return [ordered]@{
         command = [ordered]@{
-            mode = $CommandMode
+            mode = $resolvedMode
         }
         overall_status = 'FAIL'
         exit_code = 1

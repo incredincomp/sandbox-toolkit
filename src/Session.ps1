@@ -52,7 +52,7 @@ function Resolve-SandboxSessionSelection {
         if (-not $customProfile) {
             $catalog = Get-SandboxProfileCatalog -Manifest $Manifest -CustomProfileConfig $CustomProfileConfig
             $names = @($catalog | Select-Object -ExpandProperty name) -join ', '
-            throw "Invalid profile '$SandboxProfile'. Available profiles: $names"
+            throw "Unknown profile '$SandboxProfile'. Available profiles: $names. Run -ListProfiles to see valid names."
         }
 
         $resolvedProfileType = 'custom'
@@ -68,6 +68,7 @@ function Resolve-SandboxSessionSelection {
         $effectiveToolIds.Add($toolId)
     }
 
+    # Precedence: base profile -> custom add/remove -> runtime add/remove.
     if ($customProfile) {
         foreach ($toolId in @($customProfile.add_tools)) {
             $effectiveToolIds.Add($toolId)
@@ -160,7 +161,7 @@ function Resolve-SandboxKnownToolIdList {
 
         $lookupKey = $toolId.ToLowerInvariant()
         if (-not $toolById.ContainsKey($lookupKey)) {
-            throw "-$ArgumentName contains unknown tool id '$toolId'. Run -ListTools to see valid IDs."
+            throw "Unknown tool id '$toolId' in -$ArgumentName. Run -ListTools to see valid IDs."
         }
 
         $resolvedId = $toolById[$lookupKey]

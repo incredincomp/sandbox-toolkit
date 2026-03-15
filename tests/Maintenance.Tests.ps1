@@ -37,6 +37,30 @@ Describe 'Get-SandboxDownloadCleanupPlan' {
 }
 
 Describe 'Invoke-SandboxDownloadCleanup' {
+    It 'preserves tracked setup-cache placeholder files' {
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("sandbox-toolkit-clean-placeholder-" + [guid]::NewGuid().ToString())
+        New-Item -ItemType Directory -Path (Join-Path $tempRoot 'scripts\setups') -Force | Out-Null
+
+        try {
+            $placeholderPath = Join-Path $tempRoot 'scripts\setups\.gitkeep'
+            $cachePath = Join-Path $tempRoot 'scripts\setups\tool-a.exe'
+            Set-Content -Path $placeholderPath -Value ''
+            Set-Content -Path $cachePath -Value 'a'
+
+            $plan = Get-SandboxDownloadCleanupPlan -RepoRoot $tempRoot
+            $result = Invoke-SandboxDownloadCleanup -CleanupPlan $plan
+
+            $result.Success | Should Be $true
+            (Test-Path -LiteralPath $placeholderPath -PathType Leaf) | Should Be $true
+            (Test-Path -LiteralPath $cachePath -PathType Leaf) | Should Be $false
+            @($result.Skipped | Where-Object { $_.reason -eq 'tracked-placeholder' -and $_.path -eq $placeholderPath }).Count | Should Be 1
+        } finally {
+            if (Test-Path -LiteralPath $tempRoot) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
     It 'handles nothing-to-clean plans without failure' {
         $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("sandbox-toolkit-clean-empty-" + [guid]::NewGuid().ToString())
         New-Item -ItemType Directory -Path $tempRoot -Force | Out-Null

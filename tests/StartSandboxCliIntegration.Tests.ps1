@@ -141,11 +141,11 @@ Describe 'Start-Sandbox integrated command combinations' {
         $unknownProfile = Invoke-StartSandboxJson -Arguments @('-Validate', '-OutputJson', '-Profile', 'not-a-profile')
         $unknownProfile.ExitCode | Should Be 1
         (($unknownProfile.Json.checks | Where-Object { $_.id -eq 'selection' -and $_.status -eq 'FAIL' }).Count) | Should Be 1
-        (($unknownProfile.Json.checks | Where-Object { $_.id -eq 'selection' })[0].summary) | Should Match 'Invalid profile'
+        (($unknownProfile.Json.checks | Where-Object { $_.id -eq 'selection' })[0].summary) | Should Match 'Unknown profile'
 
         $unknownTool = Invoke-StartSandboxJson -Arguments @('-Validate', '-SkipPrereqCheck', '-OutputJson', '-Profile', 'minimal', '-AddTools', 'not-a-real-tool')
         $unknownTool.ExitCode | Should Be 1
-        (($unknownTool.Json.checks | Where-Object { $_.id -eq 'selection' })[0].summary) | Should Match 'unknown tool id'
+        (($unknownTool.Json.checks | Where-Object { $_.id -eq 'selection' })[0].summary) | Should Match 'Unknown tool id'
 
         '{ "schema_version": "1.0" }' | Set-Content -Path $customProfilesPath -Encoding UTF8
         $malformedCustom = Invoke-StartSandboxJson -Arguments @('-Validate', '-SkipPrereqCheck', '-OutputJson', '-Profile', 'minimal')
@@ -187,6 +187,8 @@ Describe 'Start-Sandbox integrated command combinations' {
 
     It 'keeps -CleanDownloads scoped to disposable cache/session surfaces' {
         $setupCacheItem = Join-Path $repoRoot 'scripts\setups\integration-cleanup-scope.tmp'
+        $placeholderPath = Join-Path $repoRoot 'scripts\setups\.gitkeep'
+        $placeholderExists = Test-Path -LiteralPath $placeholderPath -PathType Leaf
         $sentinelPath = Join-Path $repoRoot 'scripts\integration-sentinel.keep'
         New-Item -ItemType Directory -Path (Split-Path -Parent $setupCacheItem) -Force | Out-Null
         Set-Content -Path $setupCacheItem -Value 'cache'
@@ -202,6 +204,9 @@ Describe 'Start-Sandbox integrated command combinations' {
             (Test-Path -LiteralPath $manifestOut -PathType Leaf) | Should Be $false
             (Test-Path -LiteralPath $wsbOut -PathType Leaf) | Should Be $false
             (Test-Path -LiteralPath $sentinelPath -PathType Leaf) | Should Be $true
+            if ($placeholderExists) {
+                (Test-Path -LiteralPath $placeholderPath -PathType Leaf) | Should Be $true
+            }
         } finally {
             if (Test-Path -LiteralPath $sentinelPath -PathType Leaf) {
                 Remove-Item -LiteralPath $sentinelPath -Force

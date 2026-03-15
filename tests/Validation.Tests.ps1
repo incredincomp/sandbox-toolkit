@@ -245,7 +245,7 @@ Describe 'Test-SandboxSelectionReadiness' {
             -CustomProfilePath (Join-Path $fixtureDir 'custom-profiles.valid.json')
 
         $result.Check.Status | Should Be 'FAIL'
-        $result.Check.Message | Should Match 'Invalid profile'
+        $result.Check.Message | Should Match 'Unknown profile'
     }
 
     It 'surfaces invalid custom profile config clearly' {
@@ -266,7 +266,7 @@ Describe 'Test-SandboxSelectionReadiness' {
             -AddTools @('not-a-real-tool')
 
         $result.Check.Status | Should Be 'FAIL'
-        $result.Check.Message | Should Match '-AddTools contains unknown tool id'
+        $result.Check.Message | Should Match "Unknown tool id 'not-a-real-tool' in -AddTools"
     }
 }
 

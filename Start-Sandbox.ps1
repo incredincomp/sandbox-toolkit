@@ -699,7 +699,11 @@ if ($OutputJson -and $commandMode -eq 'DryRun') {
 Write-StatusLine ''
 } catch {
     if ($OutputJson) {
-        $errorJsonResult = Get-SandboxErrorJsonResult -CommandMode $commandMode -Message $_.Exception.Message
+        $errorJsonResult = Get-SandboxErrorJsonResult `
+            -CommandMode $commandMode `
+            -ListTools:$ListTools `
+            -ListProfiles:$ListProfiles `
+            -Message $_.Exception.Message
         Write-SandboxJsonOutput -Data $errorJsonResult
         exit 1
     }

@@ -111,7 +111,7 @@ Describe 'Resolve-SandboxSessionSelection' {
         }
 
         $message | Should Not BeNullOrEmpty
-        $message | Should Match '-AddTools contains unknown tool id'
+        $message | Should Match "Unknown tool id 'does-not-exist' in -AddTools"
     }
 }
 
