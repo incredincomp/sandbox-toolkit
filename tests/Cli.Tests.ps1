@@ -316,7 +316,7 @@ Describe 'Manifest-backed listing helpers' {
 
 Describe 'Invoke-SandboxLaunch' {
     It 'does not invoke launcher for dry-run' {
-        $env:SANDBOX_TOOLKIT_TEST_LAUNCH = ''
+        Remove-Item Env:SANDBOX_TOOLKIT_TEST_LAUNCH -ErrorAction SilentlyContinue
         $result = Invoke-SandboxLaunch -WsbPath 'C:\temp\sandbox.wsb' -DryRun -Launcher {
             param($Path)
             $env:SANDBOX_TOOLKIT_TEST_LAUNCH = "1|$Path"
@@ -324,7 +324,7 @@ Describe 'Invoke-SandboxLaunch' {
 
         $result.Launched | Should Be $false
         $result.Reason | Should Be 'DryRun'
-        $env:SANDBOX_TOOLKIT_TEST_LAUNCH | Should Be ''
+        [string]::IsNullOrEmpty($env:SANDBOX_TOOLKIT_TEST_LAUNCH) | Should Be $true
     }
 
     It 'invokes launcher for normal run' {

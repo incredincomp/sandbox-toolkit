@@ -1247,6 +1247,39 @@ Estimated size: Small (1–2 files)
 |-------|--------|--------|------|
 | Pester tests (full suite) | ✅ | `Import-Module Pester -RequiredVersion 4.10.1 -Force; Invoke-Pester -Path tests -EnableExit` | 2026-03-15 |
 | PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' \| ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-15 |
+
+---
+
+## 2026-03-15 Session log (actions runtime deprecation follow-up)
+
+### Scope
+- Remove GitHub Actions Node.js 20 deprecation warnings from release/validate workflows.
+- Keep CI behavior unchanged while addressing runner runtime compatibility warning.
+
+### Decisions made
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Upgrade `actions/checkout` from `@v4` to `@v5` across release/validate workflows | `@v5` is Node 24-compatible and resolves current deprecation warnings without changing workflow semantics | Keep `@v4` and tolerate warning noise until forced migration date |
+
+### Files modified
+- `.github/workflows/release.yml`
+- `.github/workflows/validate.yml`
+- `IMPLEMENTATION_TRACKER.md`
+
+### Validation
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Pester tests (full suite) | ✅ | `Import-Module Pester -RequiredVersion 4.10.1 -Force; Invoke-Pester -Path tests -EnableExit` | 2026-03-15 |
+| PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' \| ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-15 |
+
+### Follow-up adjustment
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Make dry-run launcher env-var assertion in `tests/Cli.Tests.ps1` accept null-or-empty | GitHub-hosted runner returned `$null` for unset env var while local run had empty string; test should validate behavior (not-launched) rather than environment representation detail | Keep strict empty-string assertion and accept intermittent CI-only failures |
+
+### Additional local CI replay
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
 | Manifest integrity | ✅ | local replay of `validate-manifest` Python/jsonschema checks from `.github/workflows/validate.yml` | 2026-03-15 |
 | CLI smoke matrix | ✅ | local replay of all `cli-smoke` matrix cases from `.github/workflows/validate.yml` | 2026-03-15 |
 | Exit-code contract | ✅ | local replay of all `exit-code-contract` cases from `.github/workflows/validate.yml` | 2026-03-15 |
