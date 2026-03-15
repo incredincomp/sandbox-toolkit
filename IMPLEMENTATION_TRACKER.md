@@ -442,3 +442,31 @@ Estimated size: Small (1–2 files)
 | Pester tests (output projections) | ✅ | `Invoke-Pester -Path tests/Output.Tests.ps1` | 2026-03-14 |
 | Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
 | PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-14 |
+
+### Scope (audit JSON contract lock pass)
+- Lock `-Audit -OutputJson` contract expectations for automation consumers.
+- Document stable fields and trust-boundary semantics in authoritative docs.
+
+### Decisions made (audit JSON contract lock pass)
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Keep current audit JSON shape unchanged; add contract tests instead of normalizing fields | Existing output shape is already coherent and in active use | Introduce unnecessary output-field renames that would risk compatibility |
+| Add focused shape assertions in output and integration tests | Prevent accidental schema drift without brittle full-payload snapshots | Snapshot whole JSON payloads (too brittle for additive evolution) |
+| Add README example payload with parser guard in tests | Keep docs and real contract aligned over time with minimal overhead | Document contract only in prose without executable drift detection |
+
+### Files modified (audit JSON contract lock pass)
+- `tests/Output.Tests.ps1`
+- `tests/StartSandboxAudit.Tests.ps1`
+- `tests/AuditJsonContract.Tests.ps1` (new)
+- `README.md`
+- `docs/QUICKSTART.md`
+- `IMPLEMENTATION_TRACKER.md`
+
+### Validation (audit JSON contract lock pass)
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Pester tests (output contract) | ✅ | `Invoke-Pester -Path tests/Output.Tests.ps1` | 2026-03-14 |
+| Pester tests (audit integration contract) | ✅ | `Invoke-Pester -Path tests/StartSandboxAudit.Tests.ps1` | 2026-03-14 |
+| Pester tests (README example contract) | ✅ | `Invoke-Pester -Path tests/AuditJsonContract.Tests.ps1` | 2026-03-14 |
+| Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
+| PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-14 |

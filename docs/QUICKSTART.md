@@ -122,6 +122,7 @@ See [PROFILES.md](PROFILES.md) for what each profile includes.
 Audit trust boundary:
 - Audit findings are based on configured/requested settings and generated artifact contents.
 - Audit does not prove runtime behavior inside Windows Sandbox unless explicitly stated.
+- For automation-facing `-Audit -OutputJson` field guarantees, see the "Audit JSON contract" section in [README.md](../README.md).
 
 Common `-Validate` remediations:
 - Shared-folder path rejected: choose a dedicated local non-reparse ingress path (for example `C:\Lab\Ingress`).

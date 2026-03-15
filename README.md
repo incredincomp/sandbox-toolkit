@@ -161,6 +161,86 @@ JSON stability notes:
 - List-tools JSON includes `command.mode` and `tools[]` with stable catalog fields (`id`, `display_name`, `installer_type`, `install_order`, `category`, `profiles`).
 - List-profiles JSON includes `command.mode` and `profiles[]` with explicit `type` (`built-in` or `custom`) and `base_profile`.
 
+### Audit JSON contract
+
+Invoke with:
+
+```powershell
+.\Start-Sandbox.ps1 -Audit -OutputJson
+```
+
+Stable top-level fields (automation-safe):
+- `command.mode` (`audit`)
+- `overall_status` (`PASS`, `WARN`, `FAIL`)
+- `exit_code` (`0` or `1`)
+- `profile` (`selected`, `resolved_type`, `base_profile`)
+- `overrides` (`add_tools`, `remove_tools`)
+- `effective` (`networking_requested`, `tools[]`)
+- `artifacts` (`install_manifest_path`, `wsb_path`)
+- `checks[]` (required per-check fields: `id`, `status`, `summary`, `remediation`)
+- `context` (`skip_prereq_check`, `requested_shared_folder`, `resolved_shared_folder`, `shared_folder_writable`, `runtime_verification`)
+
+Trust-boundary semantics:
+- Audit evidence is host-side/config-side and reflects configured/requested artifact state.
+- `context.runtime_verification` is currently `not_performed`.
+- Check summaries may include wording like `configured/requested` and `not runtime-verified`.
+
+Stability guidance:
+- Breaking changes: renaming/removing stable fields above, changing their object/array shape, or changing `exit_code`/`overall_status` semantics.
+- Additive changes: adding new top-level fields, adding optional nested fields, adding new check IDs, and extending human-readable summary text.
+
+Example payload:
+<!-- audit-json-example:start -->
+```json
+{
+  "command": {
+    "mode": "audit"
+  },
+  "overall_status": "WARN",
+  "exit_code": 0,
+  "profile": {
+    "selected": "minimal",
+    "resolved_type": "built-in",
+    "base_profile": "minimal"
+  },
+  "overrides": {
+    "add_tools": [],
+    "remove_tools": []
+  },
+  "effective": {
+    "networking_requested": "Disable",
+    "tools": [
+      {
+        "id": "vscode",
+        "display_name": "Visual Studio Code",
+        "installer_type": "exe",
+        "install_order": 20
+      }
+    ]
+  },
+  "artifacts": {
+    "install_manifest_path": "C:\\repo\\scripts\\install-manifest.json",
+    "wsb_path": "C:\\repo\\sandbox.wsb"
+  },
+  "checks": [
+    {
+      "id": "wsb-networking",
+      "status": "PASS",
+      "summary": "Networking setting 'Disable' is present in generated artifact as requested (configured/requested, not runtime-verified).",
+      "remediation": null
+    }
+  ],
+  "context": {
+    "skip_prereq_check": true,
+    "requested_shared_folder": null,
+    "resolved_shared_folder": null,
+    "shared_folder_writable": false,
+    "runtime_verification": "not_performed"
+  }
+}
+```
+<!-- audit-json-example:end -->
+
 ### Custom profiles and runtime overrides
 
 User-defined profiles live in optional repo-local `custom-profiles.local.json`:
