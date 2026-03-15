@@ -823,3 +823,27 @@ Estimated size: Small (1–2 files)
 |-------|--------|--------|------|
 | Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
 | PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-14 |
+
+### Scope (release hardening pass: integration characterization)
+- Add bounded Start-Sandbox integration coverage for CLI/config feature combinations:
+  - `-DryRun` with built-in/custom profiles and runtime add/remove overrides.
+  - `-Validate` with built-in/custom profiles and invalid profile/tool/custom-config inputs.
+  - invalid parameter-combination and unsafe shared-folder failures.
+  - `-ListTools` / `-ListProfiles` state reflection.
+  - `-CleanDownloads` cleanup scope boundaries.
+
+### Decisions made (release hardening pass: integration characterization)
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Add one new end-to-end Pester suite that invokes `Start-Sandbox.ps1` directly | Verifies integrated command surfaces and precedence using real script entrypoint behavior | Add only more unit tests around helper functions |
+| Prefer JSON-mode assertions for validate/dry-run/list checks | Reduces fragility while still validating user-facing semantics | Match full human-readable output text |
+| Keep cleanup-scope check bounded with a disposable sentinel file | Proves non-cache surfaces are not mutated without broad filesystem side effects | Attempt broad recursive host-state assertions |
+
+### Files modified (release hardening pass: integration characterization)
+- `tests/StartSandboxCliIntegration.Tests.ps1` (new)
+- `IMPLEMENTATION_TRACKER.md`
+
+### Validation (release hardening pass: integration characterization)
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Pester tests (new integration suite) | ✅ | `Invoke-Pester -Path tests/StartSandboxCliIntegration.Tests.ps1` | 2026-03-15 |
