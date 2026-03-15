@@ -220,7 +220,11 @@ foreach ($tool in $tools) {
             }
             'manual' {
                 Write-InstallLog "  MANUAL: $($tool.notes)" -Level 'WARN'
-                Write-InstallLog "  Installer available at: $src" -Level 'WARN'
+                if (Test-Path $src) {
+                    Write-InstallLog "  Installer available at: $src" -Level 'WARN'
+                } else {
+                    Write-InstallLog '  No bundled installer file was staged for this tool.' -Level 'WARN'
+                }
                 $manual++
                 $true   # Not a failure -- user must run it manually
             }

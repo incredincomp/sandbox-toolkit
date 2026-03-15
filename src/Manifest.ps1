@@ -1,7 +1,16 @@
 # src/Manifest.ps1
 # Loads and filters the tools.json manifest.
 
-$script:SupportedSandboxProfiles = @('minimal', 'reverse-engineering', 'network-analysis', 'full')
+$script:SupportedSandboxProfiles = @(
+    'minimal',
+    'reverse-engineering',
+    'network-analysis',
+    'full',
+    'triage-plus',
+    'reverse-windows',
+    'behavior-net',
+    'dev-windows'
+)
 
 function Get-SandboxProfileSupport {
     <#

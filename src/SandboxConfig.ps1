@@ -8,6 +8,10 @@ $script:NetworkingByProfile = @{
     'reverse-engineering' = 'Disable'
     'network-analysis'    = 'Enable'   # Required for Wireshark capture. See SAFETY.md.
     'full'                = 'Enable'   # Networking enabled -- use with caution.
+    'triage-plus'         = 'Enable'   # Includes Wireshark for packet/network triage workflows.
+    'reverse-windows'     = 'Disable'
+    'behavior-net'        = 'Enable'   # Behavior tracing with network capture tooling.
+    'dev-windows'         = 'Disable'
 }
 
 function Get-SandboxNetworkingMode {

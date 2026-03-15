@@ -38,13 +38,13 @@
         "display_name": { "type": "string" },
         "category": {
           "type": "string",
-          "enum": ["utility", "editor", "runtime", "reversing", "sysanalysis", "network"]
+          "enum": ["utility", "editor", "runtime", "reversing", "sysanalysis", "network", "developer"]
         },
         "profiles": {
           "type": "array",
           "items": {
             "type": "string",
-            "enum": ["minimal", "reverse-engineering", "network-analysis", "full"]
+            "enum": ["minimal", "reverse-engineering", "network-analysis", "full", "triage-plus", "reverse-windows", "behavior-net", "dev-windows"]
           },
           "minItems": 1
         },

@@ -143,7 +143,6 @@ function Invoke-ToolDownload {
         if ($Tool.notes) {
             Write-StatusLine "         $($Tool.notes)" -ForegroundColor DarkYellow
         }
-        # Still download the file into setups so it's available inside the sandbox.
     }
 
     $destination = Join-Path $SetupDir $Tool.filename
@@ -155,11 +154,17 @@ function Invoke-ToolDownload {
     $url = switch ($Tool.source_type) {
         'vendor'         { $Tool.source_url }
         'sourceforge'    { $Tool.source_url }
+        'manual'         { $null }
         'github_release' {
             $resolved = Resolve-GitHubReleaseAssetUrl -Repo $Tool.github_repo -AssetPattern $Tool.asset_pattern
             $resolved.Url
         }
         default { throw "Unknown source_type '$($Tool.source_type)' for tool '$($Tool.id)'." }
+    }
+
+    if ([string]::IsNullOrWhiteSpace([string]$url)) {
+        Write-StatusLine "  [SKIP] $($Tool.display_name) -- no bundled download source configured." -ForegroundColor DarkYellow
+        return
     }
 
     Invoke-FileDownload -Url $url -Destination $destination -UserAgent $userAgent -Force:$Force
