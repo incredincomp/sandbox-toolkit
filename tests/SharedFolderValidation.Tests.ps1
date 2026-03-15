@@ -249,3 +249,80 @@ Describe 'Assert-SafeSharedFolderPath reparse-point rejection' {
         }
     }
 }
+
+Describe 'Assert-SafeSharedFolderPath ancestry reparse traversal rejection' {
+    It 'accepts a path with no reparse point in ancestry when otherwise valid' {
+        $repoRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("sandbox-toolkit-ancestry-ok-" + [guid]::NewGuid().ToString())
+        $candidatePath = Join-Path $repoRoot 'lab\ingress'
+        New-Item -ItemType Directory -Path $candidatePath -Force | Out-Null
+
+        try {
+            $resolved = Assert-SafeSharedFolderPath -Path $candidatePath -RepoRoot $repoRoot
+
+            $resolved | Should Be (Get-NormalizedFullPath -Path $candidatePath)
+        } finally {
+            if (Test-Path -LiteralPath $repoRoot) {
+                Remove-Item -LiteralPath $repoRoot -Recurse -Force
+            }
+        }
+    }
+
+    It 'rejects a normal target path when parent chain traverses a junction' {
+        $repoRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("sandbox-toolkit-ancestry-reject-" + [guid]::NewGuid().ToString())
+        $realParent = Join-Path $repoRoot 'real-parent'
+        $junctionParent = Join-Path $repoRoot 'junction-parent'
+        New-Item -ItemType Directory -Path $realParent -Force | Out-Null
+
+        try {
+            try {
+                New-Item -ItemType Junction -Path $junctionParent -Target $realParent -ErrorAction Stop | Out-Null
+            } catch {
+                Set-TestInconclusive -Message "Could not create parent junction for test: $($_.Exception.Message)"
+                return
+            }
+
+            $targetUnderJunction = Join-Path $junctionParent 'ingress'
+            New-Item -ItemType Directory -Path $targetUnderJunction -Force | Out-Null
+            $message = Invoke-AndCaptureErrorMessage {
+                Assert-SafeSharedFolderPath -Path $targetUnderJunction -RepoRoot $repoRoot
+            }
+
+            $message | Should Not BeNullOrEmpty
+            $message | Should Match 'traverses a reparse point or junction'
+            $message | Should Match 'blocks reparse/junction ancestry traversal for safety'
+        } finally {
+            if (Test-Path -LiteralPath $repoRoot) {
+                Remove-Item -LiteralPath $repoRoot -Recurse -Force
+            }
+        }
+    }
+
+    It 'rejects simulated synced/managed-style path when ancestry includes a junction' {
+        $repoRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("sandbox-toolkit-synced-sim-" + [guid]::NewGuid().ToString())
+        $localBackedPath = Join-Path $repoRoot 'local-backed'
+        $simulatedSyncedRoot = Join-Path $repoRoot 'OneDrive-Sim'
+        New-Item -ItemType Directory -Path $localBackedPath -Force | Out-Null
+
+        try {
+            try {
+                New-Item -ItemType Junction -Path $simulatedSyncedRoot -Target $localBackedPath -ErrorAction Stop | Out-Null
+            } catch {
+                Set-TestInconclusive -Message "Could not create simulated synced root junction: $($_.Exception.Message)"
+                return
+            }
+
+            $simulatedIngressPath = Join-Path $simulatedSyncedRoot 'samples\ingress'
+            New-Item -ItemType Directory -Path $simulatedIngressPath -Force | Out-Null
+            $message = Invoke-AndCaptureErrorMessage {
+                Assert-SafeSharedFolderPath -Path $simulatedIngressPath -RepoRoot $repoRoot
+            }
+
+            $message | Should Not BeNullOrEmpty
+            $message | Should Match 'traverses a reparse point or junction'
+        } finally {
+            if (Test-Path -LiteralPath $repoRoot) {
+                Remove-Item -LiteralPath $repoRoot -Recurse -Force
+            }
+        }
+    }
+}
