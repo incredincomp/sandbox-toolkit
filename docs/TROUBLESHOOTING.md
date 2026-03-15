@@ -73,6 +73,20 @@ Check `install-log.txt` on the sandbox Desktop for details.
 
 ---
 
+## WSL helper hardening checks
+
+For WSL helper hardening issues (for example host drives still mounted under `/mnt/...` or interop still appearing enabled), use the existing WSL helper troubleshooting subsection in [README](../README.md#optional-wsl-helper-sidecar) or [QUICKSTART](./QUICKSTART.md#wsl-helper-boundary).
+
+Keep trust boundaries explicit: WSL helper is optional orchestration only; Windows Sandbox remains the primary isolation boundary.
+
+After manual fixes in the target helper distro, re-run:
+
+```powershell
+.\Start-Sandbox.ps1 -Validate -UseWslHelper -WslDistro <name>
+```
+
+---
+
 ## Npcap does not install silently
 
 This is by design. Npcap's installer requires user interaction.

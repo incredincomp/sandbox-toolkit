@@ -803,3 +803,23 @@ Estimated size: Small (1–2 files)
 |-------|--------|--------|------|
 | Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
 | PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-14 |
+
+### Scope (WSL helper troubleshooting discoverability pass)
+- Add a concise cross-link from primary troubleshooting docs to existing WSL helper troubleshooting guidance.
+- Keep this pass documentation-only with no CLI/runtime/validation behavior changes.
+
+### Decisions made (WSL helper troubleshooting discoverability pass)
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Add one navigational note to `docs/TROUBLESHOOTING.md` and link to existing README/QUICKSTART WSL helper sections | `docs/TROUBLESHOOTING.md` is the repo's broad troubleshooting entry point; this closes discoverability gap without duplication | Copy full symptom/cause/fix bullets into `docs/TROUBLESHOOTING.md` |
+| Keep wording trust-boundary explicit and reuse existing validation command | Preserve current conservative security posture and operational flow | Add new helper checks or restart automation guidance |
+
+### Files modified (WSL helper troubleshooting discoverability pass)
+- `docs/TROUBLESHOOTING.md`
+- `IMPLEMENTATION_TRACKER.md`
+
+### Validation (WSL helper troubleshooting discoverability pass)
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
+| PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-14 |
