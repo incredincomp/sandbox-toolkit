@@ -120,6 +120,11 @@ jobs:
             expect_exit: 0
             expect_json: true
             expected_mode: list-profiles
+          - name: check-for-updates-json
+            args: "-CheckForUpdates -Profile minimal -OutputJson"
+            expect_exit: 0
+            expect_json: true
+            expected_mode: check-for-updates
           - name: validate-built-in-json
             args: "-Validate -SkipPrereqCheck -Profile minimal -OutputJson"
             expect_exit: 0
@@ -155,6 +160,18 @@ jobs:
             expect_exit: 0
             expect_json: false
             expected_mode: none
+          - name: list-tools-invalid-nolaunch
+            args: "-ListTools -NoLaunch"
+            expect_exit: 1
+            expect_json: false
+            expected_mode: none
+            expected_substring: "Invalid parameter combination"
+          - name: list-profiles-invalid-skipprereq
+            args: "-ListProfiles -SkipPrereqCheck"
+            expect_exit: 1
+            expect_json: false
+            expected_mode: none
+            expected_substring: "Invalid parameter combination"
     steps:
       - uses: actions/checkout@v4
 
@@ -182,6 +199,7 @@ jobs:
           EXPECT_EXIT: ${{ matrix.expect_exit }}
           EXPECT_JSON: ${{ matrix.expect_json }}
           EXPECTED_MODE: ${{ matrix.expected_mode }}
+          EXPECTED_SUBSTRING: ${{ matrix.expected_substring }}
         run: |
           $args = @($env:SMOKE_ARGS -split ' ' | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
           $output = & powershell -NoProfile -ExecutionPolicy Bypass -File .\Start-Sandbox.ps1 @args 2>&1 | Out-String
@@ -196,6 +214,12 @@ jobs:
               $json = $output | ConvertFrom-Json
               if ($json.command.mode -ne $env:EXPECTED_MODE) {
                   throw "Expected command.mode '$env:EXPECTED_MODE' but got '$($json.command.mode)' for args '$env:SMOKE_ARGS'."
+              }
+          }
+
+          if (-not [string]::IsNullOrWhiteSpace($env:EXPECTED_SUBSTRING)) {
+              if ($output -notmatch [regex]::Escape($env:EXPECTED_SUBSTRING)) {
+                  throw "Expected output to contain '$env:EXPECTED_SUBSTRING' for args '$env:SMOKE_ARGS'. Output:`n$output"
               }
           }
 
@@ -244,6 +268,11 @@ jobs:
               ExpectedExitCode = 0
             }
             [pscustomobject]@{
+              Name = 'check-for-updates-success'
+              Args = @('-CheckForUpdates', '-OutputJson', '-Profile', 'minimal')
+              ExpectedExitCode = 0
+            }
+            [pscustomobject]@{
               Name = 'list-tools-success'
               Args = @('-ListTools', '-OutputJson')
               ExpectedExitCode = 0
@@ -261,6 +290,11 @@ jobs:
             [pscustomobject]@{
               Name = 'invalid-parameter-combination'
               Args = @('-Validate', '-DryRun')
+              ExpectedExitCode = 1
+            }
+            [pscustomobject]@{
+              Name = 'list-invalid-nolaunch'
+              Args = @('-ListTools', '-NoLaunch')
               ExpectedExitCode = 1
             }
           )

@@ -4,6 +4,24 @@ All notable changes to this project will be documented here.
 
 ---
 
+## [2.0.9] — 2026-03-15
+
+### Hardening
+
+- Extended release-hardening integration characterization for:
+  - list-mode invalid-parameter combinations (`-NoLaunch`, `-SkipPrereqCheck`) with clear failure categories.
+  - cleanup-scope checks confirming `-CleanDownloads` does not mutate local profile/template config surfaces.
+- Standardized non-JSON fatal handling to emit concise user-facing errors with deterministic exit code `1`.
+
+### CI / Release readiness
+
+- Expanded deterministic CLI smoke matrix with:
+  - `-CheckForUpdates -OutputJson` success path.
+  - list-mode invalid-parameter failure paths.
+- Extended table-driven CI exit-code contract assertions with:
+  - `-CheckForUpdates` success example.
+  - list-mode invalid-parameter failure example.
+
 ## [2.0.8] — 2026-03-15
 
 ### Features

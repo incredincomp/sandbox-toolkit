@@ -136,6 +136,40 @@ Estimated size: Small (1–2 files)
 
 ---
 
+## 2026-03-15 Session log (release hardening follow-up)
+
+### Scope
+- Run bounded integration hardening for dry-run/validate/list/cleanup command surfaces.
+- Tighten deterministic CI smoke/exit-code coverage for release readiness.
+- Align release docs/changelog with confirmed behavior.
+
+### Decisions made
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Add characterization tests for list-mode invalid combinations and cleanup scope against local config surfaces | Required release-hardening combinations should be proven end-to-end, not only in unit tests | Keep only existing unit-level CLI combination tests |
+| Standardize non-JSON fatal handling to concise `Write-Error` + exit `1` | Improves user-facing consistency for fatal errors while preserving deterministic exit behavior | Preserve raw exception rethrow output |
+| Extend CI smoke + exit-code contract with check-for-updates and list invalid-combo cases | Keep release confidence aligned with documented command/exit behavior | Rely only on Pester suites for this coverage |
+
+### Files modified
+- `tests/StartSandboxReleaseHardening.Tests.ps1`
+- `Start-Sandbox.ps1`
+- `.github/workflows/validate.yml`
+- `README.md`
+- `docs/QUICKSTART.md`
+- `CHANGELOG.md`
+- `IMPLEMENTATION_TRACKER.md`
+
+### Validation
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Release hardening characterization tests | ✅ | `Invoke-Pester -Path tests/StartSandboxReleaseHardening.Tests.ps1` | 2026-03-15 |
+| CLI integration tests | ✅ | `Invoke-Pester -Path tests/StartSandboxCliIntegration.Tests.ps1` | 2026-03-15 |
+| JSON mode tests | ✅ | `Invoke-Pester -Path tests/StartSandboxJson.Tests.ps1` | 2026-03-15 |
+| Full test suite | ✅ | `Invoke-Pester -Path tests` | 2026-03-15 |
+| PSScriptAnalyzer (Error,Warning) | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' \| ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-15 |
+
+---
+
 ## 2026-03-14 Session log (CLI foundation pass)
 
 ### Scope

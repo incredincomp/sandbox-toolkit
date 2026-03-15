@@ -15,6 +15,18 @@ The default posture is safer-by-default: disposable fresh sandbox sessions, read
 
 ---
 
+## What changed (2.0.9)
+
+- Hardened integration characterization coverage for release readiness:
+  - list-mode invalid combinations (`-NoLaunch`, `-SkipPrereqCheck`) now explicitly characterized end-to-end.
+  - cleanup-scope characterization now asserts local profile/template config surfaces are not mutated by `-CleanDownloads`.
+- Standardized non-JSON fatal handling for clearer user-facing failures with consistent exit code `1`.
+- Expanded deterministic CI smoke/exit-code contract coverage to include:
+  - `-CheckForUpdates -OutputJson` success path
+  - list-mode invalid-parameter failure paths
+
+---
+
 ## What changed (2.0.8)
 
 - Added richer optional per-tool update metadata in `tools.json` via `tool.update`.

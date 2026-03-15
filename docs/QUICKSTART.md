@@ -163,6 +163,11 @@ Update-check summary (2.0.8):
 - Update metadata lives in optional per-tool `update` blocks in `tools.json`.
 - Source adapters are explicit (`github_release`, `rss`, `static`, `unsupported`) to keep behavior deterministic.
 
+Release-hardening summary (2.0.9):
+- list-mode invalid combinations are characterized end-to-end (`-NoLaunch` / `-SkipPrereqCheck` with list modes).
+- `-CleanDownloads` cleanup scope is characterized against local profile/template config surfaces.
+- non-JSON fatal errors are emitted as concise user-facing failures with exit code `1`.
+
 `-Validate` vs `-DryRun` vs `-Audit`:
 - `-Validate` answers: "Can I safely/run this on this host now?" It does not download, generate artifacts, or launch.
 - `-DryRun` answers: "What would be selected/generated?" It still writes generated host artifacts (`install-manifest.json`, `sandbox.wsb`) but skips download and launch.
