@@ -171,6 +171,29 @@ Common mistakes:
 
 The example is illustrative; runtime custom-profile validation is the source of truth.
 
+Custom profile troubleshooting:
+- Symptom: `-ListProfiles` or `-Validate` fails after editing custom profiles.
+  Cause: malformed JSON or missing `profiles` property.
+  Fix: copy `custom-profiles.example.json` again and reapply edits in small steps.
+- Symptom: unknown `base_profile`.
+  Cause: unsupported base profile value.
+  Fix: use one of `minimal`, `reverse-engineering`, `network-analysis`, `full`.
+- Symptom: unknown tool ID in `add_tools` or `remove_tools`.
+  Cause: typo or non-existent tool ID.
+  Fix: run `.\Start-Sandbox.ps1 -ListTools` and use exact IDs.
+- Symptom: custom profile does not show in `-ListProfiles`.
+  Cause: malformed local file or wrong file location/name.
+  Fix: ensure file is `.\custom-profiles.local.json` in repo root and rerun `-ListProfiles`.
+
+Recommended authoring workflow:
+
+```powershell
+Copy-Item .\custom-profiles.example.json .\custom-profiles.local.json
+.\Start-Sandbox.ps1 -ListProfiles
+.\Start-Sandbox.ps1 -Validate -Profile net-re-lite
+.\Start-Sandbox.ps1 -DryRun -Profile net-re-lite
+```
+
 Usage:
 
 ```powershell

@@ -284,6 +284,32 @@ Common authoring mistakes:
 
 The example is illustrative. Runtime validation (`Import-CustomProfileConfig` + `Test-CustomProfileConfigIntegrity`) remains the source of truth.
 
+Custom profile troubleshooting:
+- Symptom: `-ListProfiles` or `-Validate` fails after editing local custom profiles.
+  Likely cause: malformed JSON or missing required top-level `profiles` property.
+  Fix: start from `custom-profiles.example.json` again and reapply edits incrementally.
+- Symptom: validation reports unknown `base_profile`.
+  Likely cause: `base_profile` is not one of built-in profiles.
+  Fix: use one of `minimal`, `reverse-engineering`, `network-analysis`, or `full`.
+- Symptom: validation reports unknown tool IDs in `add_tools` / `remove_tools`.
+  Likely cause: typo or unsupported tool ID.
+  Fix: run `.\Start-Sandbox.ps1 -ListTools` and copy exact IDs.
+- Symptom: validation reports duplicate or conflicting custom profile names.
+  Likely cause: repeated `name` values or `name` matching a built-in profile.
+  Fix: ensure each custom profile name is unique and not one of the built-in names.
+- Symptom: profile does not appear in `-ListProfiles`.
+  Likely cause: local file is malformed or not loaded from repo root.
+  Fix: confirm file path/name is exactly `.\custom-profiles.local.json` and rerun `-ListProfiles` to surface load/validation errors.
+
+Recommended authoring workflow:
+
+```powershell
+Copy-Item .\custom-profiles.example.json .\custom-profiles.local.json
+.\Start-Sandbox.ps1 -ListProfiles
+.\Start-Sandbox.ps1 -Validate -Profile net-re-lite
+.\Start-Sandbox.ps1 -DryRun -Profile net-re-lite
+```
+
 Runtime override parameters:
 - `-AddTools <id[]>`
 - `-RemoveTools <id[]>`

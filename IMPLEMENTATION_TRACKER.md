@@ -533,3 +533,23 @@ Estimated size: Small (1–2 files)
 | Pester tests (custom profile sample guard) | ✅ | `Invoke-Pester -Path tests/Manifest.Tests.ps1` | 2026-03-14 |
 | Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
 | PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-14 |
+
+### Scope (custom profile troubleshooting docs pass)
+- Add concise troubleshooting guidance for local custom-profile authoring failures.
+
+### Decisions made (custom profile troubleshooting docs pass)
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Keep this pass documentation-only in README/QUICKSTART | Existing validator behavior already enforces needed categories; user friction was interpretation | Change validation logic or error text in code |
+| Ground troubleshooting items only in real validator categories | Avoid inventing non-existent failure modes | Generic FAQ entries not tied to actual checks |
+
+### Files modified (custom profile troubleshooting docs pass)
+- `README.md`
+- `docs/QUICKSTART.md`
+- `IMPLEMENTATION_TRACKER.md`
+
+### Validation (custom profile troubleshooting docs pass)
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
+| PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-14 |
