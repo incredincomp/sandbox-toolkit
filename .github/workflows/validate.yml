@@ -7,6 +7,22 @@ on:
     branches: [main, master]
 
 jobs:
+  test-pester:
+    name: Pester
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Pester
+        shell: pwsh
+        run: Install-Module Pester -Force -Scope CurrentUser
+
+      - name: Run Pester tests
+        shell: pwsh
+        run: Invoke-Pester -Path tests -CI
+
   lint-powershell:
     name: PSScriptAnalyzer
     runs-on: windows-latest
@@ -84,3 +100,86 @@ jobs:
               sys.exit(1)
           print("All source fields validated.")
           PYEOF
+
+  cli-smoke:
+    name: CLI Smoke (${{ matrix.name }})
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: list-tools-json
+            args: "-ListTools -OutputJson"
+            expect_exit: 0
+            expect_json: true
+            expected_mode: list-tools
+          - name: list-profiles-json
+            args: "-ListProfiles -OutputJson"
+            expect_exit: 0
+            expect_json: true
+            expected_mode: list-profiles
+          - name: validate-built-in-json
+            args: "-Validate -SkipPrereqCheck -Profile minimal -OutputJson"
+            expect_exit: 0
+            expect_json: true
+            expected_mode: validate
+          - name: dry-run-custom-json
+            args: "-DryRun -SkipPrereqCheck -Profile net-re-lite -AddTools floss -RemoveTools pestudio -OutputJson"
+            expect_exit: 0
+            expect_json: true
+            expected_mode: dry-run
+          - name: validate-invalid-profile-json
+            args: "-Validate -OutputJson -Profile not-a-profile"
+            expect_exit: 1
+            expect_json: true
+            expected_mode: validate
+          - name: clean-downloads
+            args: "-CleanDownloads"
+            expect_exit: 0
+            expect_json: false
+            expected_mode: none
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Seed custom profile fixture
+        shell: pwsh
+        run: |
+          @'
+          {
+            "schema_version": "1.0",
+            "profiles": [
+              {
+                "name": "net-re-lite",
+                "base_profile": "reverse-engineering",
+                "add_tools": ["wireshark"],
+                "remove_tools": ["ghidra"]
+              }
+            ]
+          }
+          '@ | Set-Content -Path .\custom-profiles.local.json -Encoding UTF8
+
+      - name: Execute smoke command
+        shell: pwsh
+        env:
+          SMOKE_ARGS: ${{ matrix.args }}
+          EXPECT_EXIT: ${{ matrix.expect_exit }}
+          EXPECT_JSON: ${{ matrix.expect_json }}
+          EXPECTED_MODE: ${{ matrix.expected_mode }}
+        run: |
+          $args = @($env:SMOKE_ARGS -split ' ' | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+          $output = & powershell -NoProfile -ExecutionPolicy Bypass -File .\Start-Sandbox.ps1 @args 2>&1 | Out-String
+          $exitCode = $LASTEXITCODE
+          $expectedExit = [int]$env:EXPECT_EXIT
+
+          if ($exitCode -ne $expectedExit) {
+              throw "Expected exit code $expectedExit but got $exitCode for args '$env:SMOKE_ARGS'. Output:`n$output"
+          }
+
+          if ($env:EXPECT_JSON -eq 'true') {
+              $json = $output | ConvertFrom-Json
+              if ($json.command.mode -ne $env:EXPECTED_MODE) {
+                  throw "Expected command.mode '$env:EXPECTED_MODE' but got '$($json.command.mode)' for args '$env:SMOKE_ARGS'."
+              }
+          }

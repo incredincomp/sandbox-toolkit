@@ -4,6 +4,29 @@ All notable changes to this project will be documented here.
 
 ---
 
+## [2.0.5] — 2026-03-15
+
+### Hardening
+
+- Added integrated CLI characterization coverage for:
+  - `-DryRun` with built-in/custom profiles and runtime add/remove overrides.
+  - `-Validate` with built-in/custom profiles and invalid profile/tool/custom-config inputs.
+  - list-mode state reflection and cleanup-scope behavior.
+- Preserved tracked `scripts/setups/.gitkeep` during `-CleanDownloads` while keeping disposable cache/session cleanup behavior.
+- Standardized key user-facing error categories:
+  - unknown profile
+  - unknown tool id
+  - malformed custom profile config
+  - invalid parameter combinations
+- Normalized JSON fatal error mode naming to align with successful mode contracts (`dry-run`, `list-tools`, `list-profiles`, etc.).
+
+### CI / Release readiness
+
+- Added CI Pester execution on Windows.
+- Added deterministic CLI smoke matrix for realistic non-destructive command combinations using `-SkipPrereqCheck`, JSON seams, and cleanup mode.
+
+---
+
 ## [2.0.4] — 2026-03-14
 
 ### Reliability

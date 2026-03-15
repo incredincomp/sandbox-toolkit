@@ -880,3 +880,34 @@ Estimated size: Small (1–2 files)
 | Check | Result | Method | Date |
 |-------|--------|--------|------|
 | Pester tests (targeted integration + affected suites) | ✅ | `Invoke-Pester -Path tests/Maintenance.Tests.ps1,tests/Session.Tests.ps1,tests/Validation.Tests.ps1,tests/StartSandboxJson.Tests.ps1,tests/StartSandboxCliIntegration.Tests.ps1,tests/Cli.Tests.ps1,tests/StartSandboxAudit.Tests.ps1` | 2026-03-15 |
+
+### Scope (release hardening pass: CI/docs/release prep)
+- Add CI coverage for release readiness:
+  - Pester job on Windows.
+  - deterministic CLI smoke matrix for list/validate/dry-run/custom-profile/cleanup seams.
+- Align docs/help with confirmed behavior:
+  - explicit release "What changed" summary.
+  - precedence and exit-code semantics.
+  - updated help links/examples for custom-profile validation context.
+- Record release notes in changelog.
+
+### Decisions made (release hardening pass: CI/docs/release prep)
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Add both Pester and direct CLI smoke jobs in CI | Combines broad regression detection with realistic command-surface checks | Add only one of test or smoke jobs |
+| Keep smoke commands non-destructive/deterministic (`-SkipPrereqCheck`, JSON seams, bounded cleanup) | Avoid flaky host-dependent sandbox execution in CI while still covering integrated command paths | Attempt real Windows Sandbox launch behavior in CI |
+| Document exit-code semantics centrally in README/QUICKSTART | Makes automation/release expectations explicit and consistent with implemented behavior | Leave behavior implicit in tests only |
+
+### Files modified (release hardening pass: CI/docs/release prep)
+- `.github/workflows/validate.yml`
+- `Start-Sandbox.ps1`
+- `README.md`
+- `docs/QUICKSTART.md`
+- `CHANGELOG.md`
+- `IMPLEMENTATION_TRACKER.md`
+
+### Validation (release hardening pass: CI/docs/release prep)
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-15 |
+| PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' \| ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-15 |

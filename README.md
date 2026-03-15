@@ -15,6 +15,32 @@ The default posture is safer-by-default: disposable fresh sandbox sessions, read
 
 ---
 
+## What changed (2.0.5)
+
+- Hardened integrated CLI surfaces for:
+  - `-ListTools`
+  - `-ListProfiles`
+  - `-DryRun`
+  - `-Validate`
+  - custom profiles (`custom-profiles.local.json`)
+  - runtime tool overrides (`-AddTools`, `-RemoveTools`)
+  - bounded artifact cleanup (`-CleanDownloads`)
+- Made selection precedence explicit and test-backed:
+  1. base profile selection
+  2. custom-profile resolution (when selected)
+  3. runtime add/remove overrides (`-AddTools` then `-RemoveTools`)
+- Standardized high-signal errors for:
+  - unknown profile
+  - unknown tool id
+  - malformed custom profile config
+  - invalid parameter combinations
+  - unsafe shared-folder paths
+- Added CI hardening for release readiness:
+  - Pester test execution
+  - CLI smoke matrix using deterministic `-Validate`/`-DryRun`/list/cleanup seams
+
+---
+
 ## Opt-in shared folder workflow
 
 Use this when you need to transfer files from host to sandbox for triage.
@@ -282,6 +308,13 @@ Exit behavior:
 - `0`: validation passed (warnings may still be present).
 - `1`: one or more validation checks failed.
 
+General exit-code expectations:
+- `-ListTools` / `-ListProfiles`: `0` on success, `1` on fatal input/config errors.
+- `-DryRun`: `0` on successful resolution/artifact generation preview, `1` on fatal input/config errors.
+- `-Audit`: `0` when no audit failures are present, `1` when audit failures are present.
+- `-CleanDownloads`: `0` when cleanup completes (including "Nothing to clean"), `1` on deletion failures.
+- Invalid parameter combinations, unknown profiles/tools, malformed custom-profile config, and unsafe shared-folder inputs return `1`.
+
 ### Audit generated configuration (non-destructive)
 
 ```powershell
@@ -491,9 +524,9 @@ Runtime override parameters:
 - `-RemoveTools <id[]>`
 
 Precedence rules:
-1. Start with selected built-in profile, or custom profile `base_profile`.
-2. Apply custom profile `add_tools`, then custom profile `remove_tools`.
-3. Apply runtime `-AddTools`, then runtime `-RemoveTools`.
+1. Resolve base profile from selected built-in profile (or custom profile `base_profile`).
+2. Resolve custom-profile tool deltas when applicable (`add_tools`, then `remove_tools`).
+3. Apply runtime overrides (`-AddTools`, then `-RemoveTools`).
 4. Final selection is deduplicated and ordered by manifest `install_order`.
 
 Examples:

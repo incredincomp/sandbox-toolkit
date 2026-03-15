@@ -47,9 +47,11 @@
 
 .PARAMETER AddTools
     Optional tool IDs to add to the selected profile at runtime.
+    Applied after base/custom-profile resolution and before -RemoveTools.
 
 .PARAMETER RemoveTools
     Optional tool IDs to remove from the selected profile at runtime.
+    Applied last; remove overrides win over prior base/custom/runtime add layers.
 
 .PARAMETER OutputJson
     Emit machine-readable JSON for -Validate, -Audit, -DryRun, -ListTools, or -ListProfiles modes.
@@ -122,6 +124,10 @@
     # Emits preflight validation as JSON for automation.
 
 .EXAMPLE
+    .\Start-Sandbox.ps1 -Validate -Profile net-re-lite -SkipPrereqCheck
+    # Validates a custom profile definition and effective selection without artifact generation.
+
+.EXAMPLE
     .\Start-Sandbox.ps1 -Audit -Profile minimal
     # Generates artifacts and audits configured/requested settings without launch.
 
@@ -158,7 +164,7 @@
     # Validates and previews optional WSL helper sidecar usage with selected distro.
 
 .LINK
-    QUICKSTART.md, PROFILES.md, SAFETY.md
+    docs/QUICKSTART.md, docs/PROFILES.md, docs/SAFETY.md
 #>
 
 [CmdletBinding()]

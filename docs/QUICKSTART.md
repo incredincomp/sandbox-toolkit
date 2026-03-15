@@ -138,6 +138,12 @@ Follow this compact sequence:
 
 For automation, add `-OutputJson` to `-Validate`, `-DryRun`, or `-Audit`.
 
+Release-hardening summary (2.0.5):
+- Discoverability: `-ListTools`, `-ListProfiles` align to current manifest/custom profile state.
+- Non-destructive seams: `-Validate` (readiness), `-DryRun` (selection + generated artifacts), `-Audit` (artifact evidence).
+- Runtime overrides: `-AddTools` / `-RemoveTools` applied deterministically after base/custom profile resolution.
+- Maintenance seam: `-CleanDownloads` removes only toolkit-owned disposable cache/session artifacts.
+
 `-Validate` vs `-DryRun` vs `-Audit`:
 - `-Validate` answers: "Can I safely/run this on this host now?" It does not download, generate artifacts, or launch.
 - `-DryRun` answers: "What would be selected/generated?" It still writes generated host artifacts (`install-manifest.json`, `sandbox.wsb`) but skips download and launch.
@@ -269,9 +275,16 @@ Usage:
 ```
 
 Selection precedence:
-1. Built-in profile, or custom profile `base_profile`.
-2. Custom profile `add_tools`, then `remove_tools`.
-3. Runtime `-AddTools`, then `-RemoveTools`.
+1. Base profile resolution (selected built-in profile or custom profile `base_profile`).
+2. Custom profile deltas (if applicable): `add_tools`, then `remove_tools`.
+3. Runtime overrides: `-AddTools`, then `-RemoveTools`.
+
+Exit-code behavior:
+- `-Validate`: `0` pass/warn, `1` fail.
+- `-Audit`: `0` pass/warn, `1` fail.
+- `-DryRun`: `0` success, `1` fatal input/config error.
+- `-ListTools` / `-ListProfiles`: `0` success, `1` fatal input/config error.
+- `-CleanDownloads`: `0` success (including no-op), `1` deletion failures.
 
 Notes:
 - Unknown profile names and unknown tool IDs fail fast with actionable errors.
