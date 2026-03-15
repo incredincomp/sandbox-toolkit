@@ -40,6 +40,33 @@ For supportability, you can add `-SharedFolderValidationDiagnostics` to print an
 
 ---
 
+## Host interaction policy controls
+
+Use these optional switches when you want tighter host-interaction settings in generated `sandbox.wsb`:
+
+- `-DisableClipboard` requests `<ClipboardRedirection>Disable</ClipboardRedirection>`.
+- `-DisableAudioInput` explicitly requests disabled audio input (`<AudioInput>Disable</AudioInput>`).
+- `-DisableStartupCommands` suppresses generated `<LogonCommand>` startup injection (`scripts/autostart.cmd` is not auto-invoked).
+
+Default behavior remains unchanged unless you opt in:
+- Clipboard redirection remains enabled by default.
+- Audio input remains disabled by default.
+- Startup command automation remains enabled by default.
+
+Quick safety verification workflow:
+
+```powershell
+.\Start-Sandbox.ps1 -Validate -Profile minimal -DisableClipboard -DisableStartupCommands
+.\Start-Sandbox.ps1 -DryRun -Profile minimal -DisableClipboard -DisableStartupCommands
+.\Start-Sandbox.ps1 -Audit -Profile minimal -DisableClipboard -DisableStartupCommands
+```
+
+Trust boundary reminder:
+- `-DryRun` and `-Audit` confirm configured/requested policy state in generated artifacts.
+- This does not prove runtime enforcement inside Windows Sandbox unless explicitly stated.
+
+---
+
 ## Quick start
 
 ```powershell
@@ -135,6 +162,7 @@ If nothing exists yet, cleanup succeeds and reports "Nothing to clean."
 - Manifest/profile/tool-selection readiness.
 - Shared-folder safety using the same hardened path rules.
 - Host prerequisite checks (PowerShell version, Windows Sandbox feature state when detectable).
+- Host-interaction policy readiness (including explicit warning when startup command automation is disabled).
 
 `-Validate` does not check:
 - In-sandbox runtime behavior (installer success, clipboard/audio policy behavior, sample behavior).
@@ -158,7 +186,7 @@ Exit behavior:
 `-Audit` checks:
 - Effective request context (selected/base profile, effective tools, requested networking mode).
 - Generated artifact presence and parseability (`scripts/install-manifest.json`, `sandbox.wsb`).
-- Requested vs generated `sandbox.wsb` settings (networking, logon command, mapped folder/read-only state).
+- Requested vs generated `sandbox.wsb` settings (networking, clipboard redirection, audio input, logon command, mapped folder/read-only state).
 - Shared-folder mapping intent versus generated mapping.
 
 `-Audit` does not prove runtime enforcement:

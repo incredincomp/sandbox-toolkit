@@ -4,6 +4,19 @@ All notable changes to this project will be documented here.
 
 ---
 
+## [2.0.2] — 2026-03-14
+
+### Features
+
+- Added host-interaction policy switches for generated sandbox configuration:
+  - `-DisableClipboard` (requests `ClipboardRedirection=Disable`)
+  - `-DisableAudioInput` (explicitly requests `AudioInput=Disable`)
+  - `-DisableStartupCommands` (suppresses generated `LogonCommand` startup injection)
+- Extended `-Validate`, `-DryRun`, and `-Audit` (including JSON output) to surface configured/requested host-interaction policy state.
+- Preserved existing default behavior when new switches are not used.
+
+---
+
 ## [2.0.1] — 2026-03-14
 
 ### Documentation

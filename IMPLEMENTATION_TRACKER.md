@@ -592,3 +592,44 @@ Estimated size: Small (1–2 files)
 |-------|--------|--------|------|
 | Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
 | PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-14 |
+
+### Scope (host interaction policy pass)
+- Add bounded host-interaction policy controls for generated `sandbox.wsb`:
+  - `-DisableClipboard`
+  - `-DisableAudioInput` (explicit idempotent request; default already disabled)
+  - `-DisableStartupCommands`
+- Centralize effective host-interaction policy state and wire it through run/validate/dry-run/audit generation paths.
+- Extend audit and JSON projections additively to expose configured/requested policy state with trust-boundary wording.
+
+### Decisions made (host interaction policy pass)
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Introduce `Get-SandboxHostInteractionPolicy` as one authoritative policy seam | Prevent drift across CLI/session/WSB rendering/validation/audit/output surfaces | Scatter independent booleans across command handlers and renderers |
+| Keep audio input default disabled and treat `-DisableAudioInput` as explicit/idempotent | Preserve existing behavior while still giving users an explicit safety control | Change defaults or add broader audio-policy redesign |
+| Implement startup suppression as conditional `LogonCommand` emission with validation warning | Bounded and honest control over existing autostart injection concept | Broader startup-policy abstractions or runtime claims |
+
+### Files modified (host interaction policy pass)
+- `Start-Sandbox.ps1`
+- `src/SandboxConfig.ps1`
+- `src/Session.ps1`
+- `src/Cli.ps1`
+- `src/Validation.ps1`
+- `src/Audit.ps1`
+- `src/Output.ps1`
+- `tests/Cli.Tests.ps1`
+- `tests/Validation.Tests.ps1`
+- `tests/Session.Tests.ps1`
+- `tests/Audit.Tests.ps1`
+- `tests/Output.Tests.ps1`
+- `tests/StartSandboxJson.Tests.ps1`
+- `tests/StartSandboxAudit.Tests.ps1`
+- `README.md`
+- `docs/QUICKSTART.md`
+- `CHANGELOG.md`
+- `IMPLEMENTATION_TRACKER.md`
+
+### Validation (host interaction policy pass)
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
+| PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-14 |

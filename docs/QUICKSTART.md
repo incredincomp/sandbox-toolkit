@@ -88,6 +88,7 @@ See [PROFILES.md](PROFILES.md) for what each profile includes.
 # Audit generated artifacts/configured request without downloading or launching
 .\Start-Sandbox.ps1 -Audit -Profile minimal
 .\Start-Sandbox.ps1 -Audit -Profile minimal -SharedFolder "C:\Lab\Ingress"
+.\Start-Sandbox.ps1 -Audit -Profile minimal -DisableClipboard -DisableStartupCommands
 
 # Runtime tool overrides
 .\Start-Sandbox.ps1 -Profile minimal -AddTools ghidra,wireshark
@@ -137,6 +138,12 @@ Audit trust boundary:
 - Audit findings are based on configured/requested settings and generated artifact contents.
 - Audit does not prove runtime behavior inside Windows Sandbox unless explicitly stated.
 - For automation-facing `-Audit -OutputJson` field guarantees, see the "Audit JSON contract" section in [README.md](../README.md).
+
+Host-interaction policy controls:
+- `-DisableClipboard` requests disabled clipboard redirection in generated `sandbox.wsb`.
+- `-DisableAudioInput` explicitly requests disabled audio input (default is already disabled).
+- `-DisableStartupCommands` suppresses generated startup command injection (`scripts/autostart.cmd` not auto-run).
+- Use `-Validate`, then `-DryRun`, then `-Audit` to confirm configured/requested policy state before launching.
 
 Common `-Validate` remediations:
 - Shared-folder path rejected: choose a dedicated local non-reparse ingress path (for example `C:\Lab\Ingress`).
