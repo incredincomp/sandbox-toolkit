@@ -5,6 +5,7 @@ scripts/setups/*
 # Generated session files — created at runtime
 scripts/install-manifest.json
 sandbox.wsb
+shared/
 
 # Installer file types (belt-and-suspenders in case setups/ is not enough)
 *.exe
