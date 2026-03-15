@@ -1,6 +1,24 @@
 # src/Workflow.ps1
 # Session lifecycle and optional WSL helper sidecar state/execution helpers.
 
+function Get-WorkflowObjectPropertyValue {
+    param(
+        [Parameter(Mandatory)][object]$InputObject,
+        [Parameter(Mandatory)][string]$PropertyName
+    )
+
+    if (-not $InputObject) {
+        return $null
+    }
+
+    $property = $InputObject.PSObject.Properties[$PropertyName]
+    if (-not $property) {
+        return $null
+    }
+
+    return $property.Value
+}
+
 function Invoke-SandboxWsbCliCommand {
     <#
     .SYNOPSIS
@@ -72,29 +90,80 @@ function Get-SandboxWarmSessionInventory {
         Returns current Windows Sandbox session inventory from CLI.
     #>
     $result = Invoke-SandboxWsbCliCommand -Arguments @('list', '--raw')
-    if ([string]::IsNullOrWhiteSpace($result.Output)) {
+    return @(ConvertFrom-SandboxWsbRawSessionList -RawOutput $result.Output)
+}
+
+function ConvertFrom-SandboxWsbRawSessionList {
+    <#
+    .SYNOPSIS
+        Normalizes `wsb list --raw` output into stable session records.
+    #>
+    param(
+        [AllowEmptyString()][string]$RawOutput
+    )
+
+    if ([string]::IsNullOrWhiteSpace($RawOutput)) {
         return @()
     }
 
-    $parsed = $result.Output | ConvertFrom-Json
+    try {
+        $parsed = $RawOutput | ConvertFrom-Json
+    } catch {
+        throw "Windows Sandbox CLI raw list output could not be parsed as JSON."
+    }
+
     $sessionCandidates = @()
+    $recognizedShape = $false
 
     if ($parsed -is [System.Array]) {
+        $recognizedShape = $true
         $sessionCandidates = @($parsed)
     } elseif ($parsed.PSObject.Properties['sessions']) {
+        $recognizedShape = $true
         $sessionCandidates = @($parsed.sessions)
     } elseif ($parsed.PSObject.Properties['items']) {
+        $recognizedShape = $true
         $sessionCandidates = @($parsed.items)
     } elseif ($parsed.PSObject.Properties['id'] -or $parsed.PSObject.Properties['ID']) {
+        $recognizedShape = $true
         $sessionCandidates = @($parsed)
     }
 
+    if (-not $recognizedShape) {
+        throw 'Windows Sandbox CLI raw list output has unsupported JSON shape.'
+    }
+
+    if ($sessionCandidates.Count -eq 0) {
+        return @()
+    }
+
     return @(
-        $sessionCandidates | ForEach-Object {
+        for ($index = 0; $index -lt $sessionCandidates.Count; $index++) {
+            $candidate = $sessionCandidates[$index]
+            $idValue = [string](Get-WorkflowObjectPropertyValue -InputObject $candidate -PropertyName 'id')
+            if ([string]::IsNullOrWhiteSpace($idValue)) {
+                $idValue = [string](Get-WorkflowObjectPropertyValue -InputObject $candidate -PropertyName 'ID')
+            }
+            $statusValue = [string](Get-WorkflowObjectPropertyValue -InputObject $candidate -PropertyName 'status')
+            if ([string]::IsNullOrWhiteSpace($statusValue)) {
+                $statusValue = [string](Get-WorkflowObjectPropertyValue -InputObject $candidate -PropertyName 'State')
+            }
+
+            if ([string]::IsNullOrWhiteSpace($idValue)) {
+                throw "Windows Sandbox CLI raw list output record #$index is missing required field 'id'."
+            }
+            if ([string]::IsNullOrWhiteSpace($statusValue)) {
+                throw "Windows Sandbox CLI raw list output record #$index is missing required field 'status'."
+            }
+            $uptimeValue = [string](Get-WorkflowObjectPropertyValue -InputObject $candidate -PropertyName 'uptime')
+            if ([string]::IsNullOrWhiteSpace($uptimeValue)) {
+                $uptimeValue = [string](Get-WorkflowObjectPropertyValue -InputObject $candidate -PropertyName 'Uptime')
+            }
+
             [pscustomobject]@{
-                Id = if ($_.id) { [string]$_.id } else { [string]$_.ID }
-                Status = if ($_.status) { [string]$_.status } else { [string]$_.State }
-                Uptime = if ($_.uptime) { [string]$_.uptime } else { [string]$_.Uptime }
+                Id = $idValue
+                Status = $statusValue.ToLowerInvariant()
+                Uptime = $uptimeValue
             }
         }
     )
