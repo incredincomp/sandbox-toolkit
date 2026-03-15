@@ -64,7 +64,22 @@ See [QUICKSTART.md](docs/QUICKSTART.md) for a step-by-step guide including prere
 
 # Simulate profile selection + config generation without downloading or launching
 .\Start-Sandbox.ps1 -DryRun -Profile network-analysis -SkipPrereqCheck
+
+# Remove repo-owned disposable download/session artifacts
+.\Start-Sandbox.ps1 -CleanDownloads
 ```
+
+`-CleanDownloads` removes only toolkit-owned disposable artifacts:
+- cached setup payloads under `scripts/setups/`
+- generated `scripts/install-manifest.json`
+- generated `sandbox.wsb`
+
+`-CleanDownloads` does not remove:
+- `tools.json`, custom profiles, docs/tests, or source files
+- optional shared folder content
+- any paths outside the repository-owned locations above
+
+If nothing exists yet, cleanup succeeds and reports "Nothing to clean."
 
 ### Validate readiness (non-destructive)
 

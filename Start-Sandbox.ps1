@@ -261,7 +261,7 @@ if ($commandMode -eq 'List') {
 if ($commandMode -eq 'CleanDownloads') {
     $cleanupPlan = Get-SandboxDownloadCleanupPlan -RepoRoot $repoRoot
     $cleanupResult = Invoke-SandboxDownloadCleanup -CleanupPlan $cleanupPlan
-    $summaryLines = @(Get-SandboxDownloadCleanupSummaryLines -CleanupResult $cleanupResult)
+    $summaryLines = @(Get-SandboxDownloadCleanupSummary -CleanupResult $cleanupResult)
 
     Write-StatusLine ''
     foreach ($line in $summaryLines) {

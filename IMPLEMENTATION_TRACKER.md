@@ -378,3 +378,32 @@ Estimated size: Small (1–2 files)
 | Pester tests (JSON integration) | ✅ | `Invoke-Pester -Path tests/StartSandboxJson.Tests.ps1` | 2026-03-14 |
 | Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
 | PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-14 |
+
+### Scope (maintenance cleanup pass)
+- Add bounded `-CleanDownloads` mode for safe removal of repo-owned disposable download/session artifacts.
+
+### Decisions made (maintenance cleanup pass)
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Limit cleanup scope to `scripts/setups/*`, `scripts/install-manifest.json`, and `sandbox.wsb` | These are toolkit-generated/owned and safely regenerable | Broad recursive cleanup heuristics based on filename patterns |
+| Add dedicated `src/Maintenance.ps1` helpers for discovery, execution, and summary rendering | Keeps cleanup behavior testable and separate from command handler flow | Inline cleanup logic in `Start-Sandbox.ps1` |
+| Skip reparse-point entries under setup cache during candidate discovery | Avoid ambiguous ownership and accidental traversal risk | Recursively delete all entries including reparse points |
+| Return success when nothing exists to clean; return non-zero on partial deletion failures | Deterministic maintenance semantics and actionable failure reporting | Treat missing paths as failures |
+
+### Files modified (maintenance cleanup pass)
+- `Start-Sandbox.ps1`
+- `src/Cli.ps1`
+- `src/Maintenance.ps1` (new)
+- `tests/Cli.Tests.ps1`
+- `tests/Maintenance.Tests.ps1` (new)
+- `README.md`
+- `docs/QUICKSTART.md`
+- `IMPLEMENTATION_TRACKER.md`
+
+### Validation (maintenance cleanup pass)
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Pester tests (cleanup helpers) | ✅ | `Invoke-Pester -Path tests/Maintenance.Tests.ps1` | 2026-03-14 |
+| Pester tests (CLI rules) | ✅ | `Invoke-Pester -Path tests/Cli.Tests.ps1` | 2026-03-14 |
+| Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
+| PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-14 |

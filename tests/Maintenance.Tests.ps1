@@ -68,7 +68,7 @@ Describe 'Invoke-SandboxDownloadCleanup' {
 
             $plan = Get-SandboxDownloadCleanupPlan -RepoRoot $tempRoot
             $result = Invoke-SandboxDownloadCleanup -CleanupPlan $plan
-            $lines = Get-SandboxDownloadCleanupSummaryLines -CleanupResult $result
+            $lines = Get-SandboxDownloadCleanupSummary -CleanupResult $result
 
             $result.Success | Should Be $true
             $result.NothingToClean | Should Be $false
@@ -103,7 +103,11 @@ Describe 'Invoke-SandboxDownloadCleanup' {
                 if ($Path -eq $failPath) {
                     throw 'simulated delete failure'
                 }
-                Remove-Item -LiteralPath $Path -Force
+                if ($IsContainer) {
+                    Remove-Item -LiteralPath $Path -Recurse -Force
+                } else {
+                    Remove-Item -LiteralPath $Path -Force
+                }
             }
 
             $result.Success | Should Be $false

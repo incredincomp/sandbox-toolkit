@@ -74,6 +74,9 @@ See [PROFILES.md](PROFILES.md) for what each profile includes.
 .\Start-Sandbox.ps1 -ListProfiles
 .\Start-Sandbox.ps1 -ListTools
 
+# Clean repo-owned disposable download/session artifacts
+.\Start-Sandbox.ps1 -CleanDownloads
+
 # Validate host/input readiness without running setup
 .\Start-Sandbox.ps1 -Validate
 .\Start-Sandbox.ps1 -Validate -Profile network-analysis -SharedFolder "C:\Lab\Ingress"
@@ -153,6 +156,11 @@ Notes:
 - `-ListProfiles` shows both built-in and custom profiles distinctly.
 - Custom profiles in this pass inherit networking behavior from their built-in `base_profile`.
 - JSON output mode is intentionally excluded from normal launch mode (`Run`).
+
+`-CleanDownloads` scope:
+- Removes only toolkit-owned disposable artifacts (`scripts/setups/*`, `scripts/install-manifest.json`, `sandbox.wsb`).
+- Does not remove shared-folder content, manifest/config source files, or anything outside those repo-owned paths.
+- Returns success and reports "Nothing to clean" when no disposable artifacts exist.
 
 ---
 

@@ -1,7 +1,7 @@
 # src/Maintenance.ps1
 # Helpers for repo-owned disposable download/session artifact cleanup.
 
-function Get-SandboxDisposableDownloadLocations {
+function Get-SandboxDisposableDownloadLocationCatalog {
     <#
     .SYNOPSIS
         Returns known repo-owned disposable artifact locations.
@@ -61,7 +61,7 @@ function Get-SandboxDownloadCleanupPlan {
         [Parameter(Mandatory)][string]$RepoRoot
     )
 
-    $locations = @(Get-SandboxDisposableDownloadLocations -RepoRoot $RepoRoot)
+    $locations = @(Get-SandboxDisposableDownloadLocationCatalog -RepoRoot $RepoRoot)
     $candidates = [System.Collections.Generic.List[object]]::new()
     $skipped = [System.Collections.Generic.List[object]]::new()
     $inspected = [System.Collections.Generic.List[object]]::new()
@@ -178,7 +178,7 @@ function Invoke-SandboxDownloadCleanup {
     }
 }
 
-function Get-SandboxDownloadCleanupSummaryLines {
+function Get-SandboxDownloadCleanupSummary {
     <#
     .SYNOPSIS
         Returns human-readable summary lines for cleanup results.
