@@ -42,9 +42,11 @@ Optional shared-folder mapping is available for sample transfer:
 - Writable mode requires explicit `-SharedFolderWritable` with a shared-folder option and increases host risk.
 - In sandbox, the mapped path is `C:\Users\WDAGUtilityAccount\Desktop\shared`.
 - Reparse-point/junction-backed targets are rejected.
+- Paths that traverse reparse-point/junction ancestry in parent directories are also rejected.
 
 Avoid mapping broad or sensitive host paths (drive root, Windows folders, Program Files,
 repo root, profile root, Desktop, Documents, Downloads).
+Some synced/managed locations (for example OneDrive-backed or redirected folders) may be blocked by design if their ancestry contains reparse points/junctions. Use a plain local, non-synced folder for ingress.
 
 **Do not map** additional writable host folders when working with untrusted samples.
 

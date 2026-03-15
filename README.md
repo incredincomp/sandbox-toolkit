@@ -23,7 +23,7 @@ Use this when you need to transfer files from host to sandbox for triage.
 - Default access is read-only (safer).
 - Writable mapping requires explicit `-SharedFolderWritable` plus one shared-folder selection switch.
 - In-sandbox destination is fixed: `C:\Users\WDAGUtilityAccount\Desktop\shared`.
-- Reparse-point/junction-backed targets are rejected; use a real directory.
+- Reparse-point/junction-backed targets are rejected, and paths that traverse reparse/junction parent ancestry are also rejected.
 
 ```powershell
 .\Start-Sandbox.ps1 -UseDefaultSharedFolder
@@ -33,6 +33,7 @@ Use this when you need to transfer files from host to sandbox for triage.
 
 The default shared folder is repo-local `shared/` (auto-created, gitignored).
 Do not map broad/sensitive host paths such as repo root, `C:\`, `%WINDIR%`, Program Files roots, `%USERPROFILE%`, Desktop, Documents, or Downloads.
+Some synced/managed host locations (for example OneDrive-backed or redirected folders) may be rejected if their path chain uses reparse points/junctions. Prefer a plain local, non-synced ingress folder.
 
 Clipboard paste and drag/drop support can vary by environment and policy. Treat the mapped shared folder as the primary transfer path.
 
