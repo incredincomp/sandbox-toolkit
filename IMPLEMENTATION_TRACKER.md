@@ -911,3 +911,44 @@ Estimated size: Small (1–2 files)
 |-------|--------|--------|------|
 | Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-15 |
 | PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' \| ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-15 |
+
+### Scope (release contract follow-up pass)
+- Add lightweight CI assertion for documented exit-code contract examples using a table-driven case list.
+- Add a compact JSON error-envelope contract test for fatal failures across JSON-capable command modes.
+
+### Decisions made (release contract follow-up pass)
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Implement exit-code contract checks as a single table-driven workflow step | Keeps CI logic concise while covering multiple documented examples | Add one CI job per command example |
+| Add JSON error-envelope contract assertions in Pester integration tests | Keeps envelope schema checks close to command behavior and reusable under existing CI Pester job | Add a separate external schema-validation script only in CI |
+| Use deterministic fatal triggers per mode (unknown tool, malformed custom profile, malformed manifest) | Avoids flaky host/environment dependencies while exercising real error paths | Trigger runtime/environment-specific failures |
+
+### Files modified (release contract follow-up pass)
+- `.github/workflows/validate.yml`
+- `tests/StartSandboxJson.Tests.ps1`
+- `IMPLEMENTATION_TRACKER.md`
+
+### Validation (release contract follow-up pass)
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Pester tests (JSON contract suite) | ✅ | `Invoke-Pester -Path tests/StartSandboxJson.Tests.ps1` | 2026-03-15 |
+| Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-15 |
+| PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' \| ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-15 |
+
+### Scope (release cut pass: v2.0.5)
+- Finalize release-hardening additions for this cycle and cut an actual release for CLI/config features.
+- Include explicit CI exit-code contract assertions and JSON error-envelope contract checks in the release notes.
+- Execute release actions: release prep commit, annotated tag, remote push, and GitHub release object (if available).
+
+### Decisions made (release cut pass: v2.0.5)
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Keep release version at `2.0.5` | Existing docs/changelog already consolidate this CLI/config feature cycle under `2.0.5`; no prior tags/releases exist to contradict this cut | Introduce `2.0.6` solely for final release execution mechanics |
+| Use tag format `v2.0.5` | Matches conservative/common semver tag style and requested example format | Untagged changelog-only release |
+| Create GitHub release object via `gh` after successful push | Remote is reachable and `gh` is authenticated/configured in this environment | Defer to manual release object creation |
+
+### Files modified (release cut pass: v2.0.5)
+- `.github/workflows/validate.yml`
+- `tests/StartSandboxJson.Tests.ps1`
+- `CHANGELOG.md`
+- `IMPLEMENTATION_TRACKER.md`

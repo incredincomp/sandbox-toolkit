@@ -24,6 +24,8 @@ All notable changes to this project will be documented here.
 
 - Added CI Pester execution on Windows.
 - Added deterministic CLI smoke matrix for realistic non-destructive command combinations using `-SkipPrereqCheck`, JSON seams, and cleanup mode.
+- Added a table-driven CI assertion for documented exit-code contract examples.
+- Added JSON error-envelope contract coverage for fatal failures across JSON-capable modes.
 
 ---
 

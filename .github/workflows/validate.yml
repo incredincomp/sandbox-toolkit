@@ -183,3 +183,77 @@ jobs:
                   throw "Expected command.mode '$env:EXPECTED_MODE' but got '$($json.command.mode)' for args '$env:SMOKE_ARGS'."
               }
           }
+
+  exit-code-contract:
+    name: Exit-Code Contract
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Seed custom profile fixture
+        shell: pwsh
+        run: |
+          @'
+          {
+            "schema_version": "1.0",
+            "profiles": [
+              {
+                "name": "net-re-lite",
+                "base_profile": "reverse-engineering",
+                "add_tools": ["wireshark"],
+                "remove_tools": ["ghidra"]
+              }
+            ]
+          }
+          '@ | Set-Content -Path .\custom-profiles.local.json -Encoding UTF8
+
+      - name: Assert documented exit-code contract examples (table-driven)
+        shell: pwsh
+        run: |
+          $cases = @(
+            [pscustomobject]@{
+              Name = 'validate-pass'
+              Args = @('-Validate', '-SkipPrereqCheck', '-OutputJson', '-Profile', 'minimal')
+              ExpectedExitCode = 0
+            }
+            [pscustomobject]@{
+              Name = 'validate-fail'
+              Args = @('-Validate', '-OutputJson', '-Profile', 'not-a-profile')
+              ExpectedExitCode = 1
+            }
+            [pscustomobject]@{
+              Name = 'dry-run-success'
+              Args = @('-DryRun', '-SkipPrereqCheck', '-OutputJson', '-Profile', 'net-re-lite')
+              ExpectedExitCode = 0
+            }
+            [pscustomobject]@{
+              Name = 'list-tools-success'
+              Args = @('-ListTools', '-OutputJson')
+              ExpectedExitCode = 0
+            }
+            [pscustomobject]@{
+              Name = 'list-profiles-success'
+              Args = @('-ListProfiles', '-OutputJson')
+              ExpectedExitCode = 0
+            }
+            [pscustomobject]@{
+              Name = 'clean-downloads-success'
+              Args = @('-CleanDownloads')
+              ExpectedExitCode = 0
+            }
+            [pscustomobject]@{
+              Name = 'invalid-parameter-combination'
+              Args = @('-Validate', '-DryRun')
+              ExpectedExitCode = 1
+            }
+          )
+
+          foreach ($case in $cases) {
+            $output = & powershell -NoProfile -ExecutionPolicy Bypass -File .\Start-Sandbox.ps1 @($case.Args) 2>&1 | Out-String
+            $exitCode = $LASTEXITCODE
+            if ($exitCode -ne $case.ExpectedExitCode) {
+              throw "Case '$($case.Name)' expected exit code $($case.ExpectedExitCode) but got $exitCode. Output:`n$output"
+            }
+          }

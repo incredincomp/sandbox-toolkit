@@ -174,4 +174,50 @@ Describe 'Start-Sandbox JSON output modes' {
         $result.Output | Should Match 'Available tools:'
         $result.Output | Should Match 'ghidra'
     }
+
+    It 'keeps a stable JSON error envelope for fatal failures in JSON-capable modes' {
+        $cases = @(
+            [pscustomobject]@{
+                Name = 'dry-run'
+                Arguments = @('-DryRun', '-SkipPrereqCheck', '-OutputJson', '-AddTools', 'not-a-real-tool')
+                Setup = $null
+                Teardown = $null
+                ExpectedMode = 'dry-run'
+            },
+            [pscustomobject]@{
+                Name = 'audit'
+                Arguments = @('-Audit', '-SkipPrereqCheck', '-OutputJson', '-Profile', 'minimal')
+                Setup = { '{ "schema_version": "1.0" }' | Set-Content -Path $customProfilesPath -Encoding UTF8 }
+                Teardown = { if (Test-Path -LiteralPath $customProfilesPath -PathType Leaf) { Remove-Item -LiteralPath $customProfilesPath -Force } }
+                ExpectedMode = 'audit'
+            },
+            [pscustomobject]@{
+                Name = 'list-profiles'
+                Arguments = @('-ListProfiles', '-OutputJson')
+                Setup = { '{ "schema_version": "1.0" }' | Set-Content -Path $customProfilesPath -Encoding UTF8 }
+                Teardown = { if (Test-Path -LiteralPath $customProfilesPath -PathType Leaf) { Remove-Item -LiteralPath $customProfilesPath -Force } }
+                ExpectedMode = 'list-profiles'
+            }
+        )
+
+        foreach ($case in $cases) {
+            try {
+                if ($case.Setup) {
+                    & $case.Setup
+                }
+
+                $result = Invoke-StartSandboxJson -Arguments $case.Arguments
+                $result.ExitCode | Should Be 1
+                $result.Json.command.mode | Should Be $case.ExpectedMode
+                $result.Json.overall_status | Should Be 'FAIL'
+                $result.Json.exit_code | Should Be 1
+                $result.Json.error | Should Not BeNullOrEmpty
+                $result.Json.error.summary | Should Not BeNullOrEmpty
+            } finally {
+                if ($case.Teardown) {
+                    & $case.Teardown
+                }
+            }
+        }
+    }
 }
