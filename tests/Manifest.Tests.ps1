@@ -34,6 +34,7 @@ Describe 'Test-ManifestIntegrity dependency reference checks' {
 Describe 'Custom profile config integrity' {
     $manifest = Import-ToolManifest -ManifestPath (Join-Path $repoRoot 'tools.json')
     $fixtureDir = Join-Path $PSScriptRoot 'fixtures'
+    $examplePath = Join-Path $repoRoot 'custom-profiles.example.json'
 
     It 'loads valid custom profile definitions' {
         $configPath = Join-Path $fixtureDir 'custom-profiles.valid.json'
@@ -68,5 +69,13 @@ Describe 'Custom profile config integrity' {
 
         $message | Should Not BeNullOrEmpty
         $message | Should Match "unknown tool id 'tool-does-not-exist'"
+    }
+
+    It 'keeps the repository custom profile example valid against real loader/integrity rules' {
+        $config = Import-CustomProfileConfig -CustomProfilePath $examplePath
+
+        { Test-CustomProfileConfigIntegrity -CustomProfileConfig $config -Manifest $manifest } | Should Not Throw
+        @($config.profiles).Count | Should BeGreaterThan 0
+        @($config.profiles | Where-Object { -not [string]::IsNullOrWhiteSpace($_.base_profile) }).Count | Should BeGreaterThan 0
     }
 }
