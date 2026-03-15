@@ -55,6 +55,42 @@ cd sandbox-toolkit
 
 See [QUICKSTART.md](docs/QUICKSTART.md) for a step-by-step guide including prerequisites.
 
+### Recommended workflow
+
+Use this sequence for the safest host-side workflow:
+
+1. Discover available profiles and tools.
+   ```powershell
+   .\Start-Sandbox.ps1 -ListProfiles
+   .\Start-Sandbox.ps1 -ListTools
+   ```
+2. If you need a custom profile, start from the tracked example and edit locally.
+   ```powershell
+   Copy-Item .\custom-profiles.example.json .\custom-profiles.local.json
+   ```
+3. Confirm your custom profile is discoverable.
+   ```powershell
+   .\Start-Sandbox.ps1 -ListProfiles
+   ```
+4. Run preflight readiness checks (`-Validate` = input/host readiness; no artifact generation or launch).
+   ```powershell
+   .\Start-Sandbox.ps1 -Validate -Profile net-re-lite
+   ```
+5. Run generation preview (`-DryRun` = effective selection + generated artifacts; no download or launch).
+   ```powershell
+   .\Start-Sandbox.ps1 -DryRun -Profile net-re-lite
+   ```
+6. Run host-side sanity audit (`-Audit` = configured/requested artifact evidence and trust signals; not runtime enforcement proof).
+   ```powershell
+   .\Start-Sandbox.ps1 -Audit -Profile net-re-lite
+   ```
+7. Execute the actual sandbox run.
+   ```powershell
+   .\Start-Sandbox.ps1 -Profile net-re-lite
+   ```
+
+Automation note: use `-OutputJson` with `-Validate`, `-DryRun`, or `-Audit` in CI/wrappers.
+
 ### Discoverability and dry-run
 
 ```powershell

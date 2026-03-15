@@ -553,3 +553,23 @@ Estimated size: Small (1–2 files)
 |-------|--------|--------|------|
 | Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
 | PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-14 |
+
+### Scope (recommended workflow docs pass)
+- Add one compact end-to-end recommended usage workflow spanning discovery, custom profile setup, validate, dry-run, audit, and run.
+
+### Decisions made (recommended workflow docs pass)
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Add primary workflow section in README and concise mirrored section in QUICKSTART | Keeps one authoritative flow while preserving quick-start discoverability | Create a new standalone workflow doc (unnecessary duplication) |
+| Keep commands limited to existing supported surfaces and profile examples | Avoid inventing capabilities or drift from implemented CLI modes | Broad recipe catalog with mode permutations |
+
+### Files modified (recommended workflow docs pass)
+- `README.md`
+- `docs/QUICKSTART.md`
+- `IMPLEMENTATION_TRACKER.md`
+
+### Validation (recommended workflow docs pass)
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
+| PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-14 |

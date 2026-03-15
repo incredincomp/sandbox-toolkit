@@ -113,6 +113,20 @@ See [PROFILES.md](PROFILES.md) for what each profile includes.
 .\Start-Sandbox.ps1 -Verbose
 ```
 
+## Recommended workflow
+
+Follow this compact sequence:
+
+1. Discover what exists: `.\Start-Sandbox.ps1 -ListProfiles` and `.\Start-Sandbox.ps1 -ListTools`.
+2. If needed, copy `custom-profiles.example.json` to `custom-profiles.local.json` and edit.
+3. Confirm profile visibility with `.\Start-Sandbox.ps1 -ListProfiles`.
+4. Run `.\Start-Sandbox.ps1 -Validate -Profile <name>` (`-Validate` checks preflight readiness only).
+5. Run `.\Start-Sandbox.ps1 -DryRun -Profile <name>` (`-DryRun` shows effective selection/artifact generation only).
+6. Run `.\Start-Sandbox.ps1 -Audit -Profile <name>` (`-Audit` checks host-side/config-side evidence, not runtime enforcement).
+7. Run actual execution with `.\Start-Sandbox.ps1 -Profile <name>`.
+
+For automation, add `-OutputJson` to `-Validate`, `-DryRun`, or `-Audit`.
+
 `-Validate` vs `-DryRun` vs `-Audit`:
 - `-Validate` answers: "Can I safely/run this on this host now?" It does not download, generate artifacts, or launch.
 - `-DryRun` answers: "What would be selected/generated?" It still writes generated host artifacts (`install-manifest.json`, `sandbox.wsb`) but skips download and launch.
