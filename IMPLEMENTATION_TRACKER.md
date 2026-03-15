@@ -1190,3 +1190,30 @@ Estimated size: Small (1–2 files)
 | Pester tests (CLI + hardening suite) | ✅ | `Invoke-Pester -Path tests/Cli.Tests.ps1,tests/StartSandboxReleaseHardening.Tests.ps1` | 2026-03-15 |
 | Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-15 |
 | PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' \| ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-15 |
+
+---
+
+## 2026-03-15 Session log (CI parity and failure triage pass)
+
+### Scope
+- Reproduce the failing GitHub Actions validation workflow locally.
+- Identify root cause for widespread Pester failures.
+- Align CI Pester runtime with repository test syntax contract.
+
+### Decisions made
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Pin CI Pester to `4.10.1` and run with `Invoke-Pester -EnableExit` | Test suite is authored in legacy Pester syntax (`Should Be`, top-level setup), and passes consistently under Pester 4 in `pwsh` | Rewrite all tests immediately to full Pester 5 syntax/scope model |
+
+### Files modified
+- `.github/workflows/validate.yml`
+- `IMPLEMENTATION_TRACKER.md`
+
+### Validation
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Pester tests (full suite) | ✅ | `Import-Module Pester -RequiredVersion 4.10.1 -Force; Invoke-Pester -Path tests -EnableExit` | 2026-03-15 |
+| PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' \| ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-15 |
+| Manifest integrity | ✅ | local replay of `validate-manifest` Python/jsonschema checks from `.github/workflows/validate.yml` | 2026-03-15 |
+| CLI smoke matrix | ✅ | local replay of all `cli-smoke` matrix cases from `.github/workflows/validate.yml` | 2026-03-15 |
+| Exit-code contract | ✅ | local replay of all `exit-code-contract` cases from `.github/workflows/validate.yml` | 2026-03-15 |
