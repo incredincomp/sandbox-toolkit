@@ -85,6 +85,10 @@ See [PROFILES.md](PROFILES.md) for what each profile includes.
 .\Start-Sandbox.ps1 -DryRun -Profile reverse-engineering -SkipPrereqCheck
 .\Start-Sandbox.ps1 -DryRun -Profile net-re-lite -AddTools floss -OutputJson
 
+# Audit generated artifacts/configured request without downloading or launching
+.\Start-Sandbox.ps1 -Audit -Profile minimal
+.\Start-Sandbox.ps1 -Audit -Profile minimal -SharedFolder "C:\Lab\Ingress"
+
 # Runtime tool overrides
 .\Start-Sandbox.ps1 -Profile minimal -AddTools ghidra,wireshark
 .\Start-Sandbox.ps1 -Profile reverse-engineering -RemoveTools ghidra,hxd
@@ -92,6 +96,7 @@ See [PROFILES.md](PROFILES.md) for what each profile includes.
 # Machine-readable output for CI/automation
 .\Start-Sandbox.ps1 -Validate -OutputJson
 .\Start-Sandbox.ps1 -Validate -Profile net-re-lite -OutputJson
+.\Start-Sandbox.ps1 -Audit -Profile minimal -OutputJson
 .\Start-Sandbox.ps1 -ListTools -OutputJson
 .\Start-Sandbox.ps1 -ListProfiles -OutputJson
 
@@ -108,10 +113,15 @@ See [PROFILES.md](PROFILES.md) for what each profile includes.
 .\Start-Sandbox.ps1 -Verbose
 ```
 
-`-Validate` vs `-DryRun`:
+`-Validate` vs `-DryRun` vs `-Audit`:
 - `-Validate` answers: "Can I safely/run this on this host now?" It does not download, generate artifacts, or launch.
 - `-DryRun` answers: "What would be selected/generated?" It still writes generated host artifacts (`install-manifest.json`, `sandbox.wsb`) but skips download and launch.
-- Add `-OutputJson` to `-Validate`, `-DryRun`, `-ListTools`, or `-ListProfiles` when automation needs stable machine-readable output from stdout.
+- `-Audit` answers: "Do generated artifacts reflect my configured/requested settings?" It generates artifacts and checks host-visible evidence, but does not launch or runtime-verify sandbox enforcement.
+- Add `-OutputJson` to `-Validate`, `-Audit`, `-DryRun`, `-ListTools`, or `-ListProfiles` when automation needs stable machine-readable output from stdout.
+
+Audit trust boundary:
+- Audit findings are based on configured/requested settings and generated artifact contents.
+- Audit does not prove runtime behavior inside Windows Sandbox unless explicitly stated.
 
 Common `-Validate` remediations:
 - Shared-folder path rejected: choose a dedicated local non-reparse ingress path (for example `C:\Lab\Ingress`).

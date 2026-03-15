@@ -13,6 +13,9 @@ function Write-StatusLine {
         [Parameter(Mandatory)][AllowEmptyString()][string]$Message,
         [ConsoleColor]$ForegroundColor = [ConsoleColor]::White
     )
+
+    $null = $Message
+    $null = $ForegroundColor
 }
 
 Describe 'Invoke-SandboxArtifactAudit' {

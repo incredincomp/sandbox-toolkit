@@ -407,3 +407,38 @@ Estimated size: Small (1–2 files)
 | Pester tests (CLI rules) | ✅ | `Invoke-Pester -Path tests/Cli.Tests.ps1` | 2026-03-14 |
 | Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
 | PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-14 |
+
+### Scope (audit mode pass)
+- Add a distinct non-destructive `-Audit` mode focused on host-side/config-side sanity checks over generated artifacts.
+- Keep existing run/list/dry-run/validate/output/cleanup behavior intact.
+
+### Decisions made (audit mode pass)
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Add `src/Audit.ps1` with dedicated artifact read-back + check computation seam | Keeps audit logic testable and separate from CLI rendering/wiring | Extend `src/Validation.ps1` directly (would blur readiness vs artifact sanity responsibilities) |
+| Keep `-Audit` distinct from `-Validate` and run artifact generation path before checks | Audit must inspect generated `sandbox.wsb` / install manifest evidence, not just preflight state | Reuse `-Validate` only (insufficient for generated-artifact mismatch detection) |
+| Include `-OutputJson` support for audit mode | Existing output projection layer made this low-risk and reviewable | Defer audit JSON despite minimal incremental complexity |
+| Use explicit configured/requested wording with "not runtime-verified" in trust-sensitive checks | Prevent overclaiming sandbox/runtime enforcement | Report checks as if they prove runtime isolation |
+
+### Files modified (audit mode pass)
+- `Start-Sandbox.ps1`
+- `src/Audit.ps1` (new)
+- `src/Cli.ps1`
+- `src/Output.ps1`
+- `tests/Audit.Tests.ps1` (new)
+- `tests/Cli.Tests.ps1`
+- `tests/Output.Tests.ps1`
+- `tests/StartSandboxAudit.Tests.ps1` (new)
+- `README.md`
+- `docs/QUICKSTART.md`
+- `IMPLEMENTATION_TRACKER.md`
+
+### Validation (audit mode pass)
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Pester tests (audit unit seam) | ✅ | `Invoke-Pester -Path tests/Audit.Tests.ps1` | 2026-03-14 |
+| Pester tests (audit integration) | ✅ | `Invoke-Pester -Path tests/StartSandboxAudit.Tests.ps1` | 2026-03-14 |
+| Pester tests (CLI rules) | ✅ | `Invoke-Pester -Path tests/Cli.Tests.ps1` | 2026-03-14 |
+| Pester tests (output projections) | ✅ | `Invoke-Pester -Path tests/Output.Tests.ps1` | 2026-03-14 |
+| Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
+| PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-14 |

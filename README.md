@@ -65,6 +65,9 @@ See [QUICKSTART.md](docs/QUICKSTART.md) for a step-by-step guide including prere
 # Simulate profile selection + config generation without downloading or launching
 .\Start-Sandbox.ps1 -DryRun -Profile network-analysis -SkipPrereqCheck
 
+# Audit generated artifacts and configured/requested settings without launching
+.\Start-Sandbox.ps1 -Audit -Profile minimal -SharedFolder "C:\Lab\Ingress"
+
 # Remove repo-owned disposable download/session artifacts
 .\Start-Sandbox.ps1 -CleanDownloads
 ```
@@ -106,14 +109,36 @@ Exit behavior:
 - `0`: validation passed (warnings may still be present).
 - `1`: one or more validation checks failed.
 
+### Audit generated configuration (non-destructive)
+
+```powershell
+# Generate artifacts and audit host-visible/config-visible evidence (no downloads, no launch)
+.\Start-Sandbox.ps1 -Audit
+.\Start-Sandbox.ps1 -Audit -Profile reverse-engineering
+.\Start-Sandbox.ps1 -Audit -Profile minimal -SharedFolder "C:\Lab\Ingress"
+.\Start-Sandbox.ps1 -Audit -OutputJson
+```
+
+`-Audit` checks:
+- Effective request context (selected/base profile, effective tools, requested networking mode).
+- Generated artifact presence and parseability (`scripts/install-manifest.json`, `sandbox.wsb`).
+- Requested vs generated `sandbox.wsb` settings (networking, logon command, mapped folder/read-only state).
+- Shared-folder mapping intent versus generated mapping.
+
+`-Audit` does not prove runtime enforcement:
+- Checks are host-side/config-side evidence only.
+- Findings are reported as configured/requested and present in generated artifacts.
+- Runtime sandbox behavior is not verified unless explicitly stated.
+
 ### Machine-readable JSON output
 
-Use `-OutputJson` with `-Validate`, `-DryRun`, `-ListTools`, or `-ListProfiles` to emit JSON to stdout for CI/automation.
+Use `-OutputJson` with `-Validate`, `-Audit`, `-DryRun`, `-ListTools`, or `-ListProfiles` to emit JSON to stdout for CI/automation.
 Human-readable console output remains the default.
 
 ```powershell
 .\Start-Sandbox.ps1 -Validate -OutputJson
 .\Start-Sandbox.ps1 -Validate -Profile net-re-lite -OutputJson
+.\Start-Sandbox.ps1 -Audit -Profile minimal -OutputJson
 .\Start-Sandbox.ps1 -DryRun -Profile net-re-lite -AddTools floss -OutputJson
 .\Start-Sandbox.ps1 -ListTools -OutputJson
 .\Start-Sandbox.ps1 -ListProfiles -OutputJson
@@ -121,6 +146,7 @@ Human-readable console output remains the default.
 
 Supported modes:
 - `-Validate -OutputJson`
+- `-Audit -OutputJson`
 - `-DryRun -OutputJson`
 - `-ListTools -OutputJson`
 - `-ListProfiles -OutputJson`
@@ -130,6 +156,7 @@ Intentional exclusions:
 
 JSON stability notes:
 - Validate JSON includes stable `checks[]` records (`id`, `status`, `summary`, `remediation`) plus overall status and `exit_code`.
+- Audit JSON includes effective request context, generated artifact paths, and audit checks over configured/requested artifact evidence.
 - Dry-run JSON includes profile resolution, runtime overrides, final effective tool list, effective networking, stage skip details, and generated artifact paths.
 - List-tools JSON includes `command.mode` and `tools[]` with stable catalog fields (`id`, `display_name`, `installer_type`, `install_order`, `category`, `profiles`).
 - List-profiles JSON includes `command.mode` and `profiles[]` with explicit `type` (`built-in` or `custom`) and `base_profile`.
