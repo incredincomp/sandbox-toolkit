@@ -33,9 +33,10 @@ Use this when you need to transfer files from host to sandbox for triage.
 
 The default shared folder is repo-local `shared/` (auto-created, gitignored).
 Do not map broad/sensitive host paths such as repo root, `C:\`, `%WINDIR%`, Program Files roots, `%USERPROFILE%`, Desktop, Documents, or Downloads.
-Some synced/managed host locations (for example OneDrive-backed or redirected folders) may be rejected if their path chain uses reparse points/junctions. Prefer a plain local, non-synced ingress folder.
+Some synced/managed host locations (for example OneDrive-backed or redirected folders) may be rejected if their path chain uses reparse points/junctions. This also applies to `-UseDefaultSharedFolder` when the repo itself is under such a path. Prefer a plain local, non-synced ingress folder.
 
 Clipboard paste and drag/drop support can vary by environment and policy. Treat the mapped shared folder as the primary transfer path.
+For supportability, you can add `-SharedFolderValidationDiagnostics` to print ancestry segments checked during shared-folder validation.
 
 ---
 

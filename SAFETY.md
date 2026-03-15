@@ -46,7 +46,7 @@ Optional shared-folder mapping is available for sample transfer:
 
 Avoid mapping broad or sensitive host paths (drive root, Windows folders, Program Files,
 repo root, profile root, Desktop, Documents, Downloads).
-Some synced/managed locations (for example OneDrive-backed or redirected folders) may be blocked by design if their ancestry contains reparse points/junctions. Use a plain local, non-synced folder for ingress.
+Some synced/managed locations (for example OneDrive-backed or redirected folders) may be blocked by design if their ancestry contains reparse points/junctions. This includes repo-local `-UseDefaultSharedFolder` when the repo path itself traverses reparse ancestry. Use a plain local, non-synced folder for ingress.
 
 **Do not map** additional writable host folders when working with untrusted samples.
 

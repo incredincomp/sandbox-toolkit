@@ -107,6 +107,34 @@ Describe 'Resolve-SharedFolderRequest' {
             }
         }
     }
+
+    It 'rejects -UseDefaultSharedFolder when repo root traverses a junction ancestry' {
+        $basePath = Join-Path ([System.IO.Path]::GetTempPath()) ("sandbox-toolkit-default-shared-junction-" + [guid]::NewGuid().ToString())
+        $realRepoPath = Join-Path $basePath 'real-repo'
+        $junctionRepoPath = Join-Path $basePath 'repo-junction'
+        New-Item -ItemType Directory -Path $realRepoPath -Force | Out-Null
+
+        try {
+            try {
+                New-Item -ItemType Junction -Path $junctionRepoPath -Target $realRepoPath -ErrorAction Stop | Out-Null
+            } catch {
+                Set-TestInconclusive -Message "Could not create repo junction for default shared-folder test: $($_.Exception.Message)"
+                return
+            }
+
+            $message = Invoke-AndCaptureErrorMessage {
+                Resolve-SharedFolderRequest -RepoRoot $junctionRepoPath -UseDefaultSharedFolder
+            }
+
+            $message | Should Not BeNullOrEmpty
+            $message | Should Match 'traverses a reparse point or junction'
+            $message | Should Match 'Choose a non-reparse local folder instead'
+        } finally {
+            if (Test-Path -LiteralPath $basePath) {
+                Remove-Item -LiteralPath $basePath -Recurse -Force
+            }
+        }
+    }
 }
 
 Describe 'Assert-SafeSharedFolderPath blocked-path policy' {
@@ -242,6 +270,7 @@ Describe 'Assert-SafeSharedFolderPath reparse-point rejection' {
 
             $message | Should Not BeNullOrEmpty
             $message | Should Match 'reparse point or junction'
+            $message | Should Match 'blocks reparse/junction paths for safety'
         } finally {
             if (Test-Path -LiteralPath $reparseRepo) {
                 Remove-Item -LiteralPath $reparseRepo -Recurse -Force
@@ -319,6 +348,84 @@ Describe 'Assert-SafeSharedFolderPath ancestry reparse traversal rejection' {
 
             $message | Should Not BeNullOrEmpty
             $message | Should Match 'traverses a reparse point or junction'
+        } finally {
+            if (Test-Path -LiteralPath $repoRoot) {
+                Remove-Item -LiteralPath $repoRoot -Recurse -Force
+            }
+        }
+    }
+
+    It 'emits ancestry diagnostics when diagnostics mode is enabled' {
+        $repoRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("sandbox-toolkit-diag-" + [guid]::NewGuid().ToString())
+        $candidatePath = Join-Path $repoRoot 'lab\ingress'
+        New-Item -ItemType Directory -Path $candidatePath -Force | Out-Null
+
+        try {
+            $verboseRecords = & {
+                Assert-SafeSharedFolderPath -Path $candidatePath -RepoRoot $repoRoot -Diagnostics
+            } 4>&1 | Where-Object { $_ -is [System.Management.Automation.VerboseRecord] }
+
+            ($verboseRecords | Measure-Object).Count | Should BeGreaterThan 0
+            ($verboseRecords | ForEach-Object { $_.Message }) -join "`n" | Should Match 'Shared-folder ancestry segment checked'
+        } finally {
+            if (Test-Path -LiteralPath $repoRoot) {
+                Remove-Item -LiteralPath $repoRoot -Recurse -Force
+            }
+        }
+    }
+
+    It 'conditionally validates provider-style reparse roots when present on host' {
+        if ($env:OS -ne 'Windows_NT') {
+            Set-TestInconclusive -Message 'Provider-style reparse root validation is Windows-specific.'
+            return
+        }
+
+        $providerRoots = @($env:OneDrive, $env:OneDriveConsumer, $env:OneDriveCommercial) |
+            Where-Object { $_ -and (Test-Path -LiteralPath $_ -PathType Container) } |
+            Select-Object -Unique
+
+        if (-not $providerRoots) {
+            Set-TestInconclusive -Message 'No provider-style roots detected (OneDrive env vars not present).'
+            return
+        }
+
+        $reparseProviderRoot = $null
+        foreach ($providerRoot in $providerRoots) {
+            try {
+                $rootItem = Get-Item -LiteralPath $providerRoot -Force -ErrorAction Stop
+                if ($rootItem.Attributes -band [System.IO.FileAttributes]::ReparsePoint) {
+                    $reparseProviderRoot = $providerRoot
+                    break
+                }
+            } catch {
+                continue
+            }
+        }
+
+        if (-not $reparseProviderRoot) {
+            Set-TestInconclusive -Message 'No provider-style root with a reparse tag was found on this host.'
+            return
+        }
+
+        $candidatePath = Get-ChildItem -LiteralPath $reparseProviderRoot -Directory -Force -ErrorAction SilentlyContinue |
+            Select-Object -ExpandProperty FullName -First 1
+        if (-not $candidatePath) {
+            Set-TestInconclusive -Message "Provider root has no accessible child directory to validate: $reparseProviderRoot"
+            return
+        }
+
+        $repoRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("sandbox-toolkit-provider-reparse-" + [guid]::NewGuid().ToString())
+        New-Item -ItemType Directory -Path $repoRoot -Force | Out-Null
+
+        try {
+            $message = Invoke-AndCaptureErrorMessage {
+                Assert-SafeSharedFolderPath -Path $candidatePath -RepoRoot $repoRoot
+            }
+
+            $message | Should Not BeNullOrEmpty
+            if ($message -notmatch 'traverses a reparse point or junction' -and $message -notmatch 'is a reparse point or junction') {
+                throw "Expected reparse-point rejection message for provider-style path, got: $message"
+            }
         } finally {
             if (Test-Path -LiteralPath $repoRoot) {
                 Remove-Item -LiteralPath $repoRoot -Recurse -Force

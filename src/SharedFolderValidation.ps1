@@ -146,6 +146,19 @@ function Test-SharedFolderTargetIsReparsePoint {
     return [bool]($item.Attributes -band [System.IO.FileAttributes]::ReparsePoint)
 }
 
+function Write-SharedFolderValidationDiagnostic {
+    param(
+        [Parameter(Mandatory)][string]$Message,
+        [switch]$Diagnostics
+    )
+
+    if (-not $Diagnostics) {
+        return
+    }
+
+    Write-Verbose -Message $Message -Verbose:$Diagnostics
+}
+
 function Get-NormalizedInputPath {
     param(
         [Parameter(Mandatory)][string]$Path
@@ -162,7 +175,8 @@ function Get-NormalizedInputPath {
 function Find-ReparsePointInPathAncestry {
     param(
         [Parameter(Mandatory)][string]$Path,
-        [switch]$IncludeTarget
+        [switch]$IncludeTarget,
+        [switch]$Diagnostics
     )
 
     $currentPath = if ($IncludeTarget) { $Path } else { Split-Path -Path $Path -Parent }
@@ -180,7 +194,12 @@ function Find-ReparsePointInPathAncestry {
             throw "Shared folder path could not be validated safely: failed to inspect ancestry segment '$currentPath'. $($_.Exception.Message)"
         }
 
-        if ($item.PSIsContainer -and ($item.Attributes -band [System.IO.FileAttributes]::ReparsePoint)) {
+        $isReparsePoint = [bool]($item.Attributes -band [System.IO.FileAttributes]::ReparsePoint)
+        Write-SharedFolderValidationDiagnostic `
+            -Diagnostics:$Diagnostics `
+            -Message "Shared-folder ancestry segment checked: '$currentPath' (reparse=$isReparsePoint)"
+
+        if ($item.PSIsContainer -and $isReparsePoint) {
             return $currentPath
         }
 
@@ -207,7 +226,8 @@ function Find-ReparsePointInPathAncestry {
 function Assert-SafeSharedFolderPath {
     param(
         [Parameter(Mandatory)][string]$Path,
-        [Parameter(Mandatory)][string]$RepoRoot
+        [Parameter(Mandatory)][string]$RepoRoot,
+        [switch]$Diagnostics
     )
 
     if (-not (Test-Path -LiteralPath $Path)) {
@@ -220,12 +240,15 @@ function Assert-SafeSharedFolderPath {
 
     $normalizedInputPath = Get-NormalizedInputPath -Path $Path
     $normalizedPath = Get-NormalizedFullPath -Path $Path
+    Write-SharedFolderValidationDiagnostic `
+        -Diagnostics:$Diagnostics `
+        -Message "Shared-folder validation path normalized: input='$Path' normalized_input='$normalizedInputPath' resolved='$normalizedPath'"
 
     if (Test-SharedFolderTargetIsReparsePoint -Path $normalizedPath) {
-        throw "Shared folder path is not allowed: '$normalizedPath' is a reparse point or junction. Use a real directory path."
+        throw "Shared folder path is not allowed: '$normalizedPath' is a reparse point or junction. The toolkit blocks reparse/junction paths for safety. Choose a non-reparse local folder instead."
     }
 
-    $reparseAncestorPath = Find-ReparsePointInPathAncestry -Path $normalizedInputPath
+    $reparseAncestorPath = Find-ReparsePointInPathAncestry -Path $normalizedInputPath -Diagnostics:$Diagnostics
     if ($reparseAncestorPath) {
         throw "Shared folder path is not allowed: '$normalizedInputPath' traverses a reparse point or junction at '$reparseAncestorPath' in its parent chain. The toolkit blocks reparse/junction ancestry traversal for safety. Choose a non-reparse local folder instead."
     }
@@ -261,6 +284,7 @@ function Resolve-SharedFolderRequest {
         [string]$SharedFolder,
         [switch]$UseDefaultSharedFolder,
         [switch]$SharedFolderWritable,
+        [switch]$SharedFolderValidationDiagnostics,
         [ScriptBlock]$OnDefaultSharedFolderCreated
     )
 
@@ -286,7 +310,10 @@ function Resolve-SharedFolderRequest {
 
     $resolvedSharedFolder = $null
     if ($requestedSharedFolder) {
-        $resolvedSharedFolder = Assert-SafeSharedFolderPath -Path $requestedSharedFolder -RepoRoot $RepoRoot
+        $resolvedSharedFolder = Assert-SafeSharedFolderPath `
+            -Path $requestedSharedFolder `
+            -RepoRoot $RepoRoot `
+            -Diagnostics:$SharedFolderValidationDiagnostics
     }
 
     return [pscustomobject]@{

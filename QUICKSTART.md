@@ -102,8 +102,9 @@ Use this when you need to stage files from host into sandbox. No extra mapping i
 
 `-UseDefaultSharedFolder` creates repo-local `shared/` if needed and keeps it gitignored.
 Avoid broad or sensitive host folders (repo root, `C:\`, `%WINDIR%`, Program Files roots, `%USERPROFILE%`, Desktop, Documents, Downloads).
-Some synced/managed paths (including some OneDrive-backed or redirected locations) can be rejected by design if their ancestry includes reparse points/junctions. Prefer a plain local, non-synced ingress folder.
+Some synced/managed paths (including some OneDrive-backed or redirected locations) can be rejected by design if their ancestry includes reparse points/junctions. This includes `-UseDefaultSharedFolder` when the repo is in such a location. Prefer a plain local, non-synced ingress folder.
 Clipboard and drag/drop may work on some hosts, but this mapped folder workflow should be your primary transfer path.
+For troubleshooting, add `-SharedFolderValidationDiagnostics` to print ancestry segments checked during validation.
 
 ---
 

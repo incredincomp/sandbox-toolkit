@@ -43,6 +43,10 @@
     Requires -SharedFolder or -UseDefaultSharedFolder.
     Use with caution for untrusted samples.
 
+.PARAMETER SharedFolderValidationDiagnostics
+    Emit verbose diagnostics for shared-folder ancestry checks.
+    Helpful for troubleshooting reparse/junction validation failures.
+
 .EXAMPLE
     .\Start-Sandbox.ps1
     # Downloads tools for the default 'reverse-engineering' profile and launches.
@@ -74,7 +78,8 @@ param(
     [switch]$SkipPrereqCheck,
     [string]$SharedFolder,
     [switch]$UseDefaultSharedFolder,
-    [switch]$SharedFolderWritable
+    [switch]$SharedFolderWritable,
+    [switch]$SharedFolderValidationDiagnostics
 )
 
 Set-StrictMode -Version Latest
@@ -122,6 +127,7 @@ $sharedFolderRequest = Resolve-SharedFolderRequest `
     -SharedFolder $SharedFolder `
     -UseDefaultSharedFolder:$UseDefaultSharedFolder `
     -SharedFolderWritable:$SharedFolderWritable `
+    -SharedFolderValidationDiagnostics:$SharedFolderValidationDiagnostics `
     -OnDefaultSharedFolderCreated {
         param($Path)
         Write-StatusLine "  [OK]  Created default shared folder: $Path" -ForegroundColor Green
