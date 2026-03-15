@@ -23,3 +23,9 @@ Reference: `README.md` section `Audit JSON contract`.
 - [ ] No workflow-doc update is needed for internal-only changes that do not alter user-facing flow.
 
 Reference: `README.md` section `Recommended workflow`.
+
+## Warm Raw Shape Impact
+
+- [ ] I reviewed whether this PR adds support for a new accepted `wsb list --raw` envelope shape.
+- [ ] If accepted raw-shape support changed, I updated parser fixtures, parser tests, and the documented warm raw parser contract in `README.md`.
+- [ ] If parser behavior changed without adding/removing accepted shapes, I confirmed whether fixture/contract updates were unnecessary.

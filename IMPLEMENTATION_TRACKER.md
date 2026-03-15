@@ -731,3 +731,22 @@ Estimated size: Small (1–2 files)
 |-------|--------|--------|------|
 | Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
 | PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-14 |
+
+### Scope (contributor guardrail for warm raw shape drift)
+- Add one narrow PR-template checklist guardrail for future additions of accepted `wsb list --raw` envelope shapes.
+
+### Decisions made (contributor guardrail for warm raw shape drift)
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Update existing `.github/pull_request_template.md` instead of adding a new contributor doc surface | Repo already uses PR template as primary review gate; smallest change with least drift risk | Introduce new `CONTRIBUTING.md` only for this note |
+| Keep wording shape-scoped (fixtures + tests + README warm parser contract) | Prevent broad/noisy checklist impact on unrelated parser/workflow changes | Generic parser checklist that over-applies to all workflow changes |
+
+### Files modified (contributor guardrail for warm raw shape drift)
+- `.github/pull_request_template.md`
+- `IMPLEMENTATION_TRACKER.md`
+
+### Validation (contributor guardrail for warm raw shape drift)
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
+| PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-14 |
