@@ -92,6 +92,7 @@ Use this when you need to stage files from host into sandbox. No extra mapping i
 - Default mode is read-only.
 - Writable mode requires explicit `-SharedFolderWritable` plus `-SharedFolder` or `-UseDefaultSharedFolder`.
 - Files appear in the sandbox at `C:\Users\WDAGUtilityAccount\Desktop\shared`.
+- Reparse-point/junction-backed shared-folder targets are blocked.
 
 ```powershell
 .\Start-Sandbox.ps1 -UseDefaultSharedFolder
@@ -100,7 +101,7 @@ Use this when you need to stage files from host into sandbox. No extra mapping i
 ```
 
 `-UseDefaultSharedFolder` creates repo-local `shared/` if needed and keeps it gitignored.
-Avoid broad or sensitive host folders (`C:\`, `%USERPROFILE%`, Desktop, Documents, Downloads).
+Avoid broad or sensitive host folders (repo root, `C:\`, `%USERPROFILE%`, Desktop, Documents, Downloads).
 Clipboard and drag/drop may work on some hosts, but this mapped folder workflow should be your primary transfer path.
 
 ---

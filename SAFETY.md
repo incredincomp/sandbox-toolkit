@@ -41,9 +41,10 @@ Optional shared-folder mapping is available for sample transfer:
 - Shared-folder mapping is **read-only by default**.
 - Writable mode requires explicit `-SharedFolderWritable` with a shared-folder option and increases host risk.
 - In sandbox, the mapped path is `C:\Users\WDAGUtilityAccount\Desktop\shared`.
+- Reparse-point/junction-backed targets are rejected.
 
 Avoid mapping broad or sensitive host paths (drive root, Windows folders, Program Files,
-profile root, Desktop, Documents, Downloads).
+repo root, profile root, Desktop, Documents, Downloads).
 
 **Do not map** additional writable host folders when working with untrusted samples.
 
