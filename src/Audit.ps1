@@ -123,6 +123,8 @@ function Invoke-SandboxArtifactAudit {
         [Parameter(Mandatory)][string]$RepoRoot,
         [Parameter(Mandatory)][PSCustomObject]$Selection,
         [Parameter(Mandatory)][string]$NetworkingMode,
+        [Parameter(Mandatory)][PSCustomObject]$SessionLifecycleState,
+        [Parameter(Mandatory)][PSCustomObject]$WslHelperState,
         [Parameter(Mandatory)][PSCustomObject]$HostInteractionPolicy,
         [Parameter(Mandatory)][PSCustomObject]$Artifacts,
         [string]$SharedHostFolder,
@@ -143,6 +145,87 @@ function Invoke-SandboxArtifactAudit {
         -Name 'selection-context' `
         -Status 'PASS' `
         -Message "Computed request: profile='$($Selection.Profile)' (base='$($Selection.BaseProfile)'; type=$($Selection.ProfileType)); tools=$($Selection.Tools.Count); networking_requested=$NetworkingMode (configured/requested, not runtime-verified)."))
+
+    if ($SessionLifecycleState.RequestedMode -eq 'Fresh') {
+        $checks.Add((Get-SandboxAuditCheck `
+            -Name 'session-mode' `
+            -Status 'PASS' `
+            -Message 'Session mode requested: Fresh (configured/requested intent; runtime verification not performed).'))
+    } elseif (-not $SessionLifecycleState.WarmSupport.Supported) {
+        $checks.Add((Get-SandboxAuditCheck `
+            -Name 'session-mode' `
+            -Status 'FAIL' `
+            -Message "Session mode requested: Warm, but host support is unavailable: $($SessionLifecycleState.WarmSupport.Reason)" `
+            -Remediation 'Use -SessionMode Fresh or move to a host with Windows Sandbox CLI support.'))
+    } elseif ($SessionLifecycleState.InventoryError) {
+        $checks.Add((Get-SandboxAuditCheck `
+            -Name 'session-mode' `
+            -Status 'WARN' `
+            -Message "Session mode requested: Warm; CLI detected, but running-session discovery failed: $($SessionLifecycleState.InventoryError) (configured/requested evidence only)." `
+            -Remediation 'Validate wsb list --raw access for warm reuse guarantees.'))
+    } elseif ($SessionLifecycleState.RunningSessionCount -gt 0) {
+        $checks.Add((Get-SandboxAuditCheck `
+            -Name 'session-mode' `
+            -Status 'PASS' `
+            -Message "Session mode requested: Warm; running session candidates discovered ($($SessionLifecycleState.RunningSessionCount)). Reuse intent is configured/requested only and not runtime-verified."))
+    } else {
+        $checks.Add((Get-SandboxAuditCheck `
+            -Name 'session-mode' `
+            -Status 'WARN' `
+            -Message 'Session mode requested: Warm; no running sessions discovered. A launch would create a new session (higher convenience, lower cleanliness than Fresh).' `
+            -Remediation 'Use -SessionMode Fresh for cleaner starts, or pre-create a warm session to reuse.'))
+    }
+
+    if (-not $WslHelperState.Enabled) {
+        $checks.Add((Get-SandboxAuditCheck `
+            -Name 'wsl-helper' `
+            -Status 'PASS' `
+            -Message 'WSL helper sidecar not requested.'))
+    } elseif (-not $WslHelperState.WslCommandAvailable -or -not $WslHelperState.DistroAvailable) {
+        $checks.Add((Get-SandboxAuditCheck `
+            -Name 'wsl-helper' `
+            -Status 'FAIL' `
+            -Message "WSL helper sidecar requested but unavailable: $($WslHelperState.SupportReason)" `
+            -Remediation 'Install/configure WSL helper prerequisites or run without -UseWslHelper.'))
+    } else {
+        $effectiveDistroLabel = if ($WslHelperState.EffectiveDistro) { $WslHelperState.EffectiveDistro } else { '(default)' }
+        $checks.Add((Get-SandboxAuditCheck `
+            -Name 'wsl-helper' `
+            -Status 'PASS' `
+            -Message ("WSL helper sidecar configured/requested: distro={0}; stage_path={1}; runtime verification not performed." -f $effectiveDistroLabel, $WslHelperState.StagePath)))
+
+        if (-not $WslHelperState.Hardening -or -not $WslHelperState.Hardening.Available) {
+            $checks.Add((Get-SandboxAuditCheck `
+                -Name 'wsl-helper-hardening' `
+                -Status 'WARN' `
+                -Message 'WSL helper hardening settings could not be verified from /etc/wsl.conf (configured/requested evidence only).' `
+                -Remediation 'Set helper distro /etc/wsl.conf with automount and interop hardening recommendations.'))
+        } else {
+            $hardeningIssues = [System.Collections.Generic.List[string]]::new()
+            if (($WslHelperState.Hardening.AutomountEnabled + '').ToLowerInvariant() -ne 'false') {
+                $hardeningIssues.Add('automount.enabled=false')
+            }
+            if (($WslHelperState.Hardening.InteropEnabled + '').ToLowerInvariant() -ne 'false') {
+                $hardeningIssues.Add('interop.enabled=false')
+            }
+            if (($WslHelperState.Hardening.AppendWindowsPath + '').ToLowerInvariant() -ne 'false') {
+                $hardeningIssues.Add('interop.appendWindowsPath=false')
+            }
+
+            if ($hardeningIssues.Count -eq 0) {
+                $checks.Add((Get-SandboxAuditCheck `
+                    -Name 'wsl-helper-hardening' `
+                    -Status 'PASS' `
+                    -Message 'WSL helper hardening settings are configured in /etc/wsl.conf (configured/requested evidence only, not runtime-verified).'))
+            } else {
+                $checks.Add((Get-SandboxAuditCheck `
+                    -Name 'wsl-helper-hardening' `
+                    -Status 'WARN' `
+                    -Message ("WSL helper hardening is partially configured. Missing recommended settings: {0}." -f ($hardeningIssues -join ', ')) `
+                    -Remediation 'Apply helper distro /etc/wsl.conf hardening recommendations.'))
+            }
+        }
+    }
 
     $prereqChecks = @($PrerequisiteChecks | Where-Object { $_ })
 

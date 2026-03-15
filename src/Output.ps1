@@ -33,7 +33,9 @@ function Get-SandboxValidateJsonResult {
         [switch]$SkipPrereqCheck,
         [string]$SharedFolder,
         [switch]$UseDefaultSharedFolder,
-        [PSCustomObject]$HostInteractionPolicy
+        [PSCustomObject]$HostInteractionPolicy,
+        [PSCustomObject]$SessionLifecycleState,
+        [PSCustomObject]$WslHelperState
     )
 
     return [ordered]@{
@@ -72,6 +74,23 @@ function Get-SandboxValidateJsonResult {
                 audio_input = $HostInteractionPolicy.AudioInput
                 startup_commands_enabled = [bool]$HostInteractionPolicy.StartupCommandsEnabled
             }
+            session = [ordered]@{
+                requested_mode = if ($SessionLifecycleState) { $SessionLifecycleState.RequestedMode } else { 'Fresh' }
+                effective_mode = if ($SessionLifecycleState) { $SessionLifecycleState.EffectiveMode } else { 'Fresh' }
+                warm_support = [ordered]@{
+                    supported = if ($SessionLifecycleState) { [bool]$SessionLifecycleState.WarmSupport.Supported } else { $false }
+                    reason = if ($SessionLifecycleState) { $SessionLifecycleState.WarmSupport.Reason } else { $null }
+                    running_session_count = if ($SessionLifecycleState) { $SessionLifecycleState.RunningSessionCount } else { 0 }
+                }
+            }
+            wsl_helper = [ordered]@{
+                enabled = if ($WslHelperState) { [bool]$WslHelperState.Enabled } else { $false }
+                requested_distro = if ($WslHelperState) { $WslHelperState.RequestedDistro } else { $null }
+                effective_distro = if ($WslHelperState) { $WslHelperState.EffectiveDistro } else { $null }
+                stage_path = if ($WslHelperState) { $WslHelperState.StagePath } else { $null }
+                supported = if ($WslHelperState) { [bool]($WslHelperState.WslCommandAvailable -and $WslHelperState.DistroAvailable) } else { $false }
+                support_reason = if ($WslHelperState) { $WslHelperState.SupportReason } else { $null }
+            }
         }
     }
 }
@@ -92,7 +111,10 @@ function Get-SandboxDryRunJsonResult {
         [switch]$UseDefaultSharedFolder,
         [string]$ResolvedSharedFolder,
         [switch]$SharedFolderWritable,
-        [Parameter(Mandatory)][PSCustomObject]$HostInteractionPolicy
+        [Parameter(Mandatory)][PSCustomObject]$HostInteractionPolicy,
+        [Parameter(Mandatory)][PSCustomObject]$SessionLifecycleState,
+        [Parameter(Mandatory)][PSCustomObject]$WslHelperState,
+        [PSCustomObject]$WslHelperResult
     )
 
     return [ordered]@{
@@ -114,6 +136,26 @@ function Get-SandboxDryRunJsonResult {
                 clipboard_redirection = $HostInteractionPolicy.ClipboardRedirection
                 audio_input = $HostInteractionPolicy.AudioInput
                 startup_commands_enabled = [bool]$HostInteractionPolicy.StartupCommandsEnabled
+            }
+            session = [ordered]@{
+                requested_mode = $SessionLifecycleState.RequestedMode
+                effective_mode = $SessionLifecycleState.EffectiveMode
+                warm_support = [ordered]@{
+                    supported = [bool]$SessionLifecycleState.WarmSupport.Supported
+                    reason = $SessionLifecycleState.WarmSupport.Reason
+                    running_session_count = $SessionLifecycleState.RunningSessionCount
+                }
+                warm_plan = if ($SessionLifecycleState.RequestedMode -eq 'Warm') {
+                    if (-not $SessionLifecycleState.WarmSupport.Supported) {
+                        'unsupported'
+                    } elseif ($SessionLifecycleState.RunningSessionCount -gt 0) {
+                        'reuse-existing-session'
+                    } else {
+                        'create-new-session'
+                    }
+                } else {
+                    'fresh-launch'
+                }
             }
             tools = @(
                 $Selection.Tools | ForEach-Object {
@@ -154,6 +196,16 @@ function Get-SandboxDryRunJsonResult {
                 disable_audio_input = [bool]$HostInteractionPolicy.RequestedDisableAudioInput
                 disable_startup_commands = [bool]$HostInteractionPolicy.RequestedDisableStartupCommands
             }
+            wsl_helper = [ordered]@{
+                enabled = [bool]$WslHelperState.Enabled
+                requested_distro = $WslHelperState.RequestedDistro
+                effective_distro = $WslHelperState.EffectiveDistro
+                stage_path = $WslHelperState.StagePath
+                supported = [bool]($WslHelperState.WslCommandAvailable -and $WslHelperState.DistroAvailable)
+                support_reason = $WslHelperState.SupportReason
+                executed = if ($WslHelperResult) { [bool]$WslHelperResult.Executed } else { $false }
+                payload_sha256 = if ($WslHelperResult) { $WslHelperResult.PayloadHash } else { $null }
+            }
         }
     }
 }
@@ -174,7 +226,9 @@ function Get-SandboxAuditJsonResult {
         [switch]$UseDefaultSharedFolder,
         [string]$ResolvedSharedFolder,
         [switch]$SharedFolderWritable,
-        [Parameter(Mandatory)][PSCustomObject]$HostInteractionPolicy
+        [Parameter(Mandatory)][PSCustomObject]$HostInteractionPolicy,
+        [Parameter(Mandatory)][PSCustomObject]$SessionLifecycleState,
+        [Parameter(Mandatory)][PSCustomObject]$WslHelperState
     )
 
     return [ordered]@{
@@ -198,6 +252,23 @@ function Get-SandboxAuditJsonResult {
                 clipboard_redirection = $HostInteractionPolicy.ClipboardRedirection
                 audio_input = $HostInteractionPolicy.AudioInput
                 startup_commands_enabled = [bool]$HostInteractionPolicy.StartupCommandsEnabled
+            }
+            session = [ordered]@{
+                requested_mode = $SessionLifecycleState.RequestedMode
+                effective_mode = $SessionLifecycleState.EffectiveMode
+                warm_support = [ordered]@{
+                    supported = [bool]$SessionLifecycleState.WarmSupport.Supported
+                    reason = $SessionLifecycleState.WarmSupport.Reason
+                    running_session_count = $SessionLifecycleState.RunningSessionCount
+                }
+            }
+            wsl_helper = [ordered]@{
+                enabled = [bool]$WslHelperState.Enabled
+                requested_distro = $WslHelperState.RequestedDistro
+                effective_distro = $WslHelperState.EffectiveDistro
+                stage_path = $WslHelperState.StagePath
+                supported = [bool]($WslHelperState.WslCommandAvailable -and $WslHelperState.DistroAvailable)
+                support_reason = $WslHelperState.SupportReason
             }
             tools = @(
                 $Selection.Tools | ForEach-Object {

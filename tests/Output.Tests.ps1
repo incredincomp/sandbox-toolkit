@@ -29,6 +29,21 @@ Describe 'Get-SandboxValidateJsonResult' {
                 ClipboardRedirection = 'Enable'
                 AudioInput = 'Disable'
                 StartupCommandsEnabled = $true
+            }) `
+            -SessionLifecycleState ([pscustomobject]@{
+                RequestedMode = 'Fresh'
+                EffectiveMode = 'Fresh'
+                WarmSupport = [pscustomobject]@{ Supported = $false; Reason = 'not-required' }
+                RunningSessionCount = 0
+            }) `
+            -WslHelperState ([pscustomobject]@{
+                Enabled = $false
+                RequestedDistro = $null
+                EffectiveDistro = $null
+                StagePath = '~/.sandbox-toolkit-helper'
+                WslCommandAvailable = $false
+                DistroAvailable = $false
+                SupportReason = 'not-requested'
             })
 
         $jsonObject.overall_status | Should Be 'WARN'
@@ -74,6 +89,25 @@ Describe 'Get-SandboxDryRunJsonResult' {
                 ClipboardRedirection = 'Disable'
                 AudioInput = 'Disable'
                 StartupCommandsEnabled = $false
+            }) `
+            -SessionLifecycleState ([pscustomobject]@{
+                RequestedMode = 'Warm'
+                EffectiveMode = 'Warm'
+                WarmSupport = [pscustomobject]@{ Supported = $true; Reason = 'cli-present' }
+                RunningSessionCount = 1
+            }) `
+            -WslHelperState ([pscustomobject]@{
+                Enabled = $true
+                RequestedDistro = 'Ubuntu'
+                EffectiveDistro = 'Ubuntu'
+                StagePath = '~/.sandbox-toolkit-helper'
+                WslCommandAvailable = $true
+                DistroAvailable = $true
+                SupportReason = 'ok'
+            }) `
+            -WslHelperResult ([pscustomobject]@{
+                Executed = $true
+                PayloadHash = 'abc123'
             })
 
         $result.command.mode | Should Be 'dry-run'
@@ -81,8 +115,12 @@ Describe 'Get-SandboxDryRunJsonResult' {
         $result.effective.tools.Count | Should Be 1
         $result.effective.host_interaction.clipboard_redirection | Should Be 'Disable'
         $result.effective.host_interaction.startup_commands_enabled | Should Be $false
+        $result.effective.session.requested_mode | Should Be 'Warm'
+        $result.effective.session.warm_plan | Should Be 'reuse-existing-session'
         $result.stages.download.skipped | Should Be $true
         $result.stages.launch.skipped | Should Be $true
+        $result.context.wsl_helper.enabled | Should Be $true
+        $result.context.wsl_helper.payload_sha256 | Should Be 'abc123'
     }
 }
 
@@ -128,6 +166,21 @@ Describe 'Get-SandboxAuditJsonResult' {
                 ClipboardRedirection = 'Disable'
                 AudioInput = 'Disable'
                 StartupCommandsEnabled = $true
+            }) `
+            -SessionLifecycleState ([pscustomobject]@{
+                RequestedMode = 'Fresh'
+                EffectiveMode = 'Fresh'
+                WarmSupport = [pscustomobject]@{ Supported = $false; Reason = 'not-required' }
+                RunningSessionCount = 0
+            }) `
+            -WslHelperState ([pscustomobject]@{
+                Enabled = $false
+                RequestedDistro = $null
+                EffectiveDistro = $null
+                StagePath = '~/.sandbox-toolkit-helper'
+                WslCommandAvailable = $false
+                DistroAvailable = $false
+                SupportReason = 'not-requested'
             })
 
         $result.command.mode | Should Be 'audit'
@@ -147,6 +200,7 @@ Describe 'Get-SandboxAuditJsonResult' {
         (($topLevel -contains 'context')) | Should Be $true
         $result.effective.networking_requested | Should Be 'Disable'
         $result.effective.host_interaction_requested.clipboard_redirection | Should Be 'Disable'
+        $result.effective.session.requested_mode | Should Be 'Fresh'
         $result.context.runtime_verification | Should Be 'not_performed'
         $result.checks.Count | Should Be 2
         @($result.checks | Where-Object { $_.id -eq 'wsb-shared-folder' -and $_.status -eq 'WARN' }).Count | Should Be 1
@@ -189,6 +243,21 @@ Describe 'Get-SandboxAuditJsonResult' {
                 ClipboardRedirection = 'Enable'
                 AudioInput = 'Disable'
                 StartupCommandsEnabled = $true
+            }) `
+            -SessionLifecycleState ([pscustomobject]@{
+                RequestedMode = 'Fresh'
+                EffectiveMode = 'Fresh'
+                WarmSupport = [pscustomobject]@{ Supported = $false; Reason = 'not-required' }
+                RunningSessionCount = 0
+            }) `
+            -WslHelperState ([pscustomobject]@{
+                Enabled = $false
+                RequestedDistro = $null
+                EffectiveDistro = $null
+                StagePath = '~/.sandbox-toolkit-helper'
+                WslCommandAvailable = $false
+                DistroAvailable = $false
+                SupportReason = 'not-requested'
             })
 
         $result.overall_status | Should Be 'FAIL'

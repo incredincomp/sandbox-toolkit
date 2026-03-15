@@ -37,6 +37,20 @@ Describe 'Invoke-SandboxArtifactAudit' {
                 -RepoRoot $repoRoot `
                 -Selection $selection `
                 -NetworkingMode (Get-SandboxNetworkingMode -SandboxProfile $selection.BaseProfile) `
+                -SessionLifecycleState ([pscustomobject]@{
+                    RequestedMode = 'Fresh'
+                    EffectiveMode = 'Fresh'
+                    WarmSupport = [pscustomobject]@{ Supported = $false; Reason = 'not-required' }
+                    RunningSessionCount = 0
+                    InventoryError = $null
+                }) `
+                -WslHelperState ([pscustomobject]@{
+                    Enabled = $false
+                    WslCommandAvailable = $false
+                    DistroAvailable = $false
+                    SupportReason = 'not-requested'
+                    StagePath = '~/.sandbox-toolkit-helper'
+                }) `
                 -HostInteractionPolicy (Get-SandboxHostInteractionPolicy) `
                 -Artifacts $artifacts
 
@@ -74,6 +88,20 @@ Describe 'Invoke-SandboxArtifactAudit' {
                 -RepoRoot $repoRoot `
                 -Selection $selection `
                 -NetworkingMode 'Disable' `
+                -SessionLifecycleState ([pscustomobject]@{
+                    RequestedMode = 'Fresh'
+                    EffectiveMode = 'Fresh'
+                    WarmSupport = [pscustomobject]@{ Supported = $false; Reason = 'not-required' }
+                    RunningSessionCount = 0
+                    InventoryError = $null
+                }) `
+                -WslHelperState ([pscustomobject]@{
+                    Enabled = $false
+                    WslCommandAvailable = $false
+                    DistroAvailable = $false
+                    SupportReason = 'not-requested'
+                    StagePath = '~/.sandbox-toolkit-helper'
+                }) `
                 -HostInteractionPolicy (Get-SandboxHostInteractionPolicy) `
                 -Artifacts $artifacts
 
@@ -107,6 +135,20 @@ Describe 'Invoke-SandboxArtifactAudit' {
                 -RepoRoot $repoRoot `
                 -Selection $selection `
                 -NetworkingMode (Get-SandboxNetworkingMode -SandboxProfile $selection.BaseProfile) `
+                -SessionLifecycleState ([pscustomobject]@{
+                    RequestedMode = 'Fresh'
+                    EffectiveMode = 'Fresh'
+                    WarmSupport = [pscustomobject]@{ Supported = $false; Reason = 'not-required' }
+                    RunningSessionCount = 0
+                    InventoryError = $null
+                }) `
+                -WslHelperState ([pscustomobject]@{
+                    Enabled = $false
+                    WslCommandAvailable = $false
+                    DistroAvailable = $false
+                    SupportReason = 'not-requested'
+                    StagePath = '~/.sandbox-toolkit-helper'
+                }) `
                 -HostInteractionPolicy (Get-SandboxHostInteractionPolicy) `
                 -Artifacts $artifacts `
                 -SharedHostFolder $sharedRoot `
@@ -138,6 +180,20 @@ Describe 'Invoke-SandboxArtifactAudit' {
                 -RepoRoot $repoRoot `
                 -Selection $selection `
                 -NetworkingMode (Get-SandboxNetworkingMode -SandboxProfile $selection.BaseProfile) `
+                -SessionLifecycleState ([pscustomobject]@{
+                    RequestedMode = 'Fresh'
+                    EffectiveMode = 'Fresh'
+                    WarmSupport = [pscustomobject]@{ Supported = $false; Reason = 'not-required' }
+                    RunningSessionCount = 0
+                    InventoryError = $null
+                }) `
+                -WslHelperState ([pscustomobject]@{
+                    Enabled = $false
+                    WslCommandAvailable = $false
+                    DistroAvailable = $false
+                    SupportReason = 'not-requested'
+                    StagePath = '~/.sandbox-toolkit-helper'
+                }) `
                 -HostInteractionPolicy (Get-SandboxHostInteractionPolicy) `
                 -Artifacts $artifacts
 
@@ -171,6 +227,20 @@ Describe 'Invoke-SandboxArtifactAudit' {
                 -RepoRoot $repoRoot `
                 -Selection $selection `
                 -NetworkingMode (Get-SandboxNetworkingMode -SandboxProfile $selection.BaseProfile) `
+                -SessionLifecycleState ([pscustomobject]@{
+                    RequestedMode = 'Fresh'
+                    EffectiveMode = 'Fresh'
+                    WarmSupport = [pscustomobject]@{ Supported = $false; Reason = 'not-required' }
+                    RunningSessionCount = 0
+                    InventoryError = $null
+                }) `
+                -WslHelperState ([pscustomobject]@{
+                    Enabled = $false
+                    WslCommandAvailable = $false
+                    DistroAvailable = $false
+                    SupportReason = 'not-requested'
+                    StagePath = '~/.sandbox-toolkit-helper'
+                }) `
                 -HostInteractionPolicy $policy `
                 -Artifacts $artifacts
 
