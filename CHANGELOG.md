@@ -4,6 +4,18 @@ All notable changes to this project will be documented here.
 
 ---
 
+## [2.0.1] — 2026-03-14
+
+### Documentation
+
+- Marked the `-Audit -OutputJson` contract as stable for automation consumers.
+- Stable means required documented contract fields are expected to remain compatible unless a breaking change is explicitly called out.
+- Additive fields may be introduced without being considered breaking.
+- Human-readable check summary prose is informational and not the contract surface.
+- See [README Audit JSON contract](README.md#audit-json-contract) for the current stable field set and semantics.
+
+---
+
 ## [2.0.0] — 2026-03-14
 
 ### Architecture

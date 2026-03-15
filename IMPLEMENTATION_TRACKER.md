@@ -470,3 +470,22 @@ Estimated size: Small (1–2 files)
 | Pester tests (README example contract) | ✅ | `Invoke-Pester -Path tests/AuditJsonContract.Tests.ps1` | 2026-03-14 |
 | Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
 | PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-14 |
+
+### Scope (audit JSON release-note pass)
+- Record audit JSON contract stability for automation consumers in release-history surface.
+
+### Decisions made (audit JSON release-note pass)
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Add a concise changelog note under a new patch section | Existing repo convention already uses versioned changelog entries | Spread this update across multiple docs without release-history discoverability |
+| Keep pass documentation-only with no output/test behavior changes | Goal is release communication and downstream discoverability | Reopen output or test contract logic in this pass |
+
+### Files modified (audit JSON release-note pass)
+- `CHANGELOG.md`
+- `IMPLEMENTATION_TRACKER.md`
+
+### Validation (audit JSON release-note pass)
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
+| PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-14 |
