@@ -9,7 +9,6 @@ on:
       tag:
         description: "Tag to publish (for manual reruns, e.g. v2.1.1)"
         required: false
-        type: string
 
 permissions:
   contents: write

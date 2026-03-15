@@ -1219,6 +1219,11 @@ Estimated size: Small (1–2 files)
 | Full test suite | ✅ | `Import-Module Pester -RequiredVersion 4.10.1 -Force; Invoke-Pester -Path tests -EnableExit` | 2026-03-15 |
 | PSScriptAnalyzer (Error,Warning) | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' \| ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-15 |
 
+### Follow-up adjustment
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Remove `workflow_dispatch.inputs.tag.type: string` from `release.yml` | GitHub Actions workflow parser rejects this field/value combination and the run fails before jobs are created | Keep `type` and rely on default parser coercion |
+
 ---
 
 ## 2026-03-15 Session log (CI parity and failure triage pass)
