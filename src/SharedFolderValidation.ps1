@@ -5,6 +5,10 @@ function Get-NormalizedFullPath {
 
     $resolved = Resolve-Path -LiteralPath $Path -ErrorAction Stop
     $fullPath = [System.IO.Path]::GetFullPath($resolved.Path)
+    $rootPath = [System.IO.Path]::GetPathRoot($fullPath)
+    if ($fullPath -ieq $rootPath) {
+        return $rootPath
+    }
     return $fullPath.TrimEnd('\')
 }
 
@@ -138,8 +142,66 @@ function Test-SharedFolderTargetIsReparsePoint {
         [Parameter(Mandatory)][string]$Path
     )
 
-    $item = Get-Item -LiteralPath $Path -ErrorAction Stop
+    $item = Get-Item -LiteralPath $Path -Force -ErrorAction Stop
     return [bool]($item.Attributes -band [System.IO.FileAttributes]::ReparsePoint)
+}
+
+function Get-NormalizedInputPath {
+    param(
+        [Parameter(Mandatory)][string]$Path
+    )
+
+    $fullPath = [System.IO.Path]::GetFullPath($Path)
+    $rootPath = [System.IO.Path]::GetPathRoot($fullPath)
+    if ($fullPath -ieq $rootPath) {
+        return $rootPath
+    }
+    return $fullPath.TrimEnd('\')
+}
+
+function Find-ReparsePointInPathAncestry {
+    param(
+        [Parameter(Mandatory)][string]$Path,
+        [switch]$IncludeTarget
+    )
+
+    $currentPath = if ($IncludeTarget) { $Path } else { Split-Path -Path $Path -Parent }
+    if ($currentPath) {
+        $currentRoot = [System.IO.Path]::GetPathRoot($currentPath)
+        if ($currentPath -ine $currentRoot) {
+            $currentPath = $currentPath.TrimEnd('\')
+        }
+    }
+
+    while ($currentPath) {
+        try {
+            $item = Get-Item -LiteralPath $currentPath -Force -ErrorAction Stop
+        } catch {
+            throw "Shared folder path could not be validated safely: failed to inspect ancestry segment '$currentPath'. $($_.Exception.Message)"
+        }
+
+        if ($item.PSIsContainer -and ($item.Attributes -band [System.IO.FileAttributes]::ReparsePoint)) {
+            return $currentPath
+        }
+
+        $pathRoot = [System.IO.Path]::GetPathRoot($currentPath).TrimEnd('\')
+        if ($currentPath.TrimEnd('\') -ieq $pathRoot) {
+            break
+        }
+
+        $parentPath = Split-Path -Path $currentPath -Parent
+        if ([string]::IsNullOrWhiteSpace($parentPath)) {
+            break
+        }
+        $parentRoot = [System.IO.Path]::GetPathRoot($parentPath)
+        if ($parentPath -ieq $parentRoot) {
+            $currentPath = $parentRoot
+            continue
+        }
+        $currentPath = $parentPath.TrimEnd('\')
+    }
+
+    return $null
 }
 
 function Assert-SafeSharedFolderPath {
@@ -156,20 +218,22 @@ function Assert-SafeSharedFolderPath {
         throw "Shared folder path must exist and be a directory: $Path"
     }
 
-    try {
-        $normalizedPath = Get-NormalizedFullPath -Path $Path
-    } catch {
-        throw "Shared folder path could not be resolved: $Path. $($_.Exception.Message)"
-    }
+    $normalizedInputPath = Get-NormalizedInputPath -Path $Path
+    $normalizedPath = Get-NormalizedFullPath -Path $Path
 
     if (Test-SharedFolderTargetIsReparsePoint -Path $normalizedPath) {
         throw "Shared folder path is not allowed: '$normalizedPath' is a reparse point or junction. Use a real directory path."
     }
 
+    $reparseAncestorPath = Find-ReparsePointInPathAncestry -Path $normalizedInputPath
+    if ($reparseAncestorPath) {
+        throw "Shared folder path is not allowed: '$normalizedInputPath' traverses a reparse point or junction at '$reparseAncestorPath' in its parent chain. The toolkit blocks reparse/junction ancestry traversal for safety. Choose a non-reparse local folder instead."
+    }
+
     foreach ($entry in Get-ResolvedSharedFolderBlockedPathPolicy -RepoRoot $RepoRoot) {
         if ($entry.Kind -eq 'drive-root') {
             $pathRoot = [System.IO.Path]::GetPathRoot($normalizedPath).TrimEnd('\')
-            if ($normalizedPath -ieq $pathRoot) {
+            if ($normalizedPath.TrimEnd('\') -ieq $pathRoot) {
                 throw "Shared folder path is not allowed: '$normalizedPath' matches blocked category '$($entry.Category)' because $($entry.Rationale)."
             }
             continue
