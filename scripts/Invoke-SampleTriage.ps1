@@ -1,3 +1,11 @@
+<#
+.SYNOPSIS
+    Builds quick triage metadata for one sample or a folder of staged samples.
+
+.DESCRIPTION
+    Computes SHA256 hashes, basic file metadata, and a bounded printable-string preview
+    for each input sample, then writes a deterministic JSON summary artifact.
+#>
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
@@ -8,6 +16,14 @@ param(
 )
 
 function Get-TriageStringPreview {
+    <#
+    .SYNOPSIS
+        Extracts bounded printable-string preview data from a sample file.
+
+    .DESCRIPTION
+        Scans raw bytes and emits ASCII-like strings for fast operator triage.
+        This is metadata-only output and is intentionally capped for speed/safety.
+    #>
     param(
         [Parameter(Mandatory)][string]$Path,
         [int]$MinLength = 6,

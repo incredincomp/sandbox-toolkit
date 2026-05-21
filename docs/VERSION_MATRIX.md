@@ -22,7 +22,7 @@
 | minimal | Disable | Disable | low-risk baseline |
 | reverse-engineering | Disable | Default | offline reversing |
 | network-analysis | Enable | Default | packet capture/lab network workflows |
-| analysis | Enable | Default | internet-enabled analyst workstation |
+| analysis | Enable | Default | Internet-enabled analyst workstation |
 | detonation | Disable | Disable | restricted detonation |
 | forensics | Disable | Disable | static/offline forensics |
 | triage-plus | Enable | Default | lightweight rapid triage |

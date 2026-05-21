@@ -1,3 +1,20 @@
+<#
+.SYNOPSIS
+    Bundles analysis artifacts into a timestamped ZIP for host export.
+
+.DESCRIPTION
+    Copies generated analysis artifacts and install log output to a temporary staging
+    directory, creates an export ZIP, and writes the bundle into the mapped shared folder.
+
+.PARAMETER ArtifactRoot
+    Root folder containing analysis artifacts to export.
+
+.PARAMETER SharedRoot
+    Mapped shared folder root used to publish export bundles.
+
+.PARAMETER BundleName
+    Optional explicit bundle name. If omitted, a timestamped name is generated.
+#>
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 

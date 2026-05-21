@@ -1,3 +1,11 @@
+<#
+.SYNOPSIS
+    Removes toolkit-generated analyst workspace artifacts from the sandbox desktop.
+
+.DESCRIPTION
+    Deletes analysis artifact folders and common generated files so operators can reset
+    the sandbox workspace between samples without recreating the whole environment.
+#>
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
