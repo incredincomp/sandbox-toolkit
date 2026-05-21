@@ -6,14 +6,14 @@
     Computes SHA256 hashes, basic file metadata, and a bounded printable-string preview
     for each input sample, then writes a deterministic JSON summary artifact.
 #>
-Set-StrictMode -Version Latest
-$ErrorActionPreference = 'Stop'
-
 param(
     [string]$InputPath = 'C:\Users\WDAGUtilityAccount\Desktop\shared\incoming',
     [string]$OutputRoot = 'C:\Users\WDAGUtilityAccount\Desktop\analysis-artifacts\triage',
     [switch]$Recurse
 )
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
 
 function Get-TriageStringPreview {
     <#

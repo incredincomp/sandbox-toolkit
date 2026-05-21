@@ -15,14 +15,14 @@
 .PARAMETER BundleName
     Optional explicit bundle name. If omitted, a timestamped name is generated.
 #>
-Set-StrictMode -Version Latest
-$ErrorActionPreference = 'Stop'
-
 param(
     [string]$ArtifactRoot = 'C:\Users\WDAGUtilityAccount\Desktop\analysis-artifacts',
     [string]$SharedRoot = 'C:\Users\WDAGUtilityAccount\Desktop\shared',
     [string]$BundleName = ''
 )
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
 
 if ([string]::IsNullOrWhiteSpace($BundleName)) {
     $BundleName = 'analysis-artifacts-' + (Get-Date -Format 'yyyyMMdd-HHmmss')
