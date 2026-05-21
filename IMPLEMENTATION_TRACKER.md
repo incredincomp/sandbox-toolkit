@@ -520,6 +520,62 @@ Estimated size: Small (1–2 files)
 | Pester tests | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
 | PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer ... }` | 2026-03-14 |
 
+---
+
+## 2026-05-21 Session log (Windows 11 modernization pass)
+
+### Scope
+- Modernize sandbox profile model for Windows 11 operations (`analysis`, `detonation`, `forensics`).
+- Refactor sandbox config generation with explicit profile-driven `Networking` and `VGpu`.
+- Add practical analyst workflow automation (sample triage, artifact export bundles, reset routines).
+- Refresh docs for security posture, startup workflow, migration, and version matrix visibility.
+
+### Decisions made
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Add built-in profiles `analysis`, `detonation`, `forensics` instead of only shipping static `.wsb` examples | Keeps profile selection first-class across CLI/list/dry-run/validate/audit flows | Leave functionality in docs-only static profile files |
+| Introduce profile-driven `VGpu` policy in `src/SandboxConfig.ps1` | Windows 11 Sandbox supports configurable vGPU and profile policy should be explicit/auditable | Keep hard-coded `<VGpu>Disable</VGpu>` for all profiles |
+| Add `wsb-vgpu` audit check | Ensures generated artifact policy evidence includes acceleration posture, not just networking | Depend on manual XML inspection |
+| Add in-sandbox analyst scripts (`Invoke-SampleTriage.ps1`, `Export-AnalysisArtifacts.ps1`, `Reset-SandboxWorkspace.ps1`) | Enables reproducible one-command triage/export/reset workflows and reduces analyst friction | Keep manual ad-hoc analyst steps undocumented |
+| Emit install artifact summary + timeline from `Install-Tools.ps1` | Provides deterministic run evidence and operational diagnostics for malware-lab workflows | Keep only console/install-log output |
+
+### Files modified
+- `Start-Sandbox.ps1`
+- `src/Manifest.ps1`
+- `src/SandboxConfig.ps1`
+- `src/Audit.ps1`
+- `scripts/Install-Tools.ps1`
+- `scripts/Invoke-SampleTriage.ps1` (new)
+- `scripts/Export-AnalysisArtifacts.ps1` (new)
+- `scripts/Reset-SandboxWorkspace.ps1` (new)
+- `sandbox-profiles/analysis.wsb` (new)
+- `sandbox-profiles/detonation.wsb` (new)
+- `sandbox-profiles/forensics.wsb` (new)
+- `tools.json`
+- `schemas/tools.schema.json`
+- `.github/workflows/validate.yml`
+- `README.md`
+- `docs/QUICKSTART.md`
+- `docs/PROFILES.md`
+- `docs/SAFETY.md`
+- `docs/TROUBLESHOOTING.md`
+- `docs/VERSION_MATRIX.md` (new)
+- `docs/MIGRATION.md` (new)
+- `tests/Audit.Tests.ps1`
+- `tests/Cli.Tests.ps1`
+- `tests/Session.Tests.ps1`
+- `tests/StartSandboxCliIntegration.Tests.ps1`
+- `tests/StartSandboxJson.Tests.ps1`
+- `sandbox.wsb.template`
+- `IMPLEMENTATION_TRACKER.md`
+
+### Validation
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Manifest schema validation | ✅ | `python - <<'PY' ... jsonschema.validate(...)` | 2026-05-21 |
+| PSScriptAnalyzer (Error,Warning) | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' \| ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-05-21 |
+| Pester tests | ⚠️ Environment-limited | `Invoke-Pester -Path tests` executed under available Pester 5; suite uses legacy Pester 4 syntax and fails in this environment. Attempt to install `Pester 4.10.1` failed due unavailable module repository. | 2026-05-21 |
+
 ### Scope (list json output completion pass)
 - Extend `-OutputJson` support to list discovery modes: `-ListTools` and `-ListProfiles`.
 - Preserve default human-readable list output.

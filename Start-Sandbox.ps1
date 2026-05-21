@@ -778,7 +778,7 @@ $selection = Resolve-SandboxSessionSelection `
     -AddTools $effectiveRuntimeAddTools `
     -RemoveTools $effectiveRuntimeRemoveTools
 $tools      = $selection.Tools
-$profileSettings = Get-SandboxProfileSettings -SandboxProfile $selection.BaseProfile
+$profileSettings = Get-SandboxProfilePolicy -SandboxProfile $selection.BaseProfile
 $networkingMode = $profileSettings.Networking
 
 Write-StatusLine "  [OK]  $($tools.Count) tool(s) selected for profile '$effectiveSandboxProfile'." -ForegroundColor Green

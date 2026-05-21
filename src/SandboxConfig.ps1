@@ -17,7 +17,7 @@ $script:SandboxProfileSettings = @{
     'dev-windows'         = [pscustomobject]@{ Networking = 'Disable'; VGpu = 'Default' }
 }
 
-function Get-SandboxProfileSettings {
+function Get-SandboxProfilePolicy {
     <#
     .SYNOPSIS
         Returns effective sandbox policy defaults configured for a profile.
@@ -42,7 +42,7 @@ function Get-SandboxNetworkingMode {
         [Parameter(Mandatory)][string]$SandboxProfile
     )
 
-    return (Get-SandboxProfileSettings -SandboxProfile $SandboxProfile).Networking
+    return (Get-SandboxProfilePolicy -SandboxProfile $SandboxProfile).Networking
 }
 
 function Get-SandboxHostInteractionPolicy {
@@ -103,7 +103,7 @@ function New-SandboxConfig {
         $OutputPath = Join-Path $RepoRoot 'sandbox.wsb'
     }
 
-    $profileSettings = Get-SandboxProfileSettings -SandboxProfile $SandboxProfile
+    $profileSettings = Get-SandboxProfilePolicy -SandboxProfile $SandboxProfile
     $networking = $profileSettings.Networking
     $vGpu = $profileSettings.VGpu
     if (-not $HostInteractionPolicy) {

@@ -309,7 +309,7 @@ function Invoke-SandboxArtifactAudit {
         $wsbXml = $wsbArtifact.Xml
         $configuredNetworking = [string]$wsbXml.Configuration.Networking
         $configuredVGpu = [string]$wsbXml.Configuration.VGpu
-        $expectedVGpu = (Get-SandboxProfileSettings -SandboxProfile $Selection.BaseProfile).VGpu
+        $expectedVGpu = (Get-SandboxProfilePolicy -SandboxProfile $Selection.BaseProfile).VGpu
         if ($configuredNetworking -eq $NetworkingMode) {
             $checks.Add((Get-SandboxAuditCheck `
                 -Name 'wsb-networking' `

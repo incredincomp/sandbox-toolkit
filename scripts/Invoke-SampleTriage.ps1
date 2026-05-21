@@ -7,7 +7,7 @@ param(
     [switch]$Recurse
 )
 
-function Get-TriageStrings {
+function Get-TriageStringPreview {
     param(
         [Parameter(Mandatory)][string]$Path,
         [int]$MinLength = 6,
@@ -65,8 +65,7 @@ $report = [ordered]@{
 
 foreach ($item in $items) {
     $hashSha256 = (Get-FileHash -LiteralPath $item.FullName -Algorithm SHA256).Hash
-    $hashMd5 = (Get-FileHash -LiteralPath $item.FullName -Algorithm MD5).Hash
-    $strings = Get-TriageStrings -Path $item.FullName
+    $strings = Get-TriageStringPreview -Path $item.FullName
 
     $sampleRecord = [ordered]@{
         name = $item.Name
@@ -76,7 +75,6 @@ foreach ($item in $items) {
         modified_utc = $item.LastWriteTimeUtc.ToString('o')
         hashes = [ordered]@{
             sha256 = $hashSha256
-            md5 = $hashMd5
         }
         strings_preview = @($strings)
     }
