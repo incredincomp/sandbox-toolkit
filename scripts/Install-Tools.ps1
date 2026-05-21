@@ -18,6 +18,9 @@ $sandboxScripts = 'C:\Users\WDAGUtilityAccount\Desktop\scripts'
 $setupDir       = Join-Path $sandboxScripts 'setups'
 $manifestPath   = Join-Path $sandboxScripts 'install-manifest.json'
 $logPath        = 'C:\Users\WDAGUtilityAccount\Desktop\install-log.txt'
+$artifactRoot   = 'C:\Users\WDAGUtilityAccount\Desktop\analysis-artifacts'
+$timelinePath   = Join-Path $artifactRoot 'install-timeline.csv'
+$summaryPath    = Join-Path $artifactRoot 'install-summary.json'
 $tempDir        = $env:TEMP
 $sevenZip       = "$env:PROGRAMFILES\7-Zip\7z.exe"
 
@@ -162,6 +165,7 @@ function Install-ZipThenExe {
 Write-InstallLog '==========================================='
 Write-InstallLog ' Sandbox Toolkit -- In-Sandbox Installer    '
 Write-InstallLog '==========================================='
+New-Item -ItemType Directory -Path $artifactRoot -Force | Out-Null
 
 # Load install manifest
 if (-not (Test-Path $manifestPath)) {
@@ -192,6 +196,8 @@ try {
 $installed = 0
 $failed    = 0
 $manual    = 0
+$installTimeline = [System.Collections.Generic.List[object]]::new()
+$toolResults = [System.Collections.Generic.List[object]]::new()
 
 # Sort by install_order (manifest is pre-sorted, but be defensive)
 $tools = $session.tools | Sort-Object install_order
@@ -199,6 +205,8 @@ $tools = $session.tools | Sort-Object install_order
 foreach ($tool in $tools) {
     $src = Join-Path $tempDir $tool.filename
     Write-InstallLog "--- $($tool.display_name) ---"
+    $toolStartUtc = (Get-Date).ToUniversalTime()
+    $toolStatus = 'failed'
 
     try {
         $ok = switch ($tool.installer_type) {
@@ -226,6 +234,7 @@ foreach ($tool in $tools) {
                     Write-InstallLog '  No bundled installer file was staged for this tool.' -Level 'WARN'
                 }
                 $manual++
+                $toolStatus = 'manual'
                 $true   # Not a failure -- user must run it manually
             }
             default {
@@ -240,13 +249,51 @@ foreach ($tool in $tools) {
 
     # Count manual tools separately so they don't inflate the success/fail counts
     if ($tool.installer_type -ne 'manual') {
-        if ($ok) { $installed++ } else { $failed++ }
+        if ($ok) {
+            $installed++
+            $toolStatus = 'installed'
+        } else {
+            $failed++
+            $toolStatus = 'failed'
+        }
     }
+
+    $toolEndUtc = (Get-Date).ToUniversalTime()
+    $installTimeline.Add([pscustomobject]@{
+            tool_id = $tool.id
+            display_name = $tool.display_name
+            installer_type = $tool.installer_type
+            status = $toolStatus
+            started_utc = $toolStartUtc.ToString('o')
+            ended_utc = $toolEndUtc.ToString('o')
+        })
+    $toolResults.Add([pscustomobject]@{
+            id = $tool.id
+            display_name = $tool.display_name
+            status = $toolStatus
+            filename = $tool.filename
+        })
 }
 
 # -- Summary -------------------------------------------------------------------
 
 Write-InstallLog '==========================================='
+
+$installTimeline | Export-Csv -Path $timelinePath -NoTypeInformation -Encoding UTF8
+$summary = [ordered]@{
+    generated_at = (Get-Date -Format 'o')
+    profile = $session.profile
+    totals = [ordered]@{
+        installed = $installed
+        failed = $failed
+        manual = $manual
+    }
+    timeline_csv = $timelinePath
+    tools = @($toolResults)
+}
+$summary | ConvertTo-Json -Depth 8 | Set-Content -Path $summaryPath -Encoding UTF8
+Write-InstallLog "Artifact summary: $summaryPath" -Level 'OK'
+Write-InstallLog "Install timeline: $timelinePath" -Level 'OK'
 Write-InstallLog "Done: $installed installed, $failed failed, $manual require manual steps."
 if ($failed -gt 0) {
     Write-InstallLog 'See install-log.txt on the Desktop for details on failed items.' -Level 'WARN'

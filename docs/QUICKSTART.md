@@ -59,6 +59,15 @@ Progress is logged to `install-log.txt` on the sandbox Desktop.
 # Network analysis — RE toolkit + Wireshark, networking ENABLED
 .\Start-Sandbox.ps1 -Profile network-analysis
 
+# Analysis — internet-enabled modern analyst baseline
+.\Start-Sandbox.ps1 -Profile analysis
+
+# Detonation — restricted/no-network detonation posture
+.\Start-Sandbox.ps1 -Profile detonation -DisableClipboard
+
+# Forensics — strict offline static/forensic triage
+.\Start-Sandbox.ps1 -Profile forensics
+
 # Triage plus — rapid triage/network pack
 .\Start-Sandbox.ps1 -Profile triage-plus
 
@@ -80,6 +89,7 @@ See [PROFILES.md](PROFILES.md) for what each profile includes.
 Curated expansion notes:
 - `api-monitor`, `procdot`, `visual-studio-community`, and `windows-sdk` are intentionally modeled as manual/advanced in this pass.
 - REMnux bundling and VirusTotal uploader bundling are intentionally deferred.
+- Use `sandbox-profiles/*.wsb` as hardened profile templates when you need direct WSB editing.
 
 ---
 
@@ -126,6 +136,10 @@ Curated expansion notes:
 .\Start-Sandbox.ps1 -Audit -Profile minimal
 .\Start-Sandbox.ps1 -Audit -Profile minimal -SharedFolder "C:\Lab\Ingress"
 .\Start-Sandbox.ps1 -Audit -Profile minimal -DisableClipboard -DisableStartupCommands
+
+# In-sandbox triage + artifact export
+powershell -ExecutionPolicy Bypass -File C:\Users\WDAGUtilityAccount\Desktop\scripts\Invoke-SampleTriage.ps1
+powershell -ExecutionPolicy Bypass -File C:\Users\WDAGUtilityAccount\Desktop\scripts\Export-AnalysisArtifacts.ps1
 
 # Runtime tool overrides
 .\Start-Sandbox.ps1 -Profile minimal -AddTools ghidra,wireshark
@@ -256,7 +270,7 @@ The example file lives at `custom-profiles.example.json`.
 Supported structure:
 - Top-level `profiles` array is required when the local file exists.
 - Each custom profile requires `name` and `base_profile`.
-- `base_profile` must be one of built-in profiles (`minimal`, `reverse-engineering`, `network-analysis`, `triage-plus`, `reverse-windows`, `behavior-net`, `dev-windows`, `full`).
+- `base_profile` must be one of built-in profiles (`minimal`, `reverse-engineering`, `network-analysis`, `analysis`, `detonation`, `forensics`, `triage-plus`, `reverse-windows`, `behavior-net`, `dev-windows`, `full`).
 - `add_tools` and `remove_tools` are optional arrays of valid tool IDs.
 
 Example:
@@ -289,7 +303,7 @@ Custom profile troubleshooting:
   Fix: copy `custom-profiles.example.json` again and reapply edits in small steps.
 - Symptom: unknown `base_profile`.
   Cause: unsupported base profile value.
-  Fix: use one of `minimal`, `reverse-engineering`, `network-analysis`, `triage-plus`, `reverse-windows`, `behavior-net`, `dev-windows`, `full`.
+  Fix: use one of `minimal`, `reverse-engineering`, `network-analysis`, `analysis`, `detonation`, `forensics`, `triage-plus`, `reverse-windows`, `behavior-net`, `dev-windows`, `full`.
 - Symptom: unknown tool ID in `add_tools` or `remove_tools`.
   Cause: typo or non-existent tool ID.
   Fix: run `.\Start-Sandbox.ps1 -ListTools` and use exact IDs.

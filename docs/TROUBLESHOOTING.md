@@ -60,6 +60,7 @@ Check `install-log.txt` on the sandbox Desktop for details.
   Check that `scripts/setups/7zip.msi` exists and is not zero bytes.
 - Corretto failed — Ghidra will not extract correctly.
 - A download was corrupted — re-run `.\Start-Sandbox.ps1 -Force`.
+- Review `analysis-artifacts/install-summary.json` and `analysis-artifacts/install-timeline.csv` on the sandbox Desktop for deterministic per-tool status.
 
 ---
 
@@ -70,6 +71,23 @@ Check `install-log.txt` on the sandbox Desktop for details.
 - Verify that `scripts/autostart.cmd` exists and is a 3-line file.
 - Verify the mapped folder path in `sandbox.wsb` matches your actual `scripts/` directory.
 - Try regenerating: `.\Start-Sandbox.ps1 -NoLaunch` then open `sandbox.wsb` manually.
+
+---
+
+## Sample triage/export scripts fail
+
+**Symptom:** `Invoke-SampleTriage.ps1` fails with "Input path not found".
+
+- Ensure files are staged at `C:\Users\WDAGUtilityAccount\Desktop\shared\incoming` inside the sandbox.
+- Or pass explicit path:
+  ```powershell
+  powershell -ExecutionPolicy Bypass -File C:\Users\WDAGUtilityAccount\Desktop\scripts\Invoke-SampleTriage.ps1 -InputPath C:\path\to\sample.exe
+  ```
+
+**Symptom:** `Export-AnalysisArtifacts.ps1` fails to create bundle.
+
+- Ensure the optional shared folder is mapped (`-SharedFolder` or `-UseDefaultSharedFolder`).
+- Check `C:\Users\WDAGUtilityAccount\Desktop\shared\exports` exists and is writable from sandbox if export write is required.
 
 ---
 

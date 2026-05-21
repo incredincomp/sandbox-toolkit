@@ -287,6 +287,9 @@ Describe 'Manifest-backed listing helpers' {
         (($profiles -contains 'minimal')) | Should Be $true
         (($profiles -contains 'reverse-engineering')) | Should Be $true
         (($profiles -contains 'network-analysis')) | Should Be $true
+        (($profiles -contains 'analysis')) | Should Be $true
+        (($profiles -contains 'detonation')) | Should Be $true
+        (($profiles -contains 'forensics')) | Should Be $true
         (($profiles -contains 'full')) | Should Be $true
         (($profiles -contains 'triage-plus')) | Should Be $true
         (($profiles -contains 'reverse-windows')) | Should Be $true

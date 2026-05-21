@@ -7,11 +7,12 @@
   To regenerate: .\Start-Sandbox.ps1 -NoLaunch
   To view the generated file after running: cat sandbox.wsb
 
-  Networking is DISABLED by default in all profiles except network-analysis and full.
+  Networking is profile-driven. analysis/network-analysis/full/triage-plus/behavior-net are enabled,
+  while minimal/reverse-engineering/detonation/forensics/reverse-windows/dev-windows are disabled.
   See SAFETY.md for rationale.
 -->
 <Configuration>
-  <VGpu>Disable</VGpu>
+  <VGpu>Default</VGpu>
   <Networking>Disable</Networking>
   <AudioInput>Disable</AudioInput>
   <VideoInput>Disable</VideoInput>

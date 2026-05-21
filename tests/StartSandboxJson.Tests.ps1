@@ -154,6 +154,9 @@ Describe 'Start-Sandbox JSON output modes' {
         $result.ExitCode | Should Be 0
         $result.Json.command.mode | Should Be 'list-profiles'
         (($result.Json.profiles | Where-Object { $_.name -eq 'minimal' -and $_.type -eq 'built-in' }).Count) | Should Be 1
+        (($result.Json.profiles | Where-Object { $_.name -eq 'analysis' -and $_.type -eq 'built-in' }).Count) | Should Be 1
+        (($result.Json.profiles | Where-Object { $_.name -eq 'detonation' -and $_.type -eq 'built-in' }).Count) | Should Be 1
+        (($result.Json.profiles | Where-Object { $_.name -eq 'forensics' -and $_.type -eq 'built-in' }).Count) | Should Be 1
         (($result.Json.profiles | Where-Object { $_.name -eq 'net-re-lite' -and $_.type -eq 'custom' -and $_.base_profile -eq 'reverse-engineering' }).Count) | Should Be 1
     }
 

@@ -2,16 +2,35 @@
 # Generates sandbox.wsb from a profile-driven template.
 # Runtime variables are networking and mapped host folders.
 
-# Networking defaults per profile. All profiles except those needing live capture use Disable.
-$script:NetworkingByProfile = @{
-    'minimal'             = 'Disable'
-    'reverse-engineering' = 'Disable'
-    'network-analysis'    = 'Enable'   # Required for Wireshark capture. See SAFETY.md.
-    'full'                = 'Enable'   # Networking enabled -- use with caution.
-    'triage-plus'         = 'Enable'   # Includes Wireshark for packet/network triage workflows.
-    'reverse-windows'     = 'Disable'
-    'behavior-net'        = 'Enable'   # Behavior tracing with network capture tooling.
-    'dev-windows'         = 'Disable'
+# Per-profile sandbox policy defaults.
+$script:SandboxProfileSettings = @{
+    'minimal'             = [pscustomobject]@{ Networking = 'Disable'; VGpu = 'Disable' }
+    'reverse-engineering' = [pscustomobject]@{ Networking = 'Disable'; VGpu = 'Default' }
+    'network-analysis'    = [pscustomobject]@{ Networking = 'Enable';  VGpu = 'Default' } # Live capture workflow.
+    'analysis'            = [pscustomobject]@{ Networking = 'Enable';  VGpu = 'Default' } # Internet-enabled analyst workflow.
+    'detonation'          = [pscustomobject]@{ Networking = 'Disable'; VGpu = 'Disable' } # Restricted detonation workflow.
+    'forensics'           = [pscustomobject]@{ Networking = 'Disable'; VGpu = 'Disable' } # Offline artifact-centric workflow.
+    'full'                = [pscustomobject]@{ Networking = 'Enable';  VGpu = 'Default' }
+    'triage-plus'         = [pscustomobject]@{ Networking = 'Enable';  VGpu = 'Default' }
+    'reverse-windows'     = [pscustomobject]@{ Networking = 'Disable'; VGpu = 'Default' }
+    'behavior-net'        = [pscustomobject]@{ Networking = 'Enable';  VGpu = 'Default' }
+    'dev-windows'         = [pscustomobject]@{ Networking = 'Disable'; VGpu = 'Default' }
+}
+
+function Get-SandboxProfileSettings {
+    <#
+    .SYNOPSIS
+        Returns effective sandbox policy defaults configured for a profile.
+    #>
+    param(
+        [Parameter(Mandatory)][string]$SandboxProfile
+    )
+
+    $settings = $script:SandboxProfileSettings[$SandboxProfile]
+    if (-not $settings) {
+        throw "No sandbox settings defined for profile '$SandboxProfile'."
+    }
+    return $settings
 }
 
 function Get-SandboxNetworkingMode {
@@ -23,11 +42,7 @@ function Get-SandboxNetworkingMode {
         [Parameter(Mandatory)][string]$SandboxProfile
     )
 
-    $networking = $script:NetworkingByProfile[$SandboxProfile]
-    if (-not $networking) {
-        throw "No sandbox settings defined for profile '$SandboxProfile'."
-    }
-    return $networking
+    return (Get-SandboxProfileSettings -SandboxProfile $SandboxProfile).Networking
 }
 
 function Get-SandboxHostInteractionPolicy {
@@ -88,7 +103,9 @@ function New-SandboxConfig {
         $OutputPath = Join-Path $RepoRoot 'sandbox.wsb'
     }
 
-    $networking = Get-SandboxNetworkingMode -SandboxProfile $SandboxProfile
+    $profileSettings = Get-SandboxProfileSettings -SandboxProfile $SandboxProfile
+    $networking = $profileSettings.Networking
+    $vGpu = $profileSettings.VGpu
     if (-not $HostInteractionPolicy) {
         $HostInteractionPolicy = Get-SandboxHostInteractionPolicy
     }
@@ -133,7 +150,7 @@ function New-SandboxConfig {
     # Use a here-string: networking and mapped folders vary per run.
     $wsbContent = @"
 <Configuration>
-  <VGpu>Disable</VGpu>
+  <VGpu>$vGpu</VGpu>
   <Networking>$networking</Networking>
   <AudioInput>$($HostInteractionPolicy.AudioInput)</AudioInput>
   <VideoInput>Disable</VideoInput>
@@ -150,7 +167,7 @@ $logonCommandXml
     if ($PSCmdlet.ShouldProcess($OutputPath, 'Write sandbox configuration')) {
         Set-Content -Path $OutputPath -Value $wsbContent.TrimStart() -Encoding UTF8
         Write-StatusLine "  [WSB]  Generated: $OutputPath" -ForegroundColor Green
-        Write-StatusLine "         Profile: $SandboxProfile  |  Networking: $networking" -ForegroundColor DarkGray
+        Write-StatusLine "         Profile: $SandboxProfile  |  Networking: $networking  |  vGPU: $vGpu" -ForegroundColor DarkGray
     }
     return $OutputPath
 }

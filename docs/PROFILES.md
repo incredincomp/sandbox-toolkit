@@ -7,6 +7,7 @@ Profiles control tool selection and sandbox networking posture.
 Notes:
 - `7zip` is included as a bootstrap dependency for archive-based tools in all profiles.
 - Some tools are intentionally marked manual/advanced in this pass instead of pretending full automation.
+- New Windows 11 operational presets are available: `analysis`, `detonation`, and `forensics`.
 
 ---
 
@@ -66,6 +67,66 @@ Adds to `reverse-engineering`:
 
 ```powershell
 .\Start-Sandbox.ps1 -Profile network-analysis
+```
+
+---
+
+## `analysis`
+
+**Use when:** Daily malware-analysis workstation with internet-enabled enrichment.
+
+**Networking:** ✅ Enabled
+
+Core pack:
+- Reverse-engineering baseline (`ghidra`, `x64dbg`, `dnSpyEx`, DIE, UPX, PE-bear, pestudio, HxD, FLOSS)
+- Sysinternals Suite
+- Dependencies
+- Wireshark + Npcap
+
+```powershell
+.\Start-Sandbox.ps1 -Profile analysis
+```
+
+---
+
+## `detonation`
+
+**Use when:** Restricted detonation with tighter host interaction and no network by default.
+
+**Networking:** ❌ Disabled
+
+Core pack:
+- Sysinternals Suite
+- Detect-It-Easy
+- Dependencies
+- FLOSS
+- API Monitor (manual/advanced)
+- ProcDOT (manual/advanced)
+
+```powershell
+.\Start-Sandbox.ps1 -Profile detonation -DisableClipboard
+```
+
+---
+
+## `forensics`
+
+**Use when:** Offline file triage and static forensics.
+
+**Networking:** ❌ Disabled
+
+Core pack:
+- Sysinternals Suite
+- Detect-It-Easy
+- Dependencies
+- UPX
+- PE-bear
+- pestudio
+- HxD
+- FLOSS
+
+```powershell
+.\Start-Sandbox.ps1 -Profile forensics
 ```
 
 ---
