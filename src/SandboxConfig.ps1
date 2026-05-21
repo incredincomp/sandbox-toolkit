@@ -1,6 +1,6 @@
 # src/SandboxConfig.ps1
 # Generates sandbox.wsb from a profile-driven template.
-# Runtime variables are networking and mapped host folders.
+# Runtime variables are networking, vGPU, mapped host folders, and logon command.
 
 # Per-profile sandbox policy defaults.
 $script:SandboxProfileSettings = @{

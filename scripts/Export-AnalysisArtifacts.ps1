@@ -32,6 +32,10 @@ if (-not (Test-Path -LiteralPath $ArtifactRoot -PathType Container)) {
     throw "Artifact directory not found: $ArtifactRoot"
 }
 
+if (-not (Test-Path -LiteralPath $SharedRoot -PathType Container)) {
+    throw "Shared folder not found or not mapped: $SharedRoot. Ensure the host shared folder is mapped before exporting."
+}
+
 $exportDir = Join-Path $SharedRoot 'exports'
 New-Item -ItemType Directory -Path $exportDir -Force | Out-Null
 
@@ -41,10 +45,18 @@ if (Test-Path -LiteralPath $stagingDir) {
 }
 New-Item -ItemType Directory -Path $stagingDir -Force | Out-Null
 
-Copy-Item -Path (Join-Path $ArtifactRoot '*') -Destination $stagingDir -Recurse -Force
+$artifactItems = @(Get-ChildItem -LiteralPath $ArtifactRoot)
+if ($artifactItems.Count -gt 0) {
+    Copy-Item -Path (Join-Path $ArtifactRoot '*') -Destination $stagingDir -Recurse -Force
+}
 $installLog = 'C:\Users\WDAGUtilityAccount\Desktop\install-log.txt'
 if (Test-Path -LiteralPath $installLog -PathType Leaf) {
     Copy-Item -LiteralPath $installLog -Destination (Join-Path $stagingDir 'install-log.txt') -Force
+}
+
+$stagingItems = @(Get-ChildItem -LiteralPath $stagingDir)
+if ($stagingItems.Count -eq 0) {
+    throw "No artifacts found to export in: $ArtifactRoot"
 }
 
 $zipPath = Join-Path $exportDir ($BundleName + '.zip')

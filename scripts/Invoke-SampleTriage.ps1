@@ -23,29 +23,46 @@ function Get-TriageStringPreview {
     .DESCRIPTION
         Scans raw bytes and emits ASCII-like strings for fast operator triage.
         This is metadata-only output and is intentionally capped for speed/safety.
+        Reads at most MaxBytes bytes to avoid OOM on large samples.
     #>
     param(
         [Parameter(Mandatory)][string]$Path,
         [int]$MinLength = 6,
-        [int]$MaxItems = 200
+        [int]$MaxItems = 200,
+        [int]$MaxBytes = 5MB
     )
 
-    $bytes = [System.IO.File]::ReadAllBytes($Path)
     $builder = New-Object System.Text.StringBuilder
     $results = New-Object System.Collections.Generic.List[string]
-
-    foreach ($byte in $bytes) {
-        if (($byte -ge 32 -and $byte -le 126) -or $byte -eq 9) {
-            [void]$builder.Append([char]$byte)
-        } else {
-            if ($builder.Length -ge $MinLength) {
-                $results.Add($builder.ToString())
-                if ($results.Count -ge $MaxItems) {
-                    break
+    $buffer = New-Object byte[] 65536
+    $stream = [System.IO.File]::OpenRead($Path)
+    try {
+        $totalRead = 0
+        $done = $false
+        while (-not $done) {
+            $toRead = [Math]::Min($buffer.Length, $MaxBytes - $totalRead)
+            if ($toRead -le 0) { break }
+            $read = $stream.Read($buffer, 0, $toRead)
+            if ($read -eq 0) { break }
+            $totalRead += $read
+            for ($i = 0; $i -lt $read; $i++) {
+                $byte = $buffer[$i]
+                if (($byte -ge 32 -and $byte -le 126) -or $byte -eq 9) {
+                    [void]$builder.Append([char]$byte)
+                } else {
+                    if ($builder.Length -ge $MinLength) {
+                        $results.Add($builder.ToString())
+                        if ($results.Count -ge $MaxItems) {
+                            $done = $true
+                            break
+                        }
+                    }
+                    [void]$builder.Clear()
                 }
             }
-            [void]$builder.Clear()
         }
+    } finally {
+        $stream.Dispose()
     }
 
     if ($results.Count -lt $MaxItems -and $builder.Length -ge $MinLength) {
