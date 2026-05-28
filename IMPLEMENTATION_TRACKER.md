@@ -7,7 +7,7 @@ Update this file at every milestone boundary. Do not let it go stale.
 
 ## Current phase
 
-**Phase: Initial discovery**
+**Phase: Security fix — reparse-point cleanup root**
 
 ---
 
@@ -23,6 +23,7 @@ Provide a manifest-driven Windows Sandbox toolkit that automates downloading and
 |---|-----------|--------|-------|
 | 1 | Initial discovery | ✅ Complete | Performed repo structure & tooling analysis, created discovery artifacts and docs. |
 | 2 | Define development workflow | ⏳ Pending | Establish standard commands, validation checks, and development guidance. |
+| 3 | Security fix: reparse-point cleanup root | ✅ Complete | Added root reparse-point check in Get-SandboxDownloadCleanupPlan; guarded recursive deletion in Invoke-SandboxDownloadCleanup; added test coverage. |
 
 ---
 
@@ -31,10 +32,16 @@ Provide a manifest-driven Windows Sandbox toolkit that automates downloading and
 | Decision | Reason | Alternative considered |
 |----------|--------|----------------------|
 | Use PowerShell/Pester for tests and linting | Repository is primarily PowerShell; CI already uses PSScriptAnalyzer and Pester | Introduce a different test framework (not needed for current scope) |
+| Check cleanup root for ReparsePoint before Get-ChildItem | Prevents enumeration of external targets when scripts\setups is replaced with a junction/symlink | Resolving the real path (slower, may not be available on all PS versions) |
+| Pre-scan descendants for reparse points before Remove-Item -Recurse | Prevents recursive deletion from traversing junctions inside accepted subdirectory candidates | Walking the tree manually and skipping junctions (more complex, same safety) |
 
 ---
 
 ## Files created or modified
+
+### Security fix (Milestone 3)
+- `src/Maintenance.ps1` — added root reparse-point check before `Get-ChildItem`; guarded `Remove-Item -Recurse` against descendant reparse points
+- `tests/Maintenance.Tests.ps1` — added test for reparse-point cleanup root scenario
 
 ### Discovery run (Milestone 1)
 - `AGENTS.md` — execution contract

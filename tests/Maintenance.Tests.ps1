@@ -34,6 +34,40 @@ Describe 'Get-SandboxDownloadCleanupPlan' {
             }
         }
     }
+
+    It 'skips directory-contents location when cleanup root is a reparse point' {
+        if (-not [System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform([System.Runtime.InteropServices.OSPlatform]::Windows)) {
+            Write-Host 'Skipped: junction creation requires Windows'
+            return
+        }
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("sandbox-toolkit-reparse-root-" + [guid]::NewGuid().ToString())
+        $externalTarget = Join-Path ([System.IO.Path]::GetTempPath()) ("sandbox-toolkit-reparse-ext-" + [guid]::NewGuid().ToString())
+        New-Item -ItemType Directory -Path (Join-Path $tempRoot 'scripts') -Force | Out-Null
+        New-Item -ItemType Directory -Path $externalTarget -Force | Out-Null
+        $junctionPath = Join-Path $tempRoot 'scripts\setups'
+
+        try {
+            Set-Content -Path (Join-Path $externalTarget 'victim.txt') -Value 'keep-me'
+            New-Item -ItemType Junction -Path $junctionPath -Target $externalTarget | Out-Null
+
+            $plan = Get-SandboxDownloadCleanupPlan -RepoRoot $tempRoot
+
+            $skippedRoot = @($plan.Skipped | Where-Object { $_.location_id -eq 'setup-cache' -and $_.reason -eq 'reparse-point' })
+            $skippedRoot.Count | Should Be 1
+            ($skippedRoot[0].path) | Should Be $junctionPath
+            @($plan.Candidates | Where-Object { $_.location_id -eq 'setup-cache' }).Count | Should Be 0
+        } finally {
+            if (Test-Path -LiteralPath $junctionPath) {
+                [System.IO.Directory]::Delete($junctionPath)
+            }
+            if (Test-Path -LiteralPath $tempRoot) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+            if (Test-Path -LiteralPath $externalTarget) {
+                Remove-Item -LiteralPath $externalTarget -Recurse -Force
+            }
+        }
+    }
 }
 
 Describe 'Invoke-SandboxDownloadCleanup' {
