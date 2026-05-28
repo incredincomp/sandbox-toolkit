@@ -159,7 +159,8 @@ function Invoke-SandboxDownloadCleanup {
             param($Path, $IsContainer)
             if ($IsContainer) {
                 $reparseDescendants = @(Get-ChildItem -LiteralPath $Path -Recurse -Force -ErrorAction SilentlyContinue |
-                    Where-Object { $_.Attributes -band [System.IO.FileAttributes]::ReparsePoint })
+                    Where-Object { $_.Attributes -band [System.IO.FileAttributes]::ReparsePoint } |
+                    Select-Object -First 1)
                 if ($reparseDescendants.Count -gt 0) {
                     throw "Recursive deletion of '$Path' refused: contains reparse point(s)."
                 }
