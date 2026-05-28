@@ -43,7 +43,7 @@ Describe 'Template store helpers' {
         }
     }
 
-    It 'rejects string "false" for shared_folder_writable (prevents string-to-bool coercion vulnerability)' {
+    It 'rejects string values for shared_folder_writable' {
         $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("sandbox-toolkit-template-store-" + [guid]::NewGuid().ToString())
         New-Item -ItemType Directory -Path $tempRoot -Force | Out-Null
 
@@ -60,7 +60,7 @@ Describe 'Template store helpers' {
         }
     }
 
-    It 'rejects string "false" for use_wsl_helper (prevents string-to-bool coercion vulnerability)' {
+    It 'rejects string values for use_wsl_helper' {
         $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("sandbox-toolkit-template-store-" + [guid]::NewGuid().ToString())
         New-Item -ItemType Directory -Path $tempRoot -Force | Out-Null
 

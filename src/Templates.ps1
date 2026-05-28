@@ -176,11 +176,21 @@ function ConvertTo-SandboxTemplateNormalizedEntry {
     $addTools = @(@($rawAddTools) | ForEach-Object { [string]$_ } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
     $removeTools = @(@($rawRemoveTools) | ForEach-Object { [string]$_ } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
 
-    $sharedFolderWritable = if ($RawTemplate.PSObject.Properties['shared_folder_writable']) { Assert-SandboxTemplateJsonBool -Value $RawTemplate.shared_folder_writable -FieldName 'shared_folder_writable' -SourcePath $SourcePath -Index $Index } else { $false }
-    $disableClipboard = if ($RawTemplate.PSObject.Properties['disable_clipboard']) { Assert-SandboxTemplateJsonBool -Value $RawTemplate.disable_clipboard -FieldName 'disable_clipboard' -SourcePath $SourcePath -Index $Index } else { $false }
-    $disableAudioInput = if ($RawTemplate.PSObject.Properties['disable_audio_input']) { Assert-SandboxTemplateJsonBool -Value $RawTemplate.disable_audio_input -FieldName 'disable_audio_input' -SourcePath $SourcePath -Index $Index } else { $false }
-    $disableStartupCommands = if ($RawTemplate.PSObject.Properties['disable_startup_commands']) { Assert-SandboxTemplateJsonBool -Value $RawTemplate.disable_startup_commands -FieldName 'disable_startup_commands' -SourcePath $SourcePath -Index $Index } else { $false }
-    $skipPrereqCheck = if ($RawTemplate.PSObject.Properties['skip_prereq_check']) { Assert-SandboxTemplateJsonBool -Value $RawTemplate.skip_prereq_check -FieldName 'skip_prereq_check' -SourcePath $SourcePath -Index $Index } else { $false }
+    $sharedFolderWritable = if ($RawTemplate.PSObject.Properties['shared_folder_writable']) {
+        Assert-SandboxTemplateJsonBool -Value $RawTemplate.shared_folder_writable -FieldName 'shared_folder_writable' -SourcePath $SourcePath -Index $Index
+    } else { $false }
+    $disableClipboard = if ($RawTemplate.PSObject.Properties['disable_clipboard']) {
+        Assert-SandboxTemplateJsonBool -Value $RawTemplate.disable_clipboard -FieldName 'disable_clipboard' -SourcePath $SourcePath -Index $Index
+    } else { $false }
+    $disableAudioInput = if ($RawTemplate.PSObject.Properties['disable_audio_input']) {
+        Assert-SandboxTemplateJsonBool -Value $RawTemplate.disable_audio_input -FieldName 'disable_audio_input' -SourcePath $SourcePath -Index $Index
+    } else { $false }
+    $disableStartupCommands = if ($RawTemplate.PSObject.Properties['disable_startup_commands']) {
+        Assert-SandboxTemplateJsonBool -Value $RawTemplate.disable_startup_commands -FieldName 'disable_startup_commands' -SourcePath $SourcePath -Index $Index
+    } else { $false }
+    $skipPrereqCheck = if ($RawTemplate.PSObject.Properties['skip_prereq_check']) {
+        Assert-SandboxTemplateJsonBool -Value $RawTemplate.skip_prereq_check -FieldName 'skip_prereq_check' -SourcePath $SourcePath -Index $Index
+    } else { $false }
 
     return [pscustomobject]@{
         name                       = $name
