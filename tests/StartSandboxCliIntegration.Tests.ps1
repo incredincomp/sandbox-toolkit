@@ -341,7 +341,7 @@ Describe 'Start-Sandbox integrated command combinations' {
         '{ "schema_version": "1.0", "templates": "bad" }' | Set-Content -Path $templateStorePath -Encoding UTF8
         $malformed = Invoke-StartSandboxRaw -Arguments @('-ListTemplates')
         $malformed.ExitCode | Should Be 1
-        $malformed.Output | Should Match 'Malformed template config'
+        $malformed.Output | Should Match 'Malformed\s+template\s+config'
 
         @'
 {

@@ -4,7 +4,7 @@ All notable changes to this project will be documented here.
 
 ---
 
-## [2.2.0] — 2026-05-21
+## [2.2.0] — 2026-05-28
 
 ### Features
 
@@ -30,8 +30,16 @@ All notable changes to this project will be documented here.
 
 ### Hardening
 
+- Shared-folder safety checks now reject selected host folders containing descendant reparse points/junctions to prevent unintended host-path exposure.
+- Template shared-folder override behavior now defaults back to read-only when `-SharedFolder` is explicitly overridden unless `-SharedFolderWritable` is also explicitly requested.
+- Audit mode now fails generated-artifact checks when `.wsb` includes unexpected extra mapped host folders.
 - `Invoke-SampleTriage.ps1`: streaming file read with configurable byte cap (`MaxBytes`) to prevent OOM on large samples.
 - `Export-AnalysisArtifacts.ps1`: validates that `$SharedRoot` is an existing mapped folder before writing; handles empty artifact directories gracefully.
+
+### Release readiness
+
+- `2.2.0` is intended as the post-feature security-fix release cut for the Windows 11 modernization wave.
+- Release preparation evidence (lint/tests and validation notes) is tracked in `IMPLEMENTATION_TRACKER.md`.
 
 ---
 

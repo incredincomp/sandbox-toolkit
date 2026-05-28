@@ -183,11 +183,11 @@ Describe 'Release hardening command-surface characterization' {
 
         $noLaunchList.ExitCode | Should Be 1
         $noLaunchList.Output | Should Match 'Invalid parameter combination'
-        $noLaunchList.Output | Should Match '-NoLaunch cannot be combined with -ListTools or -ListProfiles'
+        $noLaunchList.Output | Should Match '-NoLaunch\s+cannot\s+be\s+combined\s+with\s+-ListTools\s+or\s+-ListProfiles'
 
         $skipPrereqList.ExitCode | Should Be 1
         $skipPrereqList.Output | Should Match 'Invalid parameter combination'
-        $skipPrereqList.Output | Should Match '-SkipPrereqCheck cannot be combined with -ListTools or -ListProfiles'
+        $skipPrereqList.Output | Should Match '-SkipPrereqCheck\s+cannot\s+be\s+combined\s+with\s+-ListTools\s+or\s+-ListProfiles'
     }
 
     It 'keeps -CleanDownloads scoped away from local profile/template config surfaces' {

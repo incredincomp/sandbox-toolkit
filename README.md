@@ -17,6 +17,8 @@ The default posture is safer-by-default: disposable fresh sandbox sessions, read
 
 ## What changed (2.2.0)
 
+`2.2.0` now includes both the Windows 11 modernization feature wave and the subsequent security-hardening follow-up fixes.
+
 - Added three Windows 11-focused operational profiles:
   - `analysis` (internet-enabled modern analyst baseline)
   - `detonation` (restricted, no-network detonation posture)
@@ -36,6 +38,12 @@ The default posture is safer-by-default: disposable fresh sandbox sessions, read
 - Added documentation artifacts:
   - `docs/VERSION_MATRIX.md`
   - `docs/MIGRATION.md`
+- Added post-feature security hardening:
+  - shared-folder validation now rejects selected folders that contain descendant reparse points/junctions.
+  - template execution no longer implicitly carries writable shared-folder mappings across explicit `-SharedFolder` overrides unless `-SharedFolderWritable` is explicitly supplied.
+  - audit mode now fails when generated `.wsb` files contain unexpected host-folder mappings.
+  - `Invoke-SampleTriage.ps1` now uses bounded streaming reads (`MaxBytes`) to avoid OOM behavior on large samples.
+  - `Export-AnalysisArtifacts.ps1` now validates mapped shared-root destination behavior and handles empty artifact directories cleanly.
 
 ---
 
@@ -718,7 +726,7 @@ Custom profile troubleshooting:
   Fix: start from `custom-profiles.example.json` again and reapply edits incrementally.
 - Symptom: validation reports unknown `base_profile`.
   Likely cause: `base_profile` is not one of built-in profiles.
-  Fix: use one of `minimal`, `reverse-engineering`, `network-analysis`, `triage-plus`, `reverse-windows`, `behavior-net`, `dev-windows`, or `full`.
+  Fix: use one of `minimal`, `reverse-engineering`, `network-analysis`, `analysis`, `detonation`, `forensics`, `triage-plus`, `reverse-windows`, `behavior-net`, `dev-windows`, or `full`.
 - Symptom: validation reports unknown tool IDs in `add_tools` / `remove_tools`.
   Likely cause: typo or unsupported tool ID.
   Fix: run `.\Start-Sandbox.ps1 -ListTools` and copy exact IDs.
@@ -776,6 +784,9 @@ Examples:
 | `minimal` | ❌ Disabled | VSCode, Notepad++, Python 3, Sysinternals |
 | `reverse-engineering` *(default)* | ❌ Disabled | + Ghidra, x64dbg, dnSpyEx, DIE, UPX, PE-bear, pestudio, HxD, FLOSS |
 | `network-analysis` | ✅ Enabled | + Wireshark, Npcap |
+| `analysis` | ✅ Enabled | Windows 11 analyst baseline with modern reversing + workflow tooling |
+| `detonation` | ❌ Disabled | Restricted no-network detonation posture with stricter host interaction defaults |
+| `forensics` | ❌ Disabled | Strict offline static/forensic triage posture |
 | `triage-plus` | ✅ Enabled | Sysinternals, Detect-It-Easy, Dependencies, Wireshark (+ 7-Zip bootstrap) |
 | `reverse-windows` | ❌ Disabled | x64dbg, Detect-It-Easy, Dependencies, API Monitor (manual), ProcDOT (manual) (+ 7-Zip bootstrap) |
 | `behavior-net` | ✅ Enabled | Sysinternals, Wireshark, API Monitor (manual), ProcDOT (manual) (+ 7-Zip bootstrap) |

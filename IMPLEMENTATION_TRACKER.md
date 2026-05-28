@@ -7,7 +7,7 @@ Update this file at every milestone boundary. Do not let it go stale.
 
 ## Current phase
 
-**Phase: Security fix — reparse-point cleanup root**
+**Phase: Release prep — v2.2.0 ship readiness (post security fixes)**
 
 ---
 
@@ -24,6 +24,7 @@ Provide a manifest-driven Windows Sandbox toolkit that automates downloading and
 | 1 | Initial discovery | ✅ Complete | Performed repo structure & tooling analysis, created discovery artifacts and docs. |
 | 2 | Define development workflow | ⏳ Pending | Establish standard commands, validation checks, and development guidance. |
 | 3 | Security fix: reparse-point cleanup root | ✅ Complete | Added root reparse-point check in Get-SandboxDownloadCleanupPlan; guarded recursive deletion in Invoke-SandboxDownloadCleanup; added test coverage. |
+| 4 | Release prep: v2.2.0 docs + validation | ✅ Complete | Synced README/changelog/release notes with post-feature hardening scope and re-ran lint/full tests on Windows. |
 
 ---
 
@@ -1464,3 +1465,34 @@ Estimated size: Small (1–2 files)
 | PSScriptAnalyzer lint | ⚠️ Not run in container | `pwsh -NoProfile -Command "Get-ChildItem -Recurse -Filter '*.ps1' \| ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }"` failed because `pwsh` is not installed (`/bin/bash: line 1: pwsh: command not found`) | 2026-05-28 |
 | Manifest integrity | ⚠️ Not run in container | Local replay failed before validation because `jsonschema` was missing and `python -m pip install jsonschema --quiet` could not reach the package index (`Tunnel connection failed: 403 Forbidden`) | 2026-05-28 |
 | JSON syntax sanity check | ✅ | `python -m json.tool tools.json >/tmp/tools.json.validated && python -m json.tool schemas/tools.schema.json >/tmp/tools.schema.json.validated` | 2026-05-28 |
+
+---
+
+## 2026-05-28 Session log (release prep pass: v2.2.0 ship readiness)
+
+### Scope
+- Prepare `v2.2.0` release communication surfaces for a clear post-security-fix cut.
+- Align README tagged-feature content with currently shipped built-in profiles and hardening scope.
+- Re-run lint + full tests on Windows and record releasability evidence.
+
+### Decisions made
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Keep `2.2.0` as the release cut and explicitly frame it as post-feature security-fix ready | Existing changelog/release artifact versioning already targets this date/tag and includes the relevant hardening scope | Introduce a follow-up patch tag only for documentation alignment |
+| Expand README profile table and custom-profile troubleshooting profile list to include `analysis`/`detonation`/`forensics` | Prevent operator confusion from stale built-in profile lists in release-facing docs | Leave discoverability to `-ListProfiles` output only |
+| Relax two brittle integration-test regex assertions to tolerate line-wrapped PowerShell error output | Runtime behavior was correct; failures were assertion fragility in wrapped stderr text | Keep strict literal spacing expectations and accept intermittent failures |
+
+### Files modified
+- `README.md`
+- `CHANGELOG.md`
+- `artifacts/releases/v2.2.0.md`
+- `tests/StartSandboxCliIntegration.Tests.ps1`
+- `tests/StartSandboxReleaseHardening.Tests.ps1`
+- `IMPLEMENTATION_TRACKER.md`
+
+### Validation
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' \| ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-05-28 |
+| Pester tests (full suite) | ✅ | `Import-Module Pester -RequiredVersion 4.10.1 -Force; Invoke-Pester -Path tests -EnableExit` | 2026-05-28 |
+
