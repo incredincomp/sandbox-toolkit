@@ -1364,3 +1364,29 @@ Estimated size: Small (1–2 files)
 |-------|--------|--------|------|
 | Pester tests (full suite) | ✅ | `Import-Module Pester -RequiredVersion 4.10.1 -Force; Invoke-Pester -Path tests -EnableExit` | 2026-03-15 |
 | PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' \| ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-15 |
+
+---
+
+## 2026-05-28 Session log (template shared-folder writable override fix)
+
+### Scope
+- Validate and remediate the reported template invocation issue where a runtime shared-folder override could inherit a saved template's writable host-folder mapping.
+- Preserve saved template defaults when no shared-folder selector is overridden, while restoring the non-template read-only default for explicit folder selector overrides unless `-SharedFolderWritable` is also supplied.
+
+### Decisions made
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Reset effective `SharedFolderWritable` to false when `-SharedFolder` is explicitly supplied without `-SharedFolderWritable` | Matches documented non-template behavior that shared folders are read-only by default unless the writable switch is explicit, and prevents unexpected write access to a newly selected host folder | Continue inheriting the template writable flag, which is the reported security issue |
+| Preserve writable access for overridden folders only when `-SharedFolderWritable` is explicitly bound | Maintains intentional operator opt-in for writable mappings | Reject combining writable template defaults with overrides, which would be more disruptive than necessary |
+
+### Files modified
+- `src/Templates.ps1`
+- `tests/Templates.Tests.ps1`
+- `IMPLEMENTATION_TRACKER.md`
+
+### Validation
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Pester tests (full suite) | ⚠️ Not run | `pwsh -NoLogo -NoProfile -Command "Invoke-Pester -Path tests"` failed because `pwsh` is not installed in this Linux container (`command not found`) | 2026-05-28 |
+| PSScriptAnalyzer lint | ⚠️ Not run | `pwsh -NoLogo -NoProfile -Command "Get-ChildItem -Recurse -Filter '*.ps1' \| ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }"` failed because `pwsh` is not installed in this Linux container (`command not found`) | 2026-05-28 |
+| Manifest validation | ⚠️ Partial only | CI-equivalent jsonschema validation could not run because Python package `jsonschema` is not installed and `python3 -m pip install --user jsonschema` was blocked by a 403 tunnel error; JSON parsing of `tools.json` and `schemas/tools.schema.json` passed with `python3 -m json.tool` | 2026-05-28 |

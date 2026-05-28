@@ -474,6 +474,14 @@ function Resolve-SandboxTemplateInvocation {
     $effectiveWslDistro = if ($BoundParameters.ContainsKey('WslDistro')) { $WslDistro } else { [string]$TemplateDefinition.wsl_distro }
     $effectiveUseWslHelper = if ($BoundParameters.ContainsKey('UseWslHelper')) { [bool]$UseWslHelper } else { [bool]$TemplateDefinition.use_wsl_helper }
 
+    $effectiveSharedFolderWritable = if ($BoundParameters.ContainsKey('SharedFolderWritable')) {
+        [bool]$SharedFolderWritable
+    } elseif ($BoundParameters.ContainsKey('SharedFolder') -or ($BoundParameters.ContainsKey('UseDefaultSharedFolder') -and [bool]$UseDefaultSharedFolder)) {
+        $false
+    } else {
+        [bool]$TemplateDefinition.shared_folder_writable
+    }
+
     $templateAddTools = @($TemplateDefinition.add_tools)
     $templateRemoveTools = @($TemplateDefinition.remove_tools)
     $runtimeAddTools = @($AddTools)
@@ -489,7 +497,7 @@ function Resolve-SandboxTemplateInvocation {
         SkipPrereqCheck = if ($BoundParameters.ContainsKey('SkipPrereqCheck')) { [bool]$SkipPrereqCheck } else { [bool]$TemplateDefinition.skip_prereq_check }
         SharedFolder = $effectiveSharedFolder
         UseDefaultSharedFolder = [bool]$effectiveUseDefaultSharedFolder
-        SharedFolderWritable = if ($BoundParameters.ContainsKey('SharedFolderWritable')) { [bool]$SharedFolderWritable } else { [bool]$TemplateDefinition.shared_folder_writable }
+        SharedFolderWritable = [bool]$effectiveSharedFolderWritable
         SharedFolderValidationDiagnostics = [bool]$SharedFolderValidationDiagnostics
         DisableClipboard = if ($BoundParameters.ContainsKey('DisableClipboard')) { [bool]$DisableClipboard } else { [bool]$TemplateDefinition.disable_clipboard }
         DisableAudioInput = if ($BoundParameters.ContainsKey('DisableAudioInput')) { [bool]$DisableAudioInput } else { [bool]$TemplateDefinition.disable_audio_input }
