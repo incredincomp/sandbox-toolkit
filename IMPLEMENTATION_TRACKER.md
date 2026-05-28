@@ -1364,3 +1364,30 @@ Estimated size: Small (1–2 files)
 |-------|--------|--------|------|
 | Pester tests (full suite) | ✅ | `Import-Module Pester -RequiredVersion 4.10.1 -Force; Invoke-Pester -Path tests -EnableExit` | 2026-03-15 |
 | PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' \| ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-15 |
+
+---
+
+## 2026-05-28 Session log (shared-folder reparse descendant hardening)
+
+### Scope
+- Verify the reported shared-folder reparse traversal vulnerability against current HEAD.
+- Preserve opt-in shared-folder mapping behavior while closing the remaining descendant junction/reparse-point exposure.
+
+### Decisions made
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Reject any reparse-point descendant inside an accepted shared folder before generating WSB mapping | Current HEAD already rejected reparse-point targets and ancestry, but child junctions inside an otherwise normal ingress folder could still expose unintended host paths in the sandbox | Only reject target/ancestor reparse points and document that users must avoid child junctions |
+| Walk child entries manually instead of relying on recursive traversal | Allows validation to stop before descending into reparse-point directories and avoids following a junction target during safety inspection | Use `Get-ChildItem -Recurse`, which may traverse or behave differently around reparse points across PowerShell versions |
+
+### Files modified
+- `src/SharedFolderValidation.ps1`
+- `tests/SharedFolderValidation.Tests.ps1`
+- `IMPLEMENTATION_TRACKER.md`
+
+### Validation
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Pester tests (full suite) | ⚠️ Not run in container | `pwsh -NoProfile -Command "Import-Module Pester -RequiredVersion 4.10.1 -Force; Invoke-Pester -Path tests -EnableExit"` failed because `pwsh` is not installed (`/bin/bash: line 1: pwsh: command not found`) | 2026-05-28 |
+| PSScriptAnalyzer lint | ⚠️ Not run in container | `pwsh -NoProfile -Command "Get-ChildItem -Recurse -Filter '*.ps1' \| ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }"` failed because `pwsh` is not installed (`/bin/bash: line 1: pwsh: command not found`) | 2026-05-28 |
+| Manifest integrity | ⚠️ Not run in container | Local replay failed before validation because `jsonschema` was missing and `python -m pip install jsonschema --quiet` could not reach the package index (`Tunnel connection failed: 403 Forbidden`) | 2026-05-28 |
+| JSON syntax sanity check | ✅ | `python -m json.tool tools.json >/tmp/tools.json.validated && python -m json.tool schemas/tools.schema.json >/tmp/tools.schema.json.validated` | 2026-05-28 |

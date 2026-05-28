@@ -223,6 +223,45 @@ function Find-ReparsePointInPathAncestry {
     return $null
 }
 
+
+function Find-ReparsePointDescendant {
+    param(
+        [Parameter(Mandatory)][string]$Path,
+        [switch]$Diagnostics
+    )
+
+    $pendingDirectories = New-Object System.Collections.Generic.List[string]
+    [void]$pendingDirectories.Add($Path)
+
+    while ($pendingDirectories.Count -gt 0) {
+        $currentDirectory = $pendingDirectories[$pendingDirectories.Count - 1]
+        $pendingDirectories.RemoveAt($pendingDirectories.Count - 1)
+
+        try {
+            $children = Get-ChildItem -LiteralPath $currentDirectory -Force -ErrorAction Stop
+        } catch {
+            throw "Shared folder path could not be validated safely: failed to inspect child entries under '$currentDirectory'. $($_.Exception.Message)"
+        }
+
+        foreach ($child in $children) {
+            $isReparsePoint = [bool]($child.Attributes -band [System.IO.FileAttributes]::ReparsePoint)
+            Write-SharedFolderValidationDiagnostic `
+                -Diagnostics:$Diagnostics `
+                -Message "Shared-folder child entry checked: '$($child.FullName)' (reparse=$isReparsePoint)"
+
+            if ($isReparsePoint) {
+                return $child.FullName
+            }
+
+            if ($child.PSIsContainer) {
+                [void]$pendingDirectories.Add($child.FullName)
+            }
+        }
+    }
+
+    return $null
+}
+
 function Assert-SafeSharedFolderPath {
     param(
         [Parameter(Mandatory)][string]$Path,
@@ -251,6 +290,11 @@ function Assert-SafeSharedFolderPath {
     $reparseAncestorPath = Find-ReparsePointInPathAncestry -Path $normalizedInputPath -Diagnostics:$Diagnostics
     if ($reparseAncestorPath) {
         throw "Shared folder path is not allowed: '$normalizedInputPath' traverses a reparse point or junction at '$reparseAncestorPath' in its parent chain. The toolkit blocks reparse/junction ancestry traversal for safety. Choose a non-reparse local folder instead."
+    }
+
+    $reparseDescendantPath = Find-ReparsePointDescendant -Path $normalizedPath -Diagnostics:$Diagnostics
+    if ($reparseDescendantPath) {
+        throw "Shared folder path is not allowed: '$normalizedPath' contains a reparse point or junction at '$reparseDescendantPath'. The toolkit blocks reparse/junction descendants for safety. Remove the reparse point or choose a non-reparse local folder instead."
     }
 
     foreach ($entry in Get-ResolvedSharedFolderBlockedPathPolicy -RepoRoot $RepoRoot) {
