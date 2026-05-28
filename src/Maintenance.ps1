@@ -89,6 +89,16 @@ function Get-SandboxDownloadCleanupPlan {
             continue
         }
 
+        $locationItem = Get-Item -LiteralPath $locationPath -Force
+        if ($locationItem.Attributes -band [System.IO.FileAttributes]::ReparsePoint) {
+            $skipped.Add([pscustomobject]@{
+                location_id = $location.id
+                path = $locationPath
+                reason = 'reparse-point'
+            })
+            continue
+        }
+
         $children = @(Get-ChildItem -LiteralPath $locationPath -Force)
         foreach ($child in $children) {
             $childPath = $child.FullName
@@ -148,6 +158,12 @@ function Invoke-SandboxDownloadCleanup {
         $RemoveAction = {
             param($Path, $IsContainer)
             if ($IsContainer) {
+                $reparseDescendants = @(Get-ChildItem -LiteralPath $Path -Recurse -Force -ErrorAction SilentlyContinue |
+                    Where-Object { $_.Attributes -band [System.IO.FileAttributes]::ReparsePoint } |
+                    Select-Object -First 1)
+                if ($reparseDescendants.Count -gt 0) {
+                    throw "Recursive deletion of '$Path' refused: contains reparse point(s)."
+                }
                 Remove-Item -LiteralPath $Path -Recurse -Force
             } else {
                 Remove-Item -LiteralPath $Path -Force
