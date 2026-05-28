@@ -5,6 +5,9 @@ $script:SupportedSandboxProfiles = @(
     'minimal',
     'reverse-engineering',
     'network-analysis',
+    'analysis',
+    'detonation',
+    'forensics',
     'full',
     'triage-plus',
     'reverse-windows',
@@ -53,7 +56,7 @@ function Get-ToolsForProfile {
     .PARAMETER Manifest
         The full manifest object returned by Import-ToolManifest.
     .PARAMETER SandboxProfile
-        One of: minimal, reverse-engineering, network-analysis, full.
+        One of the built-in profiles returned by Get-SandboxProfileSupport.
     #>
     param(
         [Parameter(Mandatory)][PSCustomObject]$Manifest,

@@ -6,7 +6,19 @@
       "id": "7zip",
       "display_name": "7-Zip",
       "category": "utility",
-      "profiles": ["minimal", "reverse-engineering", "network-analysis", "full", "triage-plus", "reverse-windows", "behavior-net", "dev-windows"],
+      "profiles": [
+        "minimal",
+        "reverse-engineering",
+        "network-analysis",
+        "full",
+        "triage-plus",
+        "reverse-windows",
+        "behavior-net",
+        "dev-windows",
+        "analysis",
+        "detonation",
+        "forensics"
+      ],
       "source_type": "vendor",
       "source_url": "https://www.7-zip.org/a/7z2409-x64.msi",
       "version": "24.09",
@@ -26,7 +38,14 @@
       "id": "vscode",
       "display_name": "Visual Studio Code",
       "category": "editor",
-      "profiles": ["minimal", "reverse-engineering", "network-analysis", "full"],
+      "profiles": [
+        "minimal",
+        "reverse-engineering",
+        "network-analysis",
+        "full",
+        "analysis",
+        "forensics"
+      ],
       "source_type": "vendor",
       "source_url": "https://update.code.visualstudio.com/latest/win32-x64-user/stable",
       "version": "latest",
@@ -40,7 +59,14 @@
       "id": "notepadpp",
       "display_name": "Notepad++",
       "category": "editor",
-      "profiles": ["minimal", "reverse-engineering", "network-analysis", "full"],
+      "profiles": [
+        "minimal",
+        "reverse-engineering",
+        "network-analysis",
+        "full",
+        "analysis",
+        "forensics"
+      ],
       "source_type": "github_release",
       "github_repo": "notepad-plus-plus/notepad-plus-plus",
       "asset_pattern": "npp.*.Installer.x64.exe",
@@ -58,7 +84,13 @@
       "id": "python3",
       "display_name": "Python 3",
       "category": "runtime",
-      "profiles": ["minimal", "reverse-engineering", "network-analysis", "full"],
+      "profiles": [
+        "minimal",
+        "reverse-engineering",
+        "network-analysis",
+        "full",
+        "analysis"
+      ],
       "source_type": "vendor",
       "source_url": "https://www.python.org/ftp/python/3.13.2/python-3.13.2-amd64.exe",
       "version": "3.13.2",
@@ -78,7 +110,12 @@
       "id": "corretto21",
       "display_name": "Amazon Corretto JDK 21",
       "category": "runtime",
-      "profiles": ["reverse-engineering", "network-analysis", "full"],
+      "profiles": [
+        "reverse-engineering",
+        "network-analysis",
+        "full",
+        "analysis"
+      ],
       "source_type": "vendor",
       "source_url": "https://corretto.aws/downloads/latest/amazon-corretto-21-x64-windows-jdk.msi",
       "version": "latest",
@@ -92,7 +129,12 @@
       "id": "vcredist",
       "display_name": "Visual C++ Redistributable x64",
       "category": "runtime",
-      "profiles": ["reverse-engineering", "network-analysis", "full"],
+      "profiles": [
+        "reverse-engineering",
+        "network-analysis",
+        "full",
+        "analysis"
+      ],
       "source_type": "vendor",
       "source_url": "https://aka.ms/vs/17/release/vc_redist.x64.exe",
       "version": "latest",
@@ -106,7 +148,18 @@
       "id": "sysinternals",
       "display_name": "Sysinternals Suite",
       "category": "sysanalysis",
-      "profiles": ["minimal", "reverse-engineering", "network-analysis", "triage-plus", "behavior-net", "dev-windows", "full"],
+      "profiles": [
+        "minimal",
+        "reverse-engineering",
+        "network-analysis",
+        "triage-plus",
+        "behavior-net",
+        "dev-windows",
+        "full",
+        "analysis",
+        "detonation",
+        "forensics"
+      ],
       "source_type": "vendor",
       "source_url": "https://download.sysinternals.com/files/SysinternalsSuite.zip",
       "version": "latest",
@@ -120,7 +173,12 @@
       "id": "ghidra",
       "display_name": "Ghidra",
       "category": "reversing",
-      "profiles": ["reverse-engineering", "network-analysis", "full"],
+      "profiles": [
+        "reverse-engineering",
+        "network-analysis",
+        "full",
+        "analysis"
+      ],
       "source_type": "github_release",
       "github_repo": "NationalSecurityAgency/ghidra",
       "asset_pattern": "ghidra_*_PUBLIC_*.zip",
@@ -133,14 +191,22 @@
       "installer_type": "zip",
       "extract_dest": "%USERPROFILE%\\Desktop\\Ghidra",
       "install_order": 20,
-      "dependencies": ["corretto21"],
+      "dependencies": [
+        "corretto21"
+      ],
       "notes": "Requires JDK 21 (Corretto 21). Launch ghidraRun.bat from extracted folder."
     },
     {
       "id": "x64dbg",
       "display_name": "x64dbg",
       "category": "reversing",
-      "profiles": ["reverse-engineering", "network-analysis", "reverse-windows", "full"],
+      "profiles": [
+        "reverse-engineering",
+        "network-analysis",
+        "reverse-windows",
+        "full",
+        "analysis"
+      ],
       "source_type": "sourceforge",
       "source_url": "https://sourceforge.net/projects/x64dbg/files/latest/download",
       "version": "latest",
@@ -154,7 +220,12 @@
       "id": "dnspyex",
       "display_name": "dnSpyEx",
       "category": "reversing",
-      "profiles": ["reverse-engineering", "network-analysis", "full"],
+      "profiles": [
+        "reverse-engineering",
+        "network-analysis",
+        "full",
+        "analysis"
+      ],
       "source_type": "github_release",
       "github_repo": "dnSpyEx/dnSpy",
       "asset_pattern": "dnSpy-net-win64.zip",
@@ -173,7 +244,16 @@
       "id": "detectiteasy",
       "display_name": "Detect-It-Easy",
       "category": "reversing",
-      "profiles": ["reverse-engineering", "network-analysis", "triage-plus", "reverse-windows", "full"],
+      "profiles": [
+        "reverse-engineering",
+        "network-analysis",
+        "triage-plus",
+        "reverse-windows",
+        "full",
+        "analysis",
+        "detonation",
+        "forensics"
+      ],
       "source_type": "github_release",
       "github_repo": "horsicq/DIE-engine",
       "asset_pattern": "die_win64_portable_*.zip",
@@ -192,7 +272,14 @@
       "id": "dependencies",
       "display_name": "Dependencies",
       "category": "reversing",
-      "profiles": ["triage-plus", "reverse-windows", "full"],
+      "profiles": [
+        "triage-plus",
+        "reverse-windows",
+        "full",
+        "analysis",
+        "detonation",
+        "forensics"
+      ],
       "source_type": "github_release",
       "github_repo": "lucasg/Dependencies",
       "asset_pattern": "Dependencies_x64_Release.zip",
@@ -211,7 +298,13 @@
       "id": "upx",
       "display_name": "UPX",
       "category": "reversing",
-      "profiles": ["reverse-engineering", "network-analysis", "full"],
+      "profiles": [
+        "reverse-engineering",
+        "network-analysis",
+        "full",
+        "analysis",
+        "forensics"
+      ],
       "source_type": "github_release",
       "github_repo": "upx/upx",
       "asset_pattern": "upx-*-win64.zip",
@@ -230,7 +323,13 @@
       "id": "pebear",
       "display_name": "PE-bear",
       "category": "reversing",
-      "profiles": ["reverse-engineering", "network-analysis", "full"],
+      "profiles": [
+        "reverse-engineering",
+        "network-analysis",
+        "full",
+        "analysis",
+        "forensics"
+      ],
       "source_type": "github_release",
       "github_repo": "hasherezade/pe-bear",
       "asset_pattern": "PE-bear_*_x64_win_*.zip",
@@ -243,14 +342,22 @@
       "installer_type": "zip",
       "extract_dest": "%USERPROFILE%\\Desktop\\PE-bear",
       "install_order": 25,
-      "dependencies": ["vcredist"],
+      "dependencies": [
+        "vcredist"
+      ],
       "notes": "PE file viewer/editor. Requires VC++ redistributable."
     },
     {
       "id": "pestudio",
       "display_name": "pestudio",
       "category": "reversing",
-      "profiles": ["reverse-engineering", "network-analysis", "full"],
+      "profiles": [
+        "reverse-engineering",
+        "network-analysis",
+        "full",
+        "analysis",
+        "forensics"
+      ],
       "source_type": "vendor",
       "source_url": "https://www.winitor.com/tools/pestudio/current/pestudio.zip",
       "version": "latest",
@@ -264,7 +371,13 @@
       "id": "hxd",
       "display_name": "HxD Hex Editor",
       "category": "reversing",
-      "profiles": ["reverse-engineering", "network-analysis", "full"],
+      "profiles": [
+        "reverse-engineering",
+        "network-analysis",
+        "full",
+        "analysis",
+        "forensics"
+      ],
       "source_type": "vendor",
       "source_url": "https://mh-nexus.de/downloads/HxDSetup.zip",
       "version": "latest",
@@ -279,7 +392,14 @@
       "id": "floss",
       "display_name": "FLARE FLOSS",
       "category": "reversing",
-      "profiles": ["reverse-engineering", "network-analysis", "full"],
+      "profiles": [
+        "reverse-engineering",
+        "network-analysis",
+        "full",
+        "analysis",
+        "detonation",
+        "forensics"
+      ],
       "source_type": "github_release",
       "github_repo": "mandiant/flare-floss",
       "asset_pattern": "floss-v*-windows.zip",
@@ -298,7 +418,13 @@
       "id": "wireshark",
       "display_name": "Wireshark",
       "category": "network",
-      "profiles": ["network-analysis", "triage-plus", "behavior-net", "full"],
+      "profiles": [
+        "network-analysis",
+        "triage-plus",
+        "behavior-net",
+        "full",
+        "analysis"
+      ],
       "source_type": "vendor",
       "source_url": "https://2.na.dl.wireshark.org/win64/Wireshark-4.4.6-x64.exe",
       "version": "4.4.6",
@@ -318,7 +444,12 @@
       "id": "api-monitor",
       "display_name": "API Monitor",
       "category": "sysanalysis",
-      "profiles": ["reverse-windows", "behavior-net", "full"],
+      "profiles": [
+        "reverse-windows",
+        "behavior-net",
+        "full",
+        "detonation"
+      ],
       "source_type": "manual",
       "version": "manual",
       "update": {
@@ -335,7 +466,12 @@
       "id": "procdot",
       "display_name": "ProcDOT",
       "category": "sysanalysis",
-      "profiles": ["reverse-windows", "behavior-net", "full"],
+      "profiles": [
+        "reverse-windows",
+        "behavior-net",
+        "full",
+        "detonation"
+      ],
       "source_type": "manual",
       "version": "manual",
       "update": {
@@ -352,7 +488,10 @@
       "id": "visual-studio-community",
       "display_name": "Visual Studio Community",
       "category": "developer",
-      "profiles": ["dev-windows", "full"],
+      "profiles": [
+        "dev-windows",
+        "full"
+      ],
       "source_type": "manual",
       "version": "latest",
       "update": {
@@ -369,7 +508,10 @@
       "id": "windows-sdk",
       "display_name": "Windows SDK",
       "category": "developer",
-      "profiles": ["dev-windows", "full"],
+      "profiles": [
+        "dev-windows",
+        "full"
+      ],
       "source_type": "manual",
       "version": "latest",
       "update": {
@@ -386,7 +528,11 @@
       "id": "npcap",
       "display_name": "Npcap",
       "category": "network",
-      "profiles": ["network-analysis", "full"],
+      "profiles": [
+        "network-analysis",
+        "full",
+        "analysis"
+      ],
       "source_type": "vendor",
       "source_url": "https://npcap.com/dist/npcap-1.82.exe",
       "version": "1.82",

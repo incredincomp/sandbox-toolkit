@@ -128,6 +128,18 @@ Describe 'Start-Sandbox integrated command combinations' {
                 Profile = 'dev-windows'
                 MustContain = @('sysinternals', 'visual-studio-community', 'windows-sdk')
             }
+            [pscustomobject]@{
+                Profile = 'analysis'
+                MustContain = @('sysinternals', 'ghidra', 'wireshark', 'npcap')
+            }
+            [pscustomobject]@{
+                Profile = 'detonation'
+                MustContain = @('sysinternals', 'detectiteasy', 'api-monitor', 'procdot')
+            }
+            [pscustomobject]@{
+                Profile = 'forensics'
+                MustContain = @('sysinternals', 'detectiteasy', 'dependencies', 'pestudio')
+            }
         )
 
         foreach ($case in $cases) {
@@ -222,6 +234,9 @@ Describe 'Start-Sandbox integrated command combinations' {
         (($listProfiles.Json.profiles | Where-Object { $_.name -eq 'reverse-windows' -and $_.type -eq 'built-in' }).Count) | Should Be 1
         (($listProfiles.Json.profiles | Where-Object { $_.name -eq 'behavior-net' -and $_.type -eq 'built-in' }).Count) | Should Be 1
         (($listProfiles.Json.profiles | Where-Object { $_.name -eq 'dev-windows' -and $_.type -eq 'built-in' }).Count) | Should Be 1
+        (($listProfiles.Json.profiles | Where-Object { $_.name -eq 'analysis' -and $_.type -eq 'built-in' }).Count) | Should Be 1
+        (($listProfiles.Json.profiles | Where-Object { $_.name -eq 'detonation' -and $_.type -eq 'built-in' }).Count) | Should Be 1
+        (($listProfiles.Json.profiles | Where-Object { $_.name -eq 'forensics' -and $_.type -eq 'built-in' }).Count) | Should Be 1
         $listTools.ExitCode | Should Be 0
         $listTools.Json.tools.Count | Should Be $script:manifest.tools.Count
         (($listTools.Json.tools | Where-Object { $_.id -eq 'dependencies' }).Count) | Should Be 1

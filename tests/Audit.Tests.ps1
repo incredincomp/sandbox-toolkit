@@ -56,6 +56,7 @@ Describe 'Invoke-SandboxArtifactAudit' {
 
             $result.HasFailures | Should Be $false
             @($result.Checks | Where-Object { $_.Name -eq 'wsb-networking' -and $_.Status -eq 'PASS' }).Count | Should Be 1
+            @($result.Checks | Where-Object { $_.Name -eq 'wsb-vgpu' -and $_.Status -eq 'PASS' }).Count | Should Be 1
             @($result.Checks | Where-Object { $_.Name -eq 'wsb-clipboard-redirection' -and $_.Status -eq 'PASS' }).Count | Should Be 1
             @($result.Checks | Where-Object { $_.Name -eq 'wsb-audio-input' -and $_.Status -eq 'PASS' }).Count | Should Be 1
             @($result.Checks | Where-Object { $_.Name -eq 'install-manifest-artifact' -and $_.Status -eq 'PASS' }).Count | Should Be 1

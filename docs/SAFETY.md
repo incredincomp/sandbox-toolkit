@@ -9,13 +9,14 @@ Windows Sandbox environment. The following defaults reflect a least-privilege, l
 
 ## Networking
 
-**Networking is disabled by default** in all profiles except `network-analysis` and `full`.
+**Networking is disabled by default** in `minimal`, `reverse-engineering`, `detonation`, `forensics`, `reverse-windows`, and `dev-windows`.
+Network-enabled profiles are explicit: `network-analysis`, `analysis`, `triage-plus`, `behavior-net`, and `full`.
 
 **Why:** A sandbox used for detonation or static analysis does not need network access.
 Disabling networking prevents any sample from exfiltrating data, phoning home, or
 downloading second-stage payloads during analysis.
 
-**When to enable:** Only enable networking in the `network-analysis` or `full` profile
+**When to enable:** Only enable networking in the `network-analysis`, `analysis`, `triage-plus`, `behavior-net`, or `full` profile
 when you specifically need to observe or capture network traffic. Be aware:
 
 - The sandbox shares your host's network interface.
@@ -60,6 +61,8 @@ Some synced/managed locations (for example OneDrive-backed or redirected folders
 - Clipboard and drag/drop behavior may vary by policy/host; do not rely on these paths.
 - Do not enable ClipboardRedirection if you are pasting from a session where you have
   handled malicious content.
+- Prefer `detonation` or `forensics` with `-DisableClipboard` for higher-risk unknown samples.
+- Use `Invoke-SampleTriage.ps1` for metadata-first triage before any execution.
 
 ---
 
@@ -103,6 +106,10 @@ consider:
 - A dedicated bare-metal analysis machine.
 - A fully isolated network segment.
 - Snapshot-capable hypervisors (VMware, Hyper-V, VirtualBox) with network isolation.
+
+vGPU guidance:
+- `analysis`/`network-analysis`/`full` default to `vGPU=Default` for analyst UX and graphical tooling.
+- `detonation` and `forensics` default to `vGPU=Disable` for reduced host-facing acceleration surface.
 
 ---
 

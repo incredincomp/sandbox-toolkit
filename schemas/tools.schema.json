@@ -44,7 +44,7 @@
           "type": "array",
           "items": {
             "type": "string",
-            "enum": ["minimal", "reverse-engineering", "network-analysis", "full", "triage-plus", "reverse-windows", "behavior-net", "dev-windows"]
+            "enum": ["minimal", "reverse-engineering", "network-analysis", "analysis", "detonation", "forensics", "full", "triage-plus", "reverse-windows", "behavior-net", "dev-windows"]
           },
           "minItems": 1
         },

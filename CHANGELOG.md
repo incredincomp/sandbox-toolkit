@@ -4,6 +4,37 @@ All notable changes to this project will be documented here.
 
 ---
 
+## [2.2.0] — 2026-05-21
+
+### Features
+
+- Added three Windows 11-focused operational profiles:
+  - `analysis` (internet-enabled modern analyst baseline)
+  - `detonation` (restricted, no-network detonation posture)
+  - `forensics` (strict offline static/forensic triage posture)
+- Refactored sandbox profile defaults to include explicit per-profile `vGPU` + networking policy.
+- Added ready-to-edit reference WSB profiles:
+  - `sandbox-profiles/analysis.wsb`
+  - `sandbox-profiles/detonation.wsb`
+  - `sandbox-profiles/forensics.wsb`
+- Added analyst automation scripts:
+  - `scripts/Invoke-SampleTriage.ps1` (sample ingestion + metadata/hash triage)
+  - `scripts/Export-AnalysisArtifacts.ps1` (artifact bundle export to mapped shared folder)
+  - `scripts/Reset-SandboxWorkspace.ps1` (workspace cleanup/reset)
+- Enhanced in-sandbox bootstrap logging:
+  - writes `analysis-artifacts/install-summary.json`
+  - writes `analysis-artifacts/install-timeline.csv`
+- Added documentation artifacts:
+  - `docs/VERSION_MATRIX.md`
+  - `docs/MIGRATION.md`
+
+### Hardening
+
+- `Invoke-SampleTriage.ps1`: streaming file read with configurable byte cap (`MaxBytes`) to prevent OOM on large samples.
+- `Export-AnalysisArtifacts.ps1`: validates that `$SharedRoot` is an existing mapped folder before writing; handles empty artifact directories gracefully.
+
+---
+
 ## [2.1.0] — 2026-03-15
 
 ### Features

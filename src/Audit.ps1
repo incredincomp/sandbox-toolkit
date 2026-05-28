@@ -308,6 +308,8 @@ function Invoke-SandboxArtifactAudit {
 
         $wsbXml = $wsbArtifact.Xml
         $configuredNetworking = [string]$wsbXml.Configuration.Networking
+        $configuredVGpu = [string]$wsbXml.Configuration.VGpu
+        $expectedVGpu = (Get-SandboxProfilePolicy -SandboxProfile $Selection.BaseProfile).VGpu
         if ($configuredNetworking -eq $NetworkingMode) {
             $checks.Add((Get-SandboxAuditCheck `
                 -Name 'wsb-networking' `
@@ -318,6 +320,19 @@ function Invoke-SandboxArtifactAudit {
                 -Name 'wsb-networking' `
                 -Status 'FAIL' `
                 -Message "Networking mismatch in generated artifact: requested '$NetworkingMode' but sandbox.wsb contains '$configuredNetworking'." `
+                -Remediation 'Inspect profile resolution and regenerate sandbox.wsb.'))
+        }
+
+        if ($configuredVGpu -eq $expectedVGpu) {
+            $checks.Add((Get-SandboxAuditCheck `
+                -Name 'wsb-vgpu' `
+                -Status 'PASS' `
+                -Message "vGPU setting '$configuredVGpu' is present in generated artifact as requested (configured/requested, not runtime-verified)."))
+        } else {
+            $checks.Add((Get-SandboxAuditCheck `
+                -Name 'wsb-vgpu' `
+                -Status 'FAIL' `
+                -Message "vGPU mismatch in generated artifact: requested '$expectedVGpu' but sandbox.wsb contains '$configuredVGpu'." `
                 -Remediation 'Inspect profile resolution and regenerate sandbox.wsb.'))
         }
 

@@ -16,6 +16,9 @@
       minimal            -- editors, Python, Sysinternals only.
       reverse-engineering -- adds Ghidra, x64dbg, dnSpyEx, DIE, UPX, PE-bear, pestudio, HxD, FLOSS.
       network-analysis   -- reverse-engineering plus Wireshark/Npcap (networking enabled).
+      analysis           -- modern analyst baseline with internet enabled and broad RE/network tooling.
+      detonation         -- restricted detonation profile with networking disabled and runtime telemetry focus.
+      forensics          -- offline static/forensic triage profile (networking disabled).
       triage-plus        -- rapid triage pack: Sysinternals, DIE, Dependencies, Wireshark.
       reverse-windows    -- Windows RE/runtime tracing pack: x64dbg, DIE, Dependencies, API Monitor, ProcDOT.
       behavior-net       -- behavior/network tracing pack: Sysinternals, Wireshark, API Monitor, ProcDOT.
@@ -775,7 +778,8 @@ $selection = Resolve-SandboxSessionSelection `
     -AddTools $effectiveRuntimeAddTools `
     -RemoveTools $effectiveRuntimeRemoveTools
 $tools      = $selection.Tools
-$networkingMode = Get-SandboxNetworkingMode -SandboxProfile $selection.BaseProfile
+$profileSettings = Get-SandboxProfilePolicy -SandboxProfile $selection.BaseProfile
+$networkingMode = $profileSettings.Networking
 
 Write-StatusLine "  [OK]  $($tools.Count) tool(s) selected for profile '$effectiveSandboxProfile'." -ForegroundColor Green
 if ($selection.ProfileType -eq 'custom') {
@@ -794,6 +798,7 @@ if ($selection.RuntimeRemoveTools.Count -gt 0) {
     Write-StatusLine "        Runtime remove: $($selection.RuntimeRemoveTools -join ', ')" -ForegroundColor DarkGray
 }
 Write-StatusLine "        Networking: $networkingMode" -ForegroundColor DarkGray
+Write-StatusLine "        vGPU: $($profileSettings.VGpu)" -ForegroundColor DarkGray
 if ($sessionLifecycleState.RequestedMode -eq 'Warm') {
     Write-StatusLine ("        Session lifecycle: warm_requested; warm_supported={0}; running_sessions={1}" -f `
             $sessionLifecycleState.WarmSupport.Supported, `

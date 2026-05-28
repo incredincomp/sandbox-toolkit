@@ -10,8 +10,32 @@ A manifest-driven, profile-aware Windows Sandbox environment for **defensive mal
 ## Standalone project
 
 This repository is maintained as a standalone project under `incredincomp/sandbox-toolkit`.
-It is manifest-driven (`tools.json`), profile-aware (`minimal`, `reverse-engineering`, `network-analysis`, `triage-plus`, `reverse-windows`, `behavior-net`, `dev-windows`, `full`), and built for defensive malware analysis, reverse engineering, and sample triage.
+It is manifest-driven (`tools.json`), profile-aware (`minimal`, `reverse-engineering`, `network-analysis`, `analysis`, `detonation`, `forensics`, `triage-plus`, `reverse-windows`, `behavior-net`, `dev-windows`, `full`), and built for defensive malware analysis, reverse engineering, and sample triage.
 The default posture is safer-by-default: disposable fresh sandbox sessions, read-only mapped scripts, and networking disabled unless a networked profile is explicitly selected.
+
+---
+
+## What changed (2.2.0)
+
+- Added three Windows 11-focused operational profiles:
+  - `analysis` (internet-enabled modern analyst baseline)
+  - `detonation` (restricted, no-network detonation posture)
+  - `forensics` (strict offline static/forensic triage posture)
+- Refactored sandbox profile defaults to include explicit per-profile `vGPU` + networking policy.
+- Added ready-to-edit reference WSB profiles:
+  - `sandbox-profiles/analysis.wsb`
+  - `sandbox-profiles/detonation.wsb`
+  - `sandbox-profiles/forensics.wsb`
+- Added analyst automation scripts:
+  - `scripts/Invoke-SampleTriage.ps1` (sample ingestion + metadata/hash triage)
+  - `scripts/Export-AnalysisArtifacts.ps1` (artifact bundle export to mapped shared folder)
+  - `scripts/Reset-SandboxWorkspace.ps1` (workspace cleanup/reset)
+- Enhanced in-sandbox bootstrap logging:
+  - writes `analysis-artifacts/install-summary.json`
+  - writes `analysis-artifacts/install-timeline.csv`
+- Added documentation artifacts:
+  - `docs/VERSION_MATRIX.md`
+  - `docs/MIGRATION.md`
 
 ---
 
@@ -279,6 +303,19 @@ cd sandbox-toolkit
 ```
 
 See [QUICKSTART.md](docs/QUICKSTART.md) for a step-by-step guide including prerequisites.
+
+### 5-minute analyst start (Windows 11)
+
+```powershell
+# Internet-enabled analyst workstation
+.\Start-Sandbox.ps1 -Profile analysis
+
+# Restricted detonation workflow (offline by default)
+.\Start-Sandbox.ps1 -Profile detonation -DisableClipboard
+
+# Offline forensics workflow with read-only ingress
+.\Start-Sandbox.ps1 -Profile forensics -SharedFolder "C:\Lab\Ingress"
+```
 
 ### Recommended workflow
 
@@ -648,7 +685,7 @@ Supported custom-profile shape:
 - Top-level `profiles` array is required when the file exists.
 - Each profile entry requires:
   - `name` (non-empty, unique, must not conflict with built-in profile names)
-  - `base_profile` (one of built-in profiles: `minimal`, `reverse-engineering`, `network-analysis`, `triage-plus`, `reverse-windows`, `behavior-net`, `dev-windows`, `full`)
+  - `base_profile` (one of built-in profiles: `minimal`, `reverse-engineering`, `network-analysis`, `analysis`, `detonation`, `forensics`, `triage-plus`, `reverse-windows`, `behavior-net`, `dev-windows`, `full`)
 - Optional per-profile arrays:
   - `add_tools` (tool IDs to add)
   - `remove_tools` (tool IDs to remove)
@@ -809,7 +846,14 @@ sandbox-toolkit/
 ├── scripts/
 │   ├── autostart.cmd          # Thin launcher (runs on sandbox startup)
 │   ├── Install-Tools.ps1      # In-sandbox install orchestrator
+│   ├── Invoke-SampleTriage.ps1
+│   ├── Export-AnalysisArtifacts.ps1
+│   ├── Reset-SandboxWorkspace.ps1
 │   └── setups/                # Downloaded files (gitignored, populated at runtime)
+├── sandbox-profiles/          # Hardened profile reference .wsb files
+│   ├── analysis.wsb
+│   ├── detonation.wsb
+│   └── forensics.wsb
 ├── shared/                    # Optional ingress folder (gitignored, created on demand)
 ├── schemas/
 │   └── tools.schema.json      # JSON Schema for tools.json validation
@@ -822,7 +866,9 @@ sandbox-toolkit/
 │   ├── QUICKSTART.md
 │   ├── PROFILES.md
 │   ├── TROUBLESHOOTING.md
-│   └── SAFETY.md
+│   ├── SAFETY.md
+│   ├── VERSION_MATRIX.md
+│   └── MIGRATION.md
 └── CHANGELOG.md
 ```
 
@@ -849,7 +895,9 @@ sandbox-toolkit/
 
 ## Safety posture
 
-- Networking is **disabled by default** (all profiles except `network-analysis` and `full`).
+- Networking is **disabled by default** for `minimal`, `reverse-engineering`, `detonation`, `forensics`, `reverse-windows`, and `dev-windows`.
+- Network-enabled profiles are explicit: `network-analysis`, `analysis`, `triage-plus`, `behavior-net`, and `full`.
+- vGPU is profile-driven (`Default` for analyst-heavy profiles, `Disable` for strict detonation/forensics).
 - The `scripts/` host folder is mapped **read-only**.
 - An optional extra shared folder can be mapped at `Desktop\shared` (read-only by default).
 - No samples from the host are auto-executed.
@@ -865,6 +913,27 @@ See [SAFETY.md](docs/SAFETY.md) for full safety guidance.
 - New tools: add an entry following the schema in `schemas/tools.schema.json`.
 - Profiles: update the `profiles` array on each relevant tool entry.
 - Releases: push an annotated `vX.Y.Z` tag after updating changelog/release notes (`artifacts/releases/X.Y.Z.md`). The release workflow publishes/updates the GitHub release object automatically.
+
+---
+
+## Analyst automation scripts
+
+Inside the sandbox:
+
+```powershell
+# Build triage metadata and hash output from Desktop\\shared\\incoming
+powershell -ExecutionPolicy Bypass -File C:\\Users\\WDAGUtilityAccount\\Desktop\\scripts\\Invoke-SampleTriage.ps1
+
+# Export install + triage artifacts to Desktop\\shared\\exports\\<timestamp>.zip
+powershell -ExecutionPolicy Bypass -File C:\\Users\\WDAGUtilityAccount\\Desktop\\scripts\\Export-AnalysisArtifacts.ps1
+
+# Reset analyst workspace state between cases
+powershell -ExecutionPolicy Bypass -File C:\\Users\\WDAGUtilityAccount\\Desktop\\scripts\\Reset-SandboxWorkspace.ps1
+```
+
+Reference docs:
+- [docs/VERSION_MATRIX.md](docs/VERSION_MATRIX.md)
+- [docs/MIGRATION.md](docs/MIGRATION.md)
 
 ---
 
