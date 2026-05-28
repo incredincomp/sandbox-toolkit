@@ -68,6 +68,41 @@ Describe 'Get-SandboxDownloadCleanupPlan' {
             }
         }
     }
+
+    It 'skips container candidates that contain nested reparse points' {
+        if (-not [System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform([System.Runtime.InteropServices.OSPlatform]::Windows)) {
+            Write-Output 'Skipped: junction creation requires Windows'
+            return
+        }
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("sandbox-toolkit-reparse-nested-" + [guid]::NewGuid().ToString())
+        $externalTarget = Join-Path ([System.IO.Path]::GetTempPath()) ("sandbox-toolkit-reparse-nested-ext-" + [guid]::NewGuid().ToString())
+        $containerPath = Join-Path $tempRoot 'scripts\setups\cache-dir'
+        $junctionPath = Join-Path $containerPath 'linked'
+        New-Item -ItemType Directory -Path $containerPath -Force | Out-Null
+        New-Item -ItemType Directory -Path $externalTarget -Force | Out-Null
+
+        try {
+            Set-Content -Path (Join-Path $containerPath 'local.txt') -Value 'keep'
+            Set-Content -Path (Join-Path $externalTarget 'victim.txt') -Value 'keep-me'
+            New-Item -ItemType Junction -Path $junctionPath -Target $externalTarget | Out-Null
+
+            $plan = Get-SandboxDownloadCleanupPlan -RepoRoot $tempRoot
+
+            @($plan.Candidates | Where-Object { $_.path -eq $containerPath }).Count | Should Be 0
+            @($plan.Skipped | Where-Object { $_.path -eq $containerPath -and $_.reason -eq 'contains-reparse-point' }).Count | Should Be 1
+            (Test-Path -LiteralPath (Join-Path $externalTarget 'victim.txt') -PathType Leaf) | Should Be $true
+        } finally {
+            if (Test-Path -LiteralPath $junctionPath) {
+                [System.IO.Directory]::Delete($junctionPath)
+            }
+            if (Test-Path -LiteralPath $tempRoot) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+            if (Test-Path -LiteralPath $externalTarget) {
+                Remove-Item -LiteralPath $externalTarget -Recurse -Force
+            }
+        }
+    }
 }
 
 Describe 'Invoke-SandboxDownloadCleanup' {

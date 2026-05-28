@@ -7,6 +7,8 @@ $manifestOut = Join-Path $repoRoot 'scripts\install-manifest.json'
 $wsbOut = Join-Path $repoRoot 'sandbox.wsb'
 $customProfilesPath = Join-Path $repoRoot 'custom-profiles.local.json'
 $templateStorePath = Join-Path $repoRoot 'saved-sessions.local.json'
+$setupCachePath = Join-Path $repoRoot 'scripts\setups'
+. (Join-Path $PSScriptRoot 'TestPathState.Helpers.ps1')
 
 function Invoke-StartSandboxJsonHardening {
     param(
@@ -35,6 +37,10 @@ function Invoke-StartSandboxRawHardening {
 
 Describe 'Release hardening command-surface characterization' {
     BeforeAll {
+        $script:customProfilesSnapshot = New-TestPathSnapshot -Path $customProfilesPath
+        $script:templateStoreSnapshot = New-TestPathSnapshot -Path $templateStorePath
+        Reset-TestPath -Path $customProfilesPath
+        Reset-TestPath -Path $templateStorePath
         @'
 {
   "schema_version": "1.0",
@@ -60,9 +66,8 @@ Describe 'Release hardening command-surface characterization' {
     }
 
     AfterAll {
-        if (Test-Path -LiteralPath $customProfilesPath -PathType Leaf) {
-            Remove-Item -LiteralPath $customProfilesPath -Force
-        }
+        Restore-TestPathSnapshot -Snapshot $script:customProfilesSnapshot
+        Restore-TestPathSnapshot -Snapshot $script:templateStoreSnapshot
     }
 
     It 'covers required dry-run combinations for built-in/custom/add/remove flows' {
@@ -175,6 +180,7 @@ Describe 'Release hardening command-surface characterization' {
     }
 
     It 'keeps -CleanDownloads scoped away from local profile/template config surfaces' {
+        $setupCacheSnapshot = New-TestPathSnapshot -Path $setupCachePath
         $setupCacheItem = Join-Path $repoRoot 'scripts\setups\release-hardening-cleanup-config-scope.tmp'
         New-Item -ItemType Directory -Path (Split-Path -Parent $setupCacheItem) -Force | Out-Null
         Set-Content -Path $setupCacheItem -Value 'cache'
@@ -192,9 +198,7 @@ Describe 'Release hardening command-surface characterization' {
             (Test-Path -LiteralPath $customProfilesPath -PathType Leaf) | Should Be $true
             (Test-Path -LiteralPath $templateStorePath -PathType Leaf) | Should Be $true
         } finally {
-            if (Test-Path -LiteralPath $templateStorePath -PathType Leaf) {
-                Remove-Item -LiteralPath $templateStorePath -Force
-            }
+            Restore-TestPathSnapshot -Snapshot $setupCacheSnapshot
         }
     }
 }

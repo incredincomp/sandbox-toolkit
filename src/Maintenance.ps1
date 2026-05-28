@@ -52,6 +52,36 @@ function Test-SandboxPathWithinRoot {
     return $fullPath.StartsWith($fullRoot, [System.StringComparison]::OrdinalIgnoreCase)
 }
 
+function Get-SandboxFirstNestedReparsePoint {
+    <#
+    .SYNOPSIS
+        Returns the first nested reparse point under a container path, or $null when absent.
+    #>
+    param(
+        [Parameter(Mandatory)][string]$Path
+    )
+
+    $pendingPaths = [System.Collections.Generic.Stack[string]]::new()
+    $pendingPaths.Push($Path)
+
+    while ($pendingPaths.Count -gt 0) {
+        $currentPath = $pendingPaths.Pop()
+        $children = @(Get-ChildItem -LiteralPath $currentPath -Force)
+
+        foreach ($child in $children) {
+            if ($child.Attributes -band [System.IO.FileAttributes]::ReparsePoint) {
+                return $child
+            }
+
+            if ($child.PSIsContainer) {
+                $pendingPaths.Push($child.FullName)
+            }
+        }
+    }
+
+    return $null
+}
+
 function Get-SandboxDownloadCleanupPlan {
     <#
     .SYNOPSIS
@@ -129,6 +159,18 @@ function Get-SandboxDownloadCleanupPlan {
                 continue
             }
 
+            if ($child.PSIsContainer) {
+                $nestedReparsePoint = Get-SandboxFirstNestedReparsePoint -Path $childPath
+                if ($nestedReparsePoint) {
+                    $skipped.Add([pscustomobject]@{
+                        location_id = $location.id
+                        path = $childPath
+                        reason = 'contains-reparse-point'
+                    })
+                    continue
+                }
+            }
+
             $candidates.Add([pscustomobject]@{
                 location_id = $location.id
                 path = $childPath
@@ -158,11 +200,9 @@ function Invoke-SandboxDownloadCleanup {
         $RemoveAction = {
             param($Path, $IsContainer)
             if ($IsContainer) {
-                $reparseDescendants = @(Get-ChildItem -LiteralPath $Path -Recurse -Force -ErrorAction SilentlyContinue |
-                    Where-Object { $_.Attributes -band [System.IO.FileAttributes]::ReparsePoint } |
-                    Select-Object -First 1)
-                if ($reparseDescendants.Count -gt 0) {
-                    throw "Recursive deletion of '$Path' refused: contains reparse point(s)."
+                $nestedReparsePoint = Get-SandboxFirstNestedReparsePoint -Path $Path
+                if ($nestedReparsePoint) {
+                    throw "Recursive deletion of '$Path' refused: contains reparse point '$($nestedReparsePoint.FullName)'."
                 }
                 Remove-Item -LiteralPath $Path -Recurse -Force
             } else {

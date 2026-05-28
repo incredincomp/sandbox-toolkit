@@ -398,21 +398,51 @@ function Invoke-SandboxArtifactAudit {
         }
 
         $mappedFolders = @($wsbXml.Configuration.MappedFolders.MappedFolder)
-        $scriptsMapping = $mappedFolders | Where-Object {
-            $hostFolder = [string](Get-AuditObjectPropertyValue -InputObject $_ -PropertyName 'HostFolder')
-            if (-not $hostFolder) {
-                return $false
-            }
-            (Get-NormalizedAuditPath -Path $hostFolder) -ieq $expectedScriptsHostPath
-        } | Select-Object -First 1
+        $mappedFolderEntries = @(
+            for ($mappedFolderIndex = 0; $mappedFolderIndex -lt $mappedFolders.Count; $mappedFolderIndex++) {
+                $mappedFolder = $mappedFolders[$mappedFolderIndex]
+                $hostFolder = [string](Get-AuditObjectPropertyValue -InputObject $mappedFolder -PropertyName 'HostFolder')
+                $normalizedHostFolder = $null
+                if ($hostFolder) {
+                    $normalizedHostFolder = Get-NormalizedAuditPath -Path $hostFolder
+                }
 
-        if (-not $scriptsMapping) {
+                [pscustomobject]@{
+                    Index = $mappedFolderIndex
+                    Mapping = $mappedFolder
+                    HostFolder = $hostFolder
+                    NormalizedHostFolder = $normalizedHostFolder
+                    SandboxFolder = [string](Get-AuditObjectPropertyValue -InputObject $mappedFolder -PropertyName 'SandboxFolder')
+                }
+            }
+        )
+
+        $scriptsMappings = @($mappedFolderEntries | Where-Object { $_.NormalizedHostFolder -and $_.NormalizedHostFolder -ieq $expectedScriptsHostPath })
+        $scriptsMapping = @($scriptsMappings | Select-Object -First 1)
+        $sharedMappings = @($mappedFolderEntries | Where-Object { $_.SandboxFolder -ieq $sandboxSharedPath })
+        $sharedMapping = @($sharedMappings | Select-Object -First 1)
+        $allowedMappedFolderIndexes = [System.Collections.Generic.HashSet[int]]::new()
+        if ($scriptsMapping.Count -gt 0) {
+            [void]$allowedMappedFolderIndexes.Add($scriptsMapping[0].Index)
+        }
+        if ($expectedSharedHostPath -and $sharedMapping.Count -gt 0) {
+            [void]$allowedMappedFolderIndexes.Add($sharedMapping[0].Index)
+        }
+        $unexpectedMappedFolders = @($mappedFolderEntries | Where-Object { -not $allowedMappedFolderIndexes.Contains($_.Index) })
+
+        if ($scriptsMappings.Count -eq 0) {
             $checks.Add((Get-SandboxAuditCheck `
                 -Name 'wsb-scripts-mapping' `
                 -Status 'FAIL' `
                 -Message "Generated artifact is missing scripts host-folder mapping: expected '$expectedScriptsHostPath'." `
                 -Remediation 'Regenerate sandbox.wsb and verify repository scripts/ path.'))
-        } elseif ([string]$scriptsMapping.ReadOnly -ine 'true') {
+        } elseif ($scriptsMappings.Count -gt 1) {
+            $checks.Add((Get-SandboxAuditCheck `
+                -Name 'wsb-scripts-mapping' `
+                -Status 'FAIL' `
+                -Message "Generated artifact includes multiple scripts host-folder mappings for '$expectedScriptsHostPath'." `
+                -Remediation 'Regenerate sandbox.wsb and ensure only one scripts host-folder mapping is emitted.'))
+        } elseif ([string]$scriptsMapping[0].Mapping.ReadOnly -ine 'true') {
             $checks.Add((Get-SandboxAuditCheck `
                 -Name 'wsb-scripts-mapping' `
                 -Status 'FAIL' `
@@ -425,21 +455,22 @@ function Invoke-SandboxArtifactAudit {
                 -Message "scripts/ host mapping is present and read-only in generated artifact (configured/requested, not runtime-verified)."))
         }
 
-        $sharedMapping = $mappedFolders | Where-Object {
-            $sandboxFolder = [string](Get-AuditObjectPropertyValue -InputObject $_ -PropertyName 'SandboxFolder')
-            $sandboxFolder -ieq $sandboxSharedPath
-        } | Select-Object -First 1
-
         if ($expectedSharedHostPath) {
-            if (-not $sharedMapping) {
+            if ($sharedMappings.Count -eq 0) {
                 $checks.Add((Get-SandboxAuditCheck `
                     -Name 'wsb-shared-folder' `
                     -Status 'FAIL' `
                     -Message "Shared folder was requested ('$expectedSharedHostPath') but generated artifact does not include Desktop\\shared mapping." `
                     -Remediation 'Regenerate sandbox.wsb and verify shared-folder parameters.'))
+            } elseif ($sharedMappings.Count -gt 1) {
+                $checks.Add((Get-SandboxAuditCheck `
+                    -Name 'wsb-shared-folder' `
+                    -Status 'FAIL' `
+                    -Message 'Generated artifact includes multiple Desktop\shared mappings.' `
+                    -Remediation 'Regenerate sandbox.wsb and ensure only one Desktop\shared mapping is emitted.'))
             } else {
-                $actualSharedHostPath = Get-NormalizedAuditPath -Path ([string](Get-AuditObjectPropertyValue -InputObject $sharedMapping -PropertyName 'HostFolder'))
-                $actualReadOnly = [string](Get-AuditObjectPropertyValue -InputObject $sharedMapping -PropertyName 'ReadOnly')
+                $actualSharedHostPath = Get-NormalizedAuditPath -Path ([string](Get-AuditObjectPropertyValue -InputObject $sharedMapping[0].Mapping -PropertyName 'HostFolder'))
+                $actualReadOnly = [string](Get-AuditObjectPropertyValue -InputObject $sharedMapping[0].Mapping -PropertyName 'ReadOnly')
                 $expectedReadOnly = if ($SharedFolderWritable) { 'false' } else { 'true' }
 
                 if ($actualSharedHostPath -ine $expectedSharedHostPath) {
@@ -467,7 +498,7 @@ function Invoke-SandboxArtifactAudit {
                         -Message "Shared folder mapping is present and read-only in generated artifact ('$expectedSharedHostPath') (configured/requested, not runtime-verified)."))
                 }
             }
-        } elseif ($sharedMapping) {
+        } elseif ($sharedMappings.Count -gt 0) {
             $checks.Add((Get-SandboxAuditCheck `
                 -Name 'wsb-shared-folder' `
                 -Status 'WARN' `
@@ -478,6 +509,33 @@ function Invoke-SandboxArtifactAudit {
                 -Name 'wsb-shared-folder' `
                 -Status 'PASS' `
                 -Message 'No optional shared-folder mapping present in generated artifact, matching requested configuration (host-side evidence only).'))
+        }
+
+        if ($unexpectedMappedFolders.Count -gt 0) {
+            $unexpectedDescriptions = @(
+                foreach ($unexpectedMappedFolder in $unexpectedMappedFolders) {
+                    $hostDescription = if ([string]::IsNullOrWhiteSpace($unexpectedMappedFolder.HostFolder)) {
+                        '<missing-host-folder>'
+                    } else {
+                        $unexpectedMappedFolder.HostFolder
+                    }
+                    if ([string]::IsNullOrWhiteSpace($unexpectedMappedFolder.SandboxFolder)) {
+                        $hostDescription
+                    } else {
+                        "$hostDescription -> $($unexpectedMappedFolder.SandboxFolder)"
+                    }
+                }
+            )
+            $checks.Add((Get-SandboxAuditCheck `
+                -Name 'wsb-extra-mappings' `
+                -Status 'FAIL' `
+                -Message ("Generated artifact includes unexpected host-folder mapping(s): {0}." -f ($unexpectedDescriptions -join '; ')) `
+                -Remediation 'Regenerate sandbox.wsb and ensure only the required scripts mapping and requested optional shared mapping are present.'))
+        } else {
+            $checks.Add((Get-SandboxAuditCheck `
+                -Name 'wsb-extra-mappings' `
+                -Status 'PASS' `
+                -Message 'Generated artifact contains only the expected host-folder mappings.'))
         }
     }
 

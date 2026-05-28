@@ -18,6 +18,23 @@ function Get-SandboxSessionManifestData {
     }
 }
 
+function Get-SandboxOptionalObjectArrayProperty {
+    <#
+    .SYNOPSIS
+        Returns an optional object property as an array, or an empty array when absent.
+    #>
+    param(
+        [Parameter(Mandatory)][PSCustomObject]$InputObject,
+        [Parameter(Mandatory)][string]$PropertyName
+    )
+
+    if (-not $InputObject.PSObject.Properties[$PropertyName]) {
+        return @()
+    }
+
+    return @($InputObject.$PropertyName)
+}
+
 function Resolve-SandboxSessionSelection {
     <#
     .SYNOPSIS
@@ -74,11 +91,11 @@ function Resolve-SandboxSessionSelection {
 
     # Precedence: base profile -> custom add/remove -> template add/remove -> runtime add/remove.
     if ($customProfile) {
-        foreach ($toolId in @($customProfile.add_tools)) {
+        foreach ($toolId in (Get-SandboxOptionalObjectArrayProperty -InputObject $customProfile -PropertyName 'add_tools')) {
             $effectiveToolIds.Add($toolId)
         }
 
-        foreach ($toolId in @($customProfile.remove_tools)) {
+        foreach ($toolId in (Get-SandboxOptionalObjectArrayProperty -InputObject $customProfile -PropertyName 'remove_tools')) {
             $filteredToolIds = [System.Collections.Generic.List[string]]::new()
             foreach ($effectiveToolId in $effectiveToolIds) {
                 if ($effectiveToolId -ine $toolId) {

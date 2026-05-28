@@ -6,6 +6,7 @@ $scriptPath = Join-Path $repoRoot 'Start-Sandbox.ps1'
 $manifestOut = Join-Path $repoRoot 'scripts\install-manifest.json'
 $wsbOut = Join-Path $repoRoot 'sandbox.wsb'
 $customProfilesPath = Join-Path $repoRoot 'custom-profiles.local.json'
+. (Join-Path $PSScriptRoot 'TestPathState.Helpers.ps1')
 
 function Invoke-StartSandboxJson {
     param(
@@ -34,6 +35,11 @@ function Invoke-StartSandboxRaw {
 }
 
 Describe 'Start-Sandbox JSON output modes' {
+    BeforeAll {
+        $script:customProfilesSnapshot = New-TestPathSnapshot -Path $customProfilesPath
+        Reset-TestPath -Path $customProfilesPath
+    }
+
     AfterEach {
         if (Test-Path -LiteralPath $manifestOut -PathType Leaf) {
             Remove-Item -LiteralPath $manifestOut -Force
@@ -44,6 +50,10 @@ Describe 'Start-Sandbox JSON output modes' {
         if (Test-Path -LiteralPath $customProfilesPath -PathType Leaf) {
             Remove-Item -LiteralPath $customProfilesPath -Force
         }
+    }
+
+    AfterAll {
+        Restore-TestPathSnapshot -Snapshot $script:customProfilesSnapshot
     }
 
     It 'returns parseable JSON for validate mode with deterministic status' {

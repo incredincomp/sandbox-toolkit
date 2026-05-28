@@ -114,6 +114,11 @@ function ConvertFrom-SandboxWsbRawSessionList {
 
     $sessionCandidates = @()
     $recognizedShape = $false
+    $trimmedRawOutput = $RawOutput.Trim()
+
+    if ($null -eq $parsed -and $trimmedRawOutput -eq '[]') {
+        $recognizedShape = $true
+    }
 
     if ($parsed -is [System.Array]) {
         $recognizedShape = $true

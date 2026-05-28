@@ -7,6 +7,8 @@ $manifestOut = Join-Path $repoRoot 'scripts\install-manifest.json'
 $wsbOut = Join-Path $repoRoot 'sandbox.wsb'
 $customProfilesPath = Join-Path $repoRoot 'custom-profiles.local.json'
 $templateStorePath = Join-Path $repoRoot 'saved-sessions.local.json'
+$setupCachePath = Join-Path $repoRoot 'scripts\setups'
+. (Join-Path $PSScriptRoot 'TestPathState.Helpers.ps1')
 
 function Invoke-StartSandboxJson {
     param(
@@ -36,6 +38,10 @@ function Invoke-StartSandboxRaw {
 Describe 'Start-Sandbox integrated command combinations' {
     BeforeAll {
         $script:manifest = Get-Content -Raw -Path (Join-Path $repoRoot 'tools.json') | ConvertFrom-Json
+        $script:customProfilesSnapshot = New-TestPathSnapshot -Path $customProfilesPath
+        $script:templateStoreSnapshot = New-TestPathSnapshot -Path $templateStorePath
+        Reset-TestPath -Path $customProfilesPath
+        Reset-TestPath -Path $templateStorePath
     }
 
     AfterEach {
@@ -51,6 +57,11 @@ Describe 'Start-Sandbox integrated command combinations' {
         if (Test-Path -LiteralPath $templateStorePath -PathType Leaf) {
             Remove-Item -LiteralPath $templateStorePath -Force
         }
+    }
+
+    AfterAll {
+        Restore-TestPathSnapshot -Snapshot $script:customProfilesSnapshot
+        Restore-TestPathSnapshot -Snapshot $script:templateStoreSnapshot
     }
 
     It 'supports -DryRun with a built-in profile' {
@@ -356,6 +367,7 @@ Describe 'Start-Sandbox integrated command combinations' {
     }
 
     It 'keeps -CleanDownloads scoped to disposable cache/session surfaces' {
+        $setupCacheSnapshot = New-TestPathSnapshot -Path $setupCachePath
         $setupCacheItem = Join-Path $repoRoot 'scripts\setups\integration-cleanup-scope.tmp'
         $placeholderPath = Join-Path $repoRoot 'scripts\setups\.gitkeep'
         $placeholderExists = Test-Path -LiteralPath $placeholderPath -PathType Leaf
@@ -381,6 +393,7 @@ Describe 'Start-Sandbox integrated command combinations' {
             if (Test-Path -LiteralPath $sentinelPath -PathType Leaf) {
                 Remove-Item -LiteralPath $sentinelPath -Force
             }
+            Restore-TestPathSnapshot -Snapshot $setupCacheSnapshot
         }
     }
 

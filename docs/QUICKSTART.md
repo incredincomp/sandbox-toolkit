@@ -217,7 +217,7 @@ Fresh vs warm session mode:
 - Warm discovery requires parsable `wsb list --raw` output; malformed/unsupported output is reported deterministically.
 - For currently accepted raw envelope shapes and normalized field mapping, see [README session lifecycle](../README.md#session-lifecycle-modes-fresh-vs-warm).
 
-WSL helper boundary:
+### WSL helper boundary
 - `-UseWslHelper` enables optional helper staging/metadata tasks only.
 - WSL is not the primary malware isolation boundary in this workflow.
 - Windows Sandbox remains the execution/isolation boundary for untrusted Windows samples.
