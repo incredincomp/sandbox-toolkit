@@ -7,7 +7,7 @@ Update this file at every milestone boundary. Do not let it go stale.
 
 ## Current phase
 
-**Phase: Initial discovery**
+**Phase: Security fix — reparse-point cleanup root**
 
 ---
 
@@ -23,6 +23,7 @@ Provide a manifest-driven Windows Sandbox toolkit that automates downloading and
 |---|-----------|--------|-------|
 | 1 | Initial discovery | ✅ Complete | Performed repo structure & tooling analysis, created discovery artifacts and docs. |
 | 2 | Define development workflow | ⏳ Pending | Establish standard commands, validation checks, and development guidance. |
+| 3 | Security fix: reparse-point cleanup root | ✅ Complete | Added root reparse-point check in Get-SandboxDownloadCleanupPlan; guarded recursive deletion in Invoke-SandboxDownloadCleanup; added test coverage. |
 
 ---
 
@@ -31,10 +32,16 @@ Provide a manifest-driven Windows Sandbox toolkit that automates downloading and
 | Decision | Reason | Alternative considered |
 |----------|--------|----------------------|
 | Use PowerShell/Pester for tests and linting | Repository is primarily PowerShell; CI already uses PSScriptAnalyzer and Pester | Introduce a different test framework (not needed for current scope) |
+| Check cleanup root for ReparsePoint before Get-ChildItem | Prevents enumeration of external targets when scripts\setups is replaced with a junction/symlink | Resolving the real path (slower, may not be available on all PS versions) |
+| Pre-scan descendants for reparse points before Remove-Item -Recurse | Prevents recursive deletion from traversing junctions inside accepted subdirectory candidates | Walking the tree manually and skipping junctions (more complex, same safety) |
 
 ---
 
 ## Files created or modified
+
+### Security fix (Milestone 3)
+- `src/Maintenance.ps1` — added root reparse-point check before `Get-ChildItem`; guarded `Remove-Item -Recurse` against descendant reparse points
+- `tests/Maintenance.Tests.ps1` — added test for reparse-point cleanup root scenario
 
 ### Discovery run (Milestone 1)
 - `AGENTS.md` — execution contract
@@ -1364,6 +1371,32 @@ Estimated size: Small (1–2 files)
 |-------|--------|--------|------|
 | Pester tests (full suite) | ✅ | `Import-Module Pester -RequiredVersion 4.10.1 -Force; Invoke-Pester -Path tests -EnableExit` | 2026-03-15 |
 | PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' \| ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-15 |
+
+---
+
+## 2026-05-28 Session log (template shared-folder writable override fix)
+
+### Scope
+- Validate and remediate the reported template invocation issue where a runtime shared-folder override could inherit a saved template's writable host-folder mapping.
+- Preserve saved template defaults when no shared-folder selector is overridden, while restoring the non-template read-only default for explicit folder selector overrides unless `-SharedFolderWritable` is also supplied.
+
+### Decisions made
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Reset effective `SharedFolderWritable` to false when `-SharedFolder` is explicitly supplied without `-SharedFolderWritable` | Matches documented non-template behavior that shared folders are read-only by default unless the writable switch is explicit, and prevents unexpected write access to a newly selected host folder | Continue inheriting the template writable flag, which is the reported security issue |
+| Preserve writable access for overridden folders only when `-SharedFolderWritable` is explicitly bound | Maintains intentional operator opt-in for writable mappings | Reject combining writable template defaults with overrides, which would be more disruptive than necessary |
+
+### Files modified
+- `src/Templates.ps1`
+- `tests/Templates.Tests.ps1`
+- `IMPLEMENTATION_TRACKER.md`
+
+### Validation
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| Pester tests (full suite) | ⚠️ Not run | `pwsh -NoLogo -NoProfile -Command "Invoke-Pester -Path tests"` failed because `pwsh` is not installed in this Linux container (`command not found`) | 2026-05-28 |
+| PSScriptAnalyzer lint | ⚠️ Not run | `pwsh -NoLogo -NoProfile -Command "Get-ChildItem -Recurse -Filter '*.ps1' \| ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }"` failed because `pwsh` is not installed in this Linux container (`command not found`) | 2026-05-28 |
+| Manifest validation | ⚠️ Partial only | CI-equivalent jsonschema validation could not run because Python package `jsonschema` is not installed and `python3 -m pip install --user jsonschema` was blocked by a 403 tunnel error; JSON parsing of `tools.json` and `schemas/tools.schema.json` passed with `python3 -m json.tool` | 2026-05-28 |
 
 ---
 

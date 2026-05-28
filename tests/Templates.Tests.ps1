@@ -43,6 +43,72 @@ Describe 'Template store helpers' {
         }
     }
 
+    It 'rejects string values for shared_folder_writable' {
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("sandbox-toolkit-template-store-" + [guid]::NewGuid().ToString())
+        New-Item -ItemType Directory -Path $tempRoot -Force | Out-Null
+
+        try {
+            $storePath = Join-Path $tempRoot 'saved-sessions.local.json'
+            '{ "schema_version": "1.0", "templates": [{ "name": "t1", "profile": "minimal", "shared_folder_writable": "false" }] }' | Set-Content -Path $storePath -Encoding UTF8
+            {
+                Import-SandboxTemplateStore -TemplateStorePath $storePath | Out-Null
+            } | Should Throw 'shared_folder_writable must be a JSON boolean'
+        } finally {
+            if (Test-Path -LiteralPath $tempRoot) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
+    It 'rejects string values for use_wsl_helper' {
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("sandbox-toolkit-template-store-" + [guid]::NewGuid().ToString())
+        New-Item -ItemType Directory -Path $tempRoot -Force | Out-Null
+
+        try {
+            $storePath = Join-Path $tempRoot 'saved-sessions.local.json'
+            '{ "schema_version": "1.0", "templates": [{ "name": "t1", "profile": "minimal", "use_wsl_helper": "false" }] }' | Set-Content -Path $storePath -Encoding UTF8
+            {
+                Import-SandboxTemplateStore -TemplateStorePath $storePath | Out-Null
+            } | Should Throw 'use_wsl_helper must be a JSON boolean'
+        } finally {
+            if (Test-Path -LiteralPath $tempRoot) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
+    It 'accepts JSON boolean false for shared_folder_writable and normalizes to $false' {
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("sandbox-toolkit-template-store-" + [guid]::NewGuid().ToString())
+        New-Item -ItemType Directory -Path $tempRoot -Force | Out-Null
+
+        try {
+            $storePath = Join-Path $tempRoot 'saved-sessions.local.json'
+            '{ "schema_version": "1.0", "templates": [{ "name": "t1", "profile": "minimal", "shared_folder_writable": false }] }' | Set-Content -Path $storePath -Encoding UTF8
+            $store = Import-SandboxTemplateStore -TemplateStorePath $storePath
+            $store.templates[0].shared_folder_writable | Should Be $false
+        } finally {
+            if (Test-Path -LiteralPath $tempRoot) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
+    It 'accepts JSON boolean true for shared_folder_writable and normalizes to $true' {
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("sandbox-toolkit-template-store-" + [guid]::NewGuid().ToString())
+        New-Item -ItemType Directory -Path $tempRoot -Force | Out-Null
+
+        try {
+            $storePath = Join-Path $tempRoot 'saved-sessions.local.json'
+            '{ "schema_version": "1.0", "templates": [{ "name": "t1", "profile": "minimal", "shared_folder_writable": true }] }' | Set-Content -Path $storePath -Encoding UTF8
+            $store = Import-SandboxTemplateStore -TemplateStorePath $storePath
+            $store.templates[0].shared_folder_writable | Should Be $true
+        } finally {
+            if (Test-Path -LiteralPath $tempRoot) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
     It 'upserts templates and emits a sorted catalog' {
         $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("sandbox-toolkit-template-store-" + [guid]::NewGuid().ToString())
         New-Item -ItemType Directory -Path $tempRoot -Force | Out-Null
@@ -107,6 +173,41 @@ Describe 'Template definition and resolution' {
         $resolved.SessionMode | Should Be 'Fresh'
         $resolved.UseWslHelper | Should Be $true
     }
+
+    It 'resets template writable default when shared folder path is overridden without writable switch' {
+        $template = Get-SandboxTemplateDefinition `
+            -TemplateName 'writable-template' `
+            -SandboxProfile 'minimal' `
+            -SharedFolder 'C:\Lab\SavedWritable' `
+            -SharedFolderWritable
+
+        $resolved = Resolve-SandboxTemplateInvocation `
+            -TemplateDefinition $template `
+            -BoundParameters @{ SharedFolder = $true } `
+            -SharedFolder 'C:\Lab\ExpectedReadOnly'
+
+        $resolved.SharedFolder | Should Be 'C:\Lab\ExpectedReadOnly'
+        $resolved.UseDefaultSharedFolder | Should Be $false
+        $resolved.SharedFolderWritable | Should Be $false
+    }
+
+    It 'keeps overridden shared folder writable only when writable switch is explicit' {
+        $template = Get-SandboxTemplateDefinition `
+            -TemplateName 'writable-template' `
+            -SandboxProfile 'minimal' `
+            -SharedFolder 'C:\Lab\SavedWritable' `
+            -SharedFolderWritable
+
+        $resolved = Resolve-SandboxTemplateInvocation `
+            -TemplateDefinition $template `
+            -BoundParameters @{ SharedFolder = $true; SharedFolderWritable = $true } `
+            -SharedFolder 'C:\Lab\StillWritable' `
+            -SharedFolderWritable
+
+        $resolved.SharedFolder | Should Be 'C:\Lab\StillWritable'
+        $resolved.SharedFolderWritable | Should Be $true
+    }
+
 }
 
 Describe 'Template readiness validation' {
