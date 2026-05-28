@@ -62,6 +62,34 @@ function Test-SandboxTemplateValueArray {
     return ($Value -is [string])
 }
 
+function Assert-SandboxTemplateJsonBool {
+    <#
+    .SYNOPSIS
+        Validates that a raw JSON-derived value is a strict boolean and returns it.
+    .DESCRIPTION
+        ConvertFrom-Json maps JSON true/false to [bool]; any other type (e.g. a JSON
+        string "false") indicates a malformed entry. Casting a non-empty string such as
+        "false" with [bool] yields $true in PowerShell, so we must reject non-booleans
+        before casting.
+    #>
+    param(
+        [AllowNull()][object]$Value,
+        [Parameter(Mandatory)][string]$FieldName,
+        [Parameter(Mandatory)][string]$SourcePath,
+        [Parameter(Mandatory)][int]$Index
+    )
+
+    if ($null -eq $Value) {
+        return $false
+    }
+
+    if ($Value -is [bool]) {
+        return $Value
+    }
+
+    throw "Malformed template config '$SourcePath': templates[$Index].$FieldName must be a JSON boolean (true or false), got $($Value.GetType().Name) '$Value'."
+}
+
 function ConvertTo-SandboxTemplateNormalizedEntry {
     param(
         [Parameter(Mandatory)][pscustomobject]$RawTemplate,
@@ -105,7 +133,7 @@ function ConvertTo-SandboxTemplateNormalizedEntry {
 
     $useWslHelper = $false
     if ($RawTemplate.PSObject.Properties['use_wsl_helper']) {
-        $useWslHelper = [bool]$RawTemplate.use_wsl_helper
+        $useWslHelper = Assert-SandboxTemplateJsonBool -Value $RawTemplate.use_wsl_helper -FieldName 'use_wsl_helper' -SourcePath $SourcePath -Index $Index
     }
 
     $wslDistro = $null
@@ -138,7 +166,7 @@ function ConvertTo-SandboxTemplateNormalizedEntry {
 
     $useDefaultSharedFolder = $false
     if ($RawTemplate.PSObject.Properties['use_default_shared_folder']) {
-        $useDefaultSharedFolder = [bool]$RawTemplate.use_default_shared_folder
+        $useDefaultSharedFolder = Assert-SandboxTemplateJsonBool -Value $RawTemplate.use_default_shared_folder -FieldName 'use_default_shared_folder' -SourcePath $SourcePath -Index $Index
     }
 
     if ($sharedFolder -and $useDefaultSharedFolder) {
@@ -148,11 +176,21 @@ function ConvertTo-SandboxTemplateNormalizedEntry {
     $addTools = @(@($rawAddTools) | ForEach-Object { [string]$_ } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
     $removeTools = @(@($rawRemoveTools) | ForEach-Object { [string]$_ } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
 
-    $sharedFolderWritable = if ($RawTemplate.PSObject.Properties['shared_folder_writable']) { [bool]$RawTemplate.shared_folder_writable } else { $false }
-    $disableClipboard = if ($RawTemplate.PSObject.Properties['disable_clipboard']) { [bool]$RawTemplate.disable_clipboard } else { $false }
-    $disableAudioInput = if ($RawTemplate.PSObject.Properties['disable_audio_input']) { [bool]$RawTemplate.disable_audio_input } else { $false }
-    $disableStartupCommands = if ($RawTemplate.PSObject.Properties['disable_startup_commands']) { [bool]$RawTemplate.disable_startup_commands } else { $false }
-    $skipPrereqCheck = if ($RawTemplate.PSObject.Properties['skip_prereq_check']) { [bool]$RawTemplate.skip_prereq_check } else { $false }
+    $sharedFolderWritable = if ($RawTemplate.PSObject.Properties['shared_folder_writable']) {
+        Assert-SandboxTemplateJsonBool -Value $RawTemplate.shared_folder_writable -FieldName 'shared_folder_writable' -SourcePath $SourcePath -Index $Index
+    } else { $false }
+    $disableClipboard = if ($RawTemplate.PSObject.Properties['disable_clipboard']) {
+        Assert-SandboxTemplateJsonBool -Value $RawTemplate.disable_clipboard -FieldName 'disable_clipboard' -SourcePath $SourcePath -Index $Index
+    } else { $false }
+    $disableAudioInput = if ($RawTemplate.PSObject.Properties['disable_audio_input']) {
+        Assert-SandboxTemplateJsonBool -Value $RawTemplate.disable_audio_input -FieldName 'disable_audio_input' -SourcePath $SourcePath -Index $Index
+    } else { $false }
+    $disableStartupCommands = if ($RawTemplate.PSObject.Properties['disable_startup_commands']) {
+        Assert-SandboxTemplateJsonBool -Value $RawTemplate.disable_startup_commands -FieldName 'disable_startup_commands' -SourcePath $SourcePath -Index $Index
+    } else { $false }
+    $skipPrereqCheck = if ($RawTemplate.PSObject.Properties['skip_prereq_check']) {
+        Assert-SandboxTemplateJsonBool -Value $RawTemplate.skip_prereq_check -FieldName 'skip_prereq_check' -SourcePath $SourcePath -Index $Index
+    } else { $false }
 
     return [pscustomobject]@{
         name                       = $name
