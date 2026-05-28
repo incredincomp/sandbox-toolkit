@@ -107,6 +107,41 @@ Describe 'Template definition and resolution' {
         $resolved.SessionMode | Should Be 'Fresh'
         $resolved.UseWslHelper | Should Be $true
     }
+
+    It 'resets template writable default when shared folder path is overridden without writable switch' {
+        $template = Get-SandboxTemplateDefinition `
+            -TemplateName 'writable-template' `
+            -SandboxProfile 'minimal' `
+            -SharedFolder 'C:\Lab\SavedWritable' `
+            -SharedFolderWritable
+
+        $resolved = Resolve-SandboxTemplateInvocation `
+            -TemplateDefinition $template `
+            -BoundParameters @{ SharedFolder = $true } `
+            -SharedFolder 'C:\Lab\ExpectedReadOnly'
+
+        $resolved.SharedFolder | Should Be 'C:\Lab\ExpectedReadOnly'
+        $resolved.UseDefaultSharedFolder | Should Be $false
+        $resolved.SharedFolderWritable | Should Be $false
+    }
+
+    It 'keeps overridden shared folder writable only when writable switch is explicit' {
+        $template = Get-SandboxTemplateDefinition `
+            -TemplateName 'writable-template' `
+            -SandboxProfile 'minimal' `
+            -SharedFolder 'C:\Lab\SavedWritable' `
+            -SharedFolderWritable
+
+        $resolved = Resolve-SandboxTemplateInvocation `
+            -TemplateDefinition $template `
+            -BoundParameters @{ SharedFolder = $true; SharedFolderWritable = $true } `
+            -SharedFolder 'C:\Lab\StillWritable' `
+            -SharedFolderWritable
+
+        $resolved.SharedFolder | Should Be 'C:\Lab\StillWritable'
+        $resolved.SharedFolderWritable | Should Be $true
+    }
+
 }
 
 Describe 'Template readiness validation' {
