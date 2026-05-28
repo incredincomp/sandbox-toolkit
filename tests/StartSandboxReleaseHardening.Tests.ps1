@@ -1,14 +1,17 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-$repoRoot = Split-Path -Path $PSScriptRoot -Parent
+$script:repoRoot = Split-Path -Path $PSScriptRoot -Parent
+$repoRoot = $script:repoRoot
 $scriptPath = Join-Path $repoRoot 'Start-Sandbox.ps1'
 $manifestOut = Join-Path $repoRoot 'scripts\install-manifest.json'
 $wsbOut = Join-Path $repoRoot 'sandbox.wsb'
-$customProfilesPath = Join-Path $repoRoot 'custom-profiles.local.json'
-$templateStorePath = Join-Path $repoRoot 'saved-sessions.local.json'
-$setupCachePath = Join-Path $repoRoot 'scripts\setups'
-. (Join-Path $PSScriptRoot 'TestPathState.Helpers.ps1')
+$script:customProfilesPath = Join-Path $repoRoot 'custom-profiles.local.json'
+$customProfilesPath = $script:customProfilesPath
+$script:templateStorePath = Join-Path $repoRoot 'saved-sessions.local.json'
+$templateStorePath = $script:templateStorePath
+$script:setupCachePath = Join-Path $repoRoot 'scripts\setups'
+$setupCachePath = $script:setupCachePath
 
 function Invoke-StartSandboxJsonHardening {
     param(
@@ -37,10 +40,14 @@ function Invoke-StartSandboxRawHardening {
 
 Describe 'Release hardening command-surface characterization' {
     BeforeAll {
-        $script:customProfilesSnapshot = New-TestPathSnapshot -Path $customProfilesPath
-        $script:templateStoreSnapshot = New-TestPathSnapshot -Path $templateStorePath
-        Reset-TestPath -Path $customProfilesPath
-        Reset-TestPath -Path $templateStorePath
+        . (Join-Path $PSScriptRoot 'TestPathState.Helpers.ps1')
+        $script:testRepoRoot = Split-Path -Path $PSScriptRoot -Parent
+        $script:testCustomProfilesPath = Join-Path $script:testRepoRoot 'custom-profiles.local.json'
+        $script:testTemplateStorePath = Join-Path $script:testRepoRoot 'saved-sessions.local.json'
+        $script:customProfilesSnapshot = New-TestPathSnapshot -Path $script:testCustomProfilesPath
+        $script:templateStoreSnapshot = New-TestPathSnapshot -Path $script:testTemplateStorePath
+        Reset-TestPath -Path $script:testCustomProfilesPath
+        Reset-TestPath -Path $script:testTemplateStorePath
         @'
 {
   "schema_version": "1.0",
@@ -66,8 +73,12 @@ Describe 'Release hardening command-surface characterization' {
     }
 
     AfterAll {
-        Restore-TestPathSnapshot -Snapshot $script:customProfilesSnapshot
-        Restore-TestPathSnapshot -Snapshot $script:templateStoreSnapshot
+        if (Get-Variable -Name customProfilesSnapshot -Scope Script -ErrorAction SilentlyContinue) {
+            Restore-TestPathSnapshot -Snapshot $script:customProfilesSnapshot
+        }
+        if (Get-Variable -Name templateStoreSnapshot -Scope Script -ErrorAction SilentlyContinue) {
+            Restore-TestPathSnapshot -Snapshot $script:templateStoreSnapshot
+        }
     }
 
     It 'covers required dry-run combinations for built-in/custom/add/remove flows' {

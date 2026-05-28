@@ -2,9 +2,14 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 function New-TestPathSnapshot {
+    [CmdletBinding(SupportsShouldProcess)]
     param(
         [Parameter(Mandatory)][string]$Path
     )
+
+    if (-not $PSCmdlet.ShouldProcess($Path, 'Create path snapshot')) {
+        return $null
+    }
 
     $backupRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("sandbox-toolkit-path-snapshot-" + [guid]::NewGuid().ToString())
     New-Item -ItemType Directory -Path $backupRoot -Force | Out-Null
@@ -34,11 +39,16 @@ function New-TestPathSnapshot {
 }
 
 function Reset-TestPath {
+    [CmdletBinding(SupportsShouldProcess)]
     param(
         [Parameter(Mandatory)][string]$Path
     )
 
     if (-not (Test-Path -LiteralPath $Path)) {
+        return
+    }
+
+    if (-not $PSCmdlet.ShouldProcess($Path, 'Remove test path state')) {
         return
     }
 
@@ -51,9 +61,14 @@ function Reset-TestPath {
 }
 
 function Restore-TestPathSnapshot {
+    [CmdletBinding(SupportsShouldProcess)]
     param(
         [Parameter(Mandatory)][PSCustomObject]$Snapshot
     )
+
+    if (-not $PSCmdlet.ShouldProcess($Snapshot.Path, 'Restore path snapshot')) {
+        return
+    }
 
     Reset-TestPath -Path $Snapshot.Path
 
