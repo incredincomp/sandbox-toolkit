@@ -1,0 +1,1641 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<test-results xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="nunit_schema_2.5.xsd" name="Pester" total="202" errors="0" failures="201" not-run="0" inconclusive="0" ignored="0" skipped="0" invalid="0" date="2026-05-28" time="22:57:55">
+  <environment platform="Linux" nunit-version="2.5.8.0" user="runner" cwd="/tmp/workspace/incredincomp/sandbox-toolkit" clr-version="8.0.27" machine-name="runnervm3jyl0" os-version="6.17.0-1015-azure" user-domain="" />
+  <culture-info current-culture="" current-uiculture="" />
+  <test-suite type="TestFixture" name="Pester" executed="True" result="Failure" success="False" time="8.3319" asserts="0" description="Pester">
+    <results>
+      <test-suite type="TestFixture" name="/tmp/workspace/incredincomp/sandbox-toolkit/tests/Audit.Tests.ps1" executed="True" result="Failure" success="False" time="0.5739" asserts="0" description="/tmp/workspace/incredincomp/sandbox-toolkit/tests/Audit.Tests.ps1">
+        <results>
+          <test-suite type="TestFixture" name="Invoke-SandboxArtifactAudit" executed="True" result="Failure" success="False" time="0.2447" asserts="0" description="Invoke-SandboxArtifactAudit">
+            <results>
+              <test-case description="passes key generated-artifact checks for a baseline dry configuration" name="Invoke-SandboxArtifactAudit.passes key generated-artifact checks for a baseline dry configuration" time="0.1388" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>ParameterBindingValidationException: Cannot bind argument to parameter 'Path' because it is null.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Audit.Tests.ps1:27</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="fails deterministically when generated networking setting mismatches expected selection" name="Invoke-SandboxArtifactAudit.fails deterministically when generated networking setting mismatches expected selection" time="0.0302" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>ParameterBindingValidationException: Cannot bind argument to parameter 'Path' because it is null.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Audit.Tests.ps1:76</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="warns when generated shared-folder mapping is writable by request" name="Invoke-SandboxArtifactAudit.warns when generated shared-folder mapping is writable by request" time="0.0122" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>ParameterBindingValidationException: Cannot bind argument to parameter 'Path' because it is null.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Audit.Tests.ps1:124</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="uses explicit configured/requested wording in trust-boundary-sensitive checks" name="Invoke-SandboxArtifactAudit.uses explicit configured/requested wording in trust-boundary-sensitive checks" time="0.0111" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>ParameterBindingValidationException: Cannot bind argument to parameter 'Path' because it is null.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Audit.Tests.ps1:171</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="passes when startup command emission is intentionally suppressed" name="Invoke-SandboxArtifactAudit.passes when startup command emission is intentionally suppressed" time="0.0161" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>ParameterBindingValidationException: Cannot bind argument to parameter 'Path' because it is null.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Audit.Tests.ps1:216</stack-trace>
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+        </results>
+      </test-suite>
+      <test-suite type="TestFixture" name="/tmp/workspace/incredincomp/sandbox-toolkit/tests/AuditJsonContract.Tests.ps1" executed="True" result="Failure" success="False" time="0.22" asserts="0" description="/tmp/workspace/incredincomp/sandbox-toolkit/tests/AuditJsonContract.Tests.ps1">
+        <results>
+          <test-suite type="TestFixture" name="Audit JSON contract" executed="True" result="Failure" success="False" time="0.1948" asserts="0" description="Audit JSON contract">
+            <results>
+              <test-case description="keeps required stable shape for -Audit -OutputJson results" name="Audit JSON contract.keeps required stable shape for -Audit -OutputJson results" time="0.1281" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Invoke-AuditJson' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/AuditJsonContract.Tests.ps1:60</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="keeps trust-boundary semantics explicit in contract data" name="Audit JSON contract.keeps trust-boundary semantics explicit in contract data" time="0.0469" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Invoke-AuditJson' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/AuditJsonContract.Tests.ps1:68</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="keeps README audit JSON example parseable and structurally aligned with contract keys" name="Audit JSON contract.keeps README audit JSON example parseable and structurally aligned with contract keys" time="0.0148" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>ParameterBindingValidationException: Cannot bind argument to parameter 'Path' because it is null.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/AuditJsonContract.Tests.ps1:77</stack-trace>
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+        </results>
+      </test-suite>
+      <test-suite type="TestFixture" name="/tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1" executed="True" result="Failure" success="False" time="2.4991" asserts="0" description="/tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1">
+        <results>
+          <test-suite type="TestFixture" name="Resolve-StartSandboxCommandMode" executed="True" result="Failure" success="False" time="1.9507" asserts="0" description="Resolve-StartSandboxCommandMode">
+            <results>
+              <test-case description="returns Run by default" name="Resolve-StartSandboxCommandMode.returns Run by default" time="0.0515" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Resolve-StartSandboxCommandMode' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:20</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="returns DryRun when -DryRun is specified" name="Resolve-StartSandboxCommandMode.returns DryRun when -DryRun is specified" time="0.0833" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Resolve-StartSandboxCommandMode' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:24</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="returns Validate when -Validate is specified" name="Resolve-StartSandboxCommandMode.returns Validate when -Validate is specified" time="0.0603" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Resolve-StartSandboxCommandMode' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:28</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="returns Audit when -Audit is specified" name="Resolve-StartSandboxCommandMode.returns Audit when -Audit is specified" time="0.0487" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Resolve-StartSandboxCommandMode' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:32</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="returns List when -ListTools is specified" name="Resolve-StartSandboxCommandMode.returns List when -ListTools is specified" time="0.0526" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Resolve-StartSandboxCommandMode' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:36</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="returns CheckForUpdates when -CheckForUpdates is specified" name="Resolve-StartSandboxCommandMode.returns CheckForUpdates when -CheckForUpdates is specified" time="0.0417" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Resolve-StartSandboxCommandMode' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:40</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="returns CleanDownloads when -CleanDownloads is specified" name="Resolve-StartSandboxCommandMode.returns CleanDownloads when -CleanDownloads is specified" time="0.0529" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Resolve-StartSandboxCommandMode' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:44</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="returns SaveTemplate when -SaveTemplate is specified" name="Resolve-StartSandboxCommandMode.returns SaveTemplate when -SaveTemplate is specified" time="0.064" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Resolve-StartSandboxCommandMode' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:48</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="returns ListTemplates when -ListTemplates is specified" name="Resolve-StartSandboxCommandMode.returns ListTemplates when -ListTemplates is specified" time="0.0608" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Resolve-StartSandboxCommandMode' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:52</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="returns ShowTemplate when -ShowTemplate is specified" name="Resolve-StartSandboxCommandMode.returns ShowTemplate when -ShowTemplate is specified" time="0.0482" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Resolve-StartSandboxCommandMode' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:56</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="rejects -DryRun with list mode" name="Resolve-StartSandboxCommandMode.rejects -DryRun with list mode" time="0.0444" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-ErrorMessage' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:60</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="rejects shared-folder options with list mode" name="Resolve-StartSandboxCommandMode.rejects shared-folder options with list mode" time="0.0429" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-ErrorMessage' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:66</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="rejects host-interaction policy options with list mode" name="Resolve-StartSandboxCommandMode.rejects host-interaction policy options with list mode" time="0.0439" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-ErrorMessage' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:72</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="rejects -NoLaunch with list mode" name="Resolve-StartSandboxCommandMode.rejects -NoLaunch with list mode" time="0.0428" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-ErrorMessage' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:78</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="rejects -SkipPrereqCheck with list mode" name="Resolve-StartSandboxCommandMode.rejects -SkipPrereqCheck with list mode" time="0.0413" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-ErrorMessage' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:84</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="rejects -Force with -DryRun" name="Resolve-StartSandboxCommandMode.rejects -Force with -DryRun" time="0.0557" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-ErrorMessage' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:90</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="rejects -Validate with -DryRun" name="Resolve-StartSandboxCommandMode.rejects -Validate with -DryRun" time="0.0441" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-ErrorMessage' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:96</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="rejects -Validate with -ListTools" name="Resolve-StartSandboxCommandMode.rejects -Validate with -ListTools" time="0.0511" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-ErrorMessage' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:102</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="rejects -Validate with -NoLaunch" name="Resolve-StartSandboxCommandMode.rejects -Validate with -NoLaunch" time="0.0428" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-ErrorMessage' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:108</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="rejects -Audit with -DryRun" name="Resolve-StartSandboxCommandMode.rejects -Audit with -DryRun" time="0.0437" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-ErrorMessage' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:114</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="rejects -Audit with -NoLaunch" name="Resolve-StartSandboxCommandMode.rejects -Audit with -NoLaunch" time="0.0432" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-ErrorMessage' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:120</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="rejects -AddTools with list mode" name="Resolve-StartSandboxCommandMode.rejects -AddTools with list mode" time="0.0445" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-ErrorMessage' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:126</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="accepts -OutputJson with -ListTools" name="Resolve-StartSandboxCommandMode.accepts -OutputJson with -ListTools" time="0.0429" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Resolve-StartSandboxCommandMode' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:132</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="accepts -OutputJson with -ListProfiles" name="Resolve-StartSandboxCommandMode.accepts -OutputJson with -ListProfiles" time="0.0423" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Resolve-StartSandboxCommandMode' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:136</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="rejects -OutputJson with both list switches" name="Resolve-StartSandboxCommandMode.rejects -OutputJson with both list switches" time="0.0645" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-ErrorMessage' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:140</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="rejects -OutputJson without a JSON-capable mode" name="Resolve-StartSandboxCommandMode.rejects -OutputJson without a JSON-capable mode" time="0.0538" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-ErrorMessage' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:146</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="accepts -OutputJson with -Audit" name="Resolve-StartSandboxCommandMode.accepts -OutputJson with -Audit" time="0.0619" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Resolve-StartSandboxCommandMode' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:152</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="rejects -Validate with -CleanDownloads" name="Resolve-StartSandboxCommandMode.rejects -Validate with -CleanDownloads" time="0.0674" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-ErrorMessage' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:156</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="rejects -OutputJson with -CleanDownloads" name="Resolve-StartSandboxCommandMode.rejects -OutputJson with -CleanDownloads" time="0.0611" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-ErrorMessage' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:162</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="rejects host-interaction policy options with clean mode" name="Resolve-StartSandboxCommandMode.rejects host-interaction policy options with clean mode" time="0.0417" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-ErrorMessage' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:168</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="keeps existing dry-run mode unaffected" name="Resolve-StartSandboxCommandMode.keeps existing dry-run mode unaffected" time="0.0407" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Resolve-StartSandboxCommandMode' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:174</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="rejects -SessionMode with list mode" name="Resolve-StartSandboxCommandMode.rejects -SessionMode with list mode" time="0.0608" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-ErrorMessage' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:178</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="rejects WSL helper options with clean mode" name="Resolve-StartSandboxCommandMode.rejects WSL helper options with clean mode" time="0.0416" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-ErrorMessage' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:184</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="requires -UseWslHelper when -WslDistro is specified" name="Resolve-StartSandboxCommandMode.requires -UseWslHelper when -WslDistro is specified" time="0.0417" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-ErrorMessage' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:190</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="rejects -Template with list mode switches" name="Resolve-StartSandboxCommandMode.rejects -Template with list mode switches" time="0.04" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-ErrorMessage' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:196</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="rejects -SaveTemplate with output mode switches" name="Resolve-StartSandboxCommandMode.rejects -SaveTemplate with output mode switches" time="0.0399" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-ErrorMessage' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:202</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="rejects -CheckForUpdates with another command mode" name="Resolve-StartSandboxCommandMode.rejects -CheckForUpdates with another command mode" time="0.0499" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-ErrorMessage' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:208</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="rejects shared-folder options with -CheckForUpdates" name="Resolve-StartSandboxCommandMode.rejects shared-folder options with -CheckForUpdates" time="0.0458" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-ErrorMessage' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:214</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="accepts -OutputJson with -CheckForUpdates" name="Resolve-StartSandboxCommandMode.accepts -OutputJson with -CheckForUpdates" time="0.0398" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Resolve-StartSandboxCommandMode' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:220</stack-trace>
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+          <test-suite type="TestFixture" name="Get-StartSandboxModePlan" executed="True" result="Failure" success="False" time="2.2074" asserts="0" description="Get-StartSandboxModePlan">
+            <results>
+              <test-case description="disables downloads/artifacts/launch for Validate mode" name="Get-StartSandboxModePlan.disables downloads/artifacts/launch for Validate mode" time="0.0439" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-StartSandboxModePlan' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:226</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="keeps DryRun non-destructive for launch but allows artifact generation" name="Get-StartSandboxModePlan.keeps DryRun non-destructive for launch but allows artifact generation" time="0.043" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-StartSandboxModePlan' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:235</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="keeps Audit non-destructive while still generating artifacts for inspection" name="Get-StartSandboxModePlan.keeps Audit non-destructive while still generating artifacts for inspection" time="0.0424" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-StartSandboxModePlan' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:243</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="disables all execution stages for CleanDownloads mode" name="Get-StartSandboxModePlan.disables all execution stages for CleanDownloads mode" time="0.0408" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-StartSandboxModePlan' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:252</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="disables all execution stages for SaveTemplate mode" name="Get-StartSandboxModePlan.disables all execution stages for SaveTemplate mode" time="0.041" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-StartSandboxModePlan' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:261</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="disables all execution stages for CheckForUpdates mode" name="Get-StartSandboxModePlan.disables all execution stages for CheckForUpdates mode" time="0.0405" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-StartSandboxModePlan' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:270</stack-trace>
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+          <test-suite type="TestFixture" name="Manifest-backed listing helpers" executed="True" result="Failure" success="False" time="2.3041" asserts="0" description="Manifest-backed listing helpers">
+            <results>
+              <test-case description="Get-ManifestProfile returns supported profiles present in tools.json" name="Manifest-backed listing helpers.Get-ManifestProfile returns supported profiles present in tools.json" time="0.0409" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-ManifestProfile' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:285</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="Get-ManifestToolCatalog is sourced from manifest tools" name="Manifest-backed listing helpers.Get-ManifestToolCatalog is sourced from manifest tools" time="0.0413" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-ManifestToolCatalog' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:301</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="Get-SandboxProfileCatalog includes built-in and custom profiles clearly" name="Manifest-backed listing helpers.Get-SandboxProfileCatalog includes built-in and custom profiles clearly" time="0.0101" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>ParameterBindingValidationException: Cannot bind argument to parameter 'Path' because it is null.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:311</stack-trace>
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+          <test-suite type="TestFixture" name="Invoke-SandboxLaunch" executed="True" result="Failure" success="False" time="2.3949" asserts="0" description="Invoke-SandboxLaunch">
+            <results>
+              <test-case description="does not invoke launcher for dry-run" name="Invoke-SandboxLaunch.does not invoke launcher for dry-run" time="0.0423" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Invoke-SandboxLaunch' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:323</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="invokes launcher for normal run" name="Invoke-SandboxLaunch.invokes launcher for normal run" time="0.0411" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Invoke-SandboxLaunch' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Cli.Tests.ps1:335</stack-trace>
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+        </results>
+      </test-suite>
+      <test-suite type="TestFixture" name="/tmp/workspace/incredincomp/sandbox-toolkit/tests/Download.Tests.ps1" executed="True" result="Failure" success="False" time="0.0926" asserts="0" description="/tmp/workspace/incredincomp/sandbox-toolkit/tests/Download.Tests.ps1">
+        <results>
+          <test-suite type="TestFixture" name="Invoke-ToolDownload manual source handling" executed="True" result="Failure" success="False" time="0.0704" asserts="0" description="Invoke-ToolDownload manual source handling">
+            <results>
+              <test-case description="skips download cleanly when source_type is manual" name="Invoke-ToolDownload manual source handling.skips download cleanly when source_type is manual" time="0.0655" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: Could not find Command Invoke-FileDownload</message>
+                  <stack-trace />
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+        </results>
+      </test-suite>
+      <test-suite type="TestFixture" name="/tmp/workspace/incredincomp/sandbox-toolkit/tests/Maintenance.Tests.ps1" executed="True" result="Failure" success="False" time="0.322" asserts="0" description="/tmp/workspace/incredincomp/sandbox-toolkit/tests/Maintenance.Tests.ps1">
+        <results>
+          <test-suite type="TestFixture" name="Get-SandboxDownloadCleanupPlan" executed="True" result="Failure" success="False" time="0.0798" asserts="0" description="Get-SandboxDownloadCleanupPlan">
+            <results>
+              <test-case description="discovers only repo-owned disposable artifact candidates" name="Get-SandboxDownloadCleanupPlan.discovers only repo-owned disposable artifact candidates" time="0.0642" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-SandboxDownloadCleanupPlan' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Maintenance.Tests.ps1:20</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="skips directory-contents location when cleanup root is a reparse point" name="Get-SandboxDownloadCleanupPlan.skips directory-contents location when cleanup root is a reparse point" time="0.0112" asserts="0" success="True" result="Success" executed="True" />
+            </results>
+          </test-suite>
+          <test-suite type="TestFixture" name="Invoke-SandboxDownloadCleanup" executed="True" result="Failure" success="False" time="0.2839" asserts="0" description="Invoke-SandboxDownloadCleanup">
+            <results>
+              <test-case description="preserves tracked setup-cache placeholder files" name="Invoke-SandboxDownloadCleanup.preserves tracked setup-cache placeholder files" time="0.048" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-SandboxDownloadCleanupPlan' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Maintenance.Tests.ps1:84</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="handles nothing-to-clean plans without failure" name="Invoke-SandboxDownloadCleanup.handles nothing-to-clean plans without failure" time="0.0458" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-SandboxDownloadCleanupPlan' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Maintenance.Tests.ps1:103</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="removes disposable artifacts and reports deterministic summary counts" name="Invoke-SandboxDownloadCleanup.removes disposable artifacts and reports deterministic summary counts" time="0.0564" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-SandboxDownloadCleanupPlan' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Maintenance.Tests.ps1:127</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="surfaces partial deletion failures deterministically" name="Invoke-SandboxDownloadCleanup.surfaces partial deletion failures deterministically" time="0.049" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-SandboxDownloadCleanupPlan' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Maintenance.Tests.ps1:158</stack-trace>
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+        </results>
+      </test-suite>
+      <test-suite type="TestFixture" name="/tmp/workspace/incredincomp/sandbox-toolkit/tests/Manifest.Tests.ps1" executed="True" result="Failure" success="False" time="0.3174" asserts="0" description="/tmp/workspace/incredincomp/sandbox-toolkit/tests/Manifest.Tests.ps1">
+        <results>
+          <test-suite type="TestFixture" name="Test-ManifestIntegrity dependency reference checks" executed="True" result="Failure" success="False" time="0.0661" asserts="0" description="Test-ManifestIntegrity dependency reference checks">
+            <results>
+              <test-case description="fails when a dependency references a missing tool id" name="Test-ManifestIntegrity dependency reference checks.fails when a dependency references a missing tool id" time="0.0616" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>RuntimeException: Legacy Should syntax (without dashes) is not supported in Pester 5. Please refer to migration guide at: https://pester.dev/docs/v5/migrations/v3-to-v4
+RuntimeException: Legacy Should syntax (without dashes) is not supported in Pester 5. Please refer to migration guide at: https://pester.dev/docs/v5/migrations/v3-to-v4
+ParameterBindingException: Cannot retrieve the dynamic parameters for the cmdlet. Legacy Should syntax (without dashes) is not supported in Pester 5. Please refer to migration guide at: https://pester.dev/docs/v5/migrations/v3-to-v4</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Manifest.Tests.ps1:29</stack-trace>
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+          <test-suite type="TestFixture" name="Test-ManifestIntegrity update metadata checks" executed="True" result="Failure" success="False" time="0.2034" asserts="0" description="Test-ManifestIntegrity update metadata checks">
+            <results>
+              <test-case description="fails when github update strategy has no repository reference" name="Test-ManifestIntegrity update metadata checks.fails when github update strategy has no repository reference" time="0.0453" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>RuntimeException: Legacy Should syntax (without dashes) is not supported in Pester 5. Please refer to migration guide at: https://pester.dev/docs/v5/migrations/v3-to-v4
+RuntimeException: Legacy Should syntax (without dashes) is not supported in Pester 5. Please refer to migration guide at: https://pester.dev/docs/v5/migrations/v3-to-v4
+ParameterBindingException: Cannot retrieve the dynamic parameters for the cmdlet. Legacy Should syntax (without dashes) is not supported in Pester 5. Please refer to migration guide at: https://pester.dev/docs/v5/migrations/v3-to-v4</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Manifest.Tests.ps1:61</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="fails when rss update strategy is missing required fields" name="Test-ManifestIntegrity update metadata checks.fails when rss update strategy is missing required fields" time="0.044" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>RuntimeException: Legacy Should syntax (without dashes) is not supported in Pester 5. Please refer to migration guide at: https://pester.dev/docs/v5/migrations/v3-to-v4
+RuntimeException: Legacy Should syntax (without dashes) is not supported in Pester 5. Please refer to migration guide at: https://pester.dev/docs/v5/migrations/v3-to-v4
+ParameterBindingException: Cannot retrieve the dynamic parameters for the cmdlet. Legacy Should syntax (without dashes) is not supported in Pester 5. Please refer to migration guide at: https://pester.dev/docs/v5/migrations/v3-to-v4</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Manifest.Tests.ps1:91</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="fails when static update strategy is missing latest marker" name="Test-ManifestIntegrity update metadata checks.fails when static update strategy is missing latest marker" time="0.0436" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>RuntimeException: Legacy Should syntax (without dashes) is not supported in Pester 5. Please refer to migration guide at: https://pester.dev/docs/v5/migrations/v3-to-v4
+RuntimeException: Legacy Should syntax (without dashes) is not supported in Pester 5. Please refer to migration guide at: https://pester.dev/docs/v5/migrations/v3-to-v4
+ParameterBindingException: Cannot retrieve the dynamic parameters for the cmdlet. Legacy Should syntax (without dashes) is not supported in Pester 5. Please refer to migration guide at: https://pester.dev/docs/v5/migrations/v3-to-v4</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Manifest.Tests.ps1:122</stack-trace>
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+          <test-suite type="TestFixture" name="Custom profile config integrity" executed="True" result="Failure" success="False" time="0.2909" asserts="0" description="Custom profile config integrity">
+            <results>
+              <test-case description="loads valid custom profile definitions" name="Custom profile config integrity.loads valid custom profile definitions" time="0.0098" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>ParameterBindingValidationException: Cannot bind argument to parameter 'Path' because it is null.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Manifest.Tests.ps1:133</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="fails clearly for malformed custom profile shape" name="Custom profile config integrity.fails clearly for malformed custom profile shape" time="0.0095" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>ParameterBindingValidationException: Cannot bind argument to parameter 'Path' because it is null.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Manifest.Tests.ps1:141</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="fails clearly for unknown custom tool references" name="Custom profile config integrity.fails clearly for unknown custom tool references" time="0.0095" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>ParameterBindingValidationException: Cannot bind argument to parameter 'Path' because it is null.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Manifest.Tests.ps1:154</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="keeps the repository custom profile example valid against real loader/integrity rules" name="Custom profile config integrity.keeps the repository custom profile example valid against real loader/integrity rules" time="0.0542" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Import-CustomProfileConfig' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Manifest.Tests.ps1:168</stack-trace>
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+        </results>
+      </test-suite>
+      <test-suite type="TestFixture" name="/tmp/workspace/incredincomp/sandbox-toolkit/tests/Output.Tests.ps1" executed="True" result="Failure" success="False" time="0.3713" asserts="0" description="/tmp/workspace/incredincomp/sandbox-toolkit/tests/Output.Tests.ps1">
+        <results>
+          <test-suite type="TestFixture" name="Get-SandboxValidateJsonResult" executed="True" result="Failure" success="False" time="0.0465" asserts="0" description="Get-SandboxValidateJsonResult">
+            <results>
+              <test-case description="projects stable validate JSON structure with statuses" name="Get-SandboxValidateJsonResult.projects stable validate JSON structure with statuses" time="0.0426" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-SandboxValidateJsonResult' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Output.Tests.ps1:20</stack-trace>
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+          <test-suite type="TestFixture" name="Get-SandboxCheckForUpdatesJsonResult" executed="True" result="Failure" success="False" time="0.093" asserts="0" description="Get-SandboxCheckForUpdatesJsonResult">
+            <results>
+              <test-case description="projects update status details with stable summary fields" name="Get-SandboxCheckForUpdatesJsonResult.projects update status details with stable summary fields" time="0.0425" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-SandboxCheckForUpdatesJsonResult' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Output.Tests.ps1:92</stack-trace>
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+          <test-suite type="TestFixture" name="Get-SandboxDryRunJsonResult" executed="True" result="Failure" success="False" time="0.1419" asserts="0" description="Get-SandboxDryRunJsonResult">
+            <results>
+              <test-case description="projects effective dry-run selection and skipped stages" name="Get-SandboxDryRunJsonResult.projects effective dry-run selection and skipped stages" time="0.0449" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-SandboxDryRunJsonResult' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Output.Tests.ps1:125</stack-trace>
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+          <test-suite type="TestFixture" name="Get-SandboxAuditJsonResult" executed="True" result="Failure" success="False" time="0.2361" asserts="0" description="Get-SandboxAuditJsonResult">
+            <results>
+              <test-case description="projects audit checks and effective request context to stable JSON fields" name="Get-SandboxAuditJsonResult.projects audit checks and effective request context to stable JSON fields" time="0.0463" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-SandboxAuditJsonResult' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Output.Tests.ps1:201</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="keeps outcome fields deterministic for failure status" name="Get-SandboxAuditJsonResult.keeps outcome fields deterministic for failure status" time="0.0429" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-SandboxAuditJsonResult' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Output.Tests.ps1:279</stack-trace>
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+          <test-suite type="TestFixture" name="Get-SandboxListToolsJsonResult" executed="True" result="Failure" success="False" time="0.286" asserts="0" description="Get-SandboxListToolsJsonResult">
+            <results>
+              <test-case description="projects list-tools catalog entries to stable JSON fields" name="Get-SandboxListToolsJsonResult.projects list-tools catalog entries to stable JSON fields" time="0.0424" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-SandboxListToolsJsonResult' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Output.Tests.ps1:316</stack-trace>
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+          <test-suite type="TestFixture" name="Get-SandboxListProfilesJsonResult" executed="True" result="Failure" success="False" time="0.3338" asserts="0" description="Get-SandboxListProfilesJsonResult">
+            <results>
+              <test-case description="projects built-in and custom profile entries with explicit type and base_profile" name="Get-SandboxListProfilesJsonResult.projects built-in and custom profile entries with explicit type and base_profile" time="0.043" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-SandboxListProfilesJsonResult' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Output.Tests.ps1:340</stack-trace>
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+        </results>
+      </test-suite>
+      <test-suite type="TestFixture" name="/tmp/workspace/incredincomp/sandbox-toolkit/tests/Session.Tests.ps1" executed="True" result="Failure" success="False" time="0.299" asserts="0" description="/tmp/workspace/incredincomp/sandbox-toolkit/tests/Session.Tests.ps1">
+        <results>
+          <test-suite type="TestFixture" name="Get-SandboxSessionManifestData" executed="True" result="Failure" success="False" time="0.0534" asserts="0" description="Get-SandboxSessionManifestData">
+            <results>
+              <test-case description="returns expected profile and tools payload" name="Get-SandboxSessionManifestData.returns expected profile and tools payload" time="0.0487" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-SandboxSessionManifestData' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Session.Tests.ps1:26</stack-trace>
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+          <test-suite type="TestFixture" name="Write-SandboxSessionManifest" executed="True" result="Failure" success="False" time="0.1022" asserts="0" description="Write-SandboxSessionManifest">
+            <results>
+              <test-case description="writes install-manifest JSON at requested path" name="Write-SandboxSessionManifest.writes install-manifest JSON at requested path" time="0.0448" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Write-SandboxSessionManifest' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Session.Tests.ps1:44</stack-trace>
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+          <test-suite type="TestFixture" name="Resolve-SandboxSessionSelection" executed="True" result="Failure" success="False" time="0.1812" asserts="0" description="Resolve-SandboxSessionSelection">
+            <results>
+              <test-case description="uses profile selection logic from manifest helpers" name="Resolve-SandboxSessionSelection.uses profile selection logic from manifest helpers" time="0.0103" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>ParameterBindingValidationException: Cannot bind argument to parameter 'Path' because it is null.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Session.Tests.ps1:63</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="resolves custom profile selections from valid custom config" name="Resolve-SandboxSessionSelection.resolves custom profile selections from valid custom config" time="0.0167" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>ParameterBindingValidationException: Cannot bind argument to parameter 'Path' because it is null.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Session.Tests.ps1:73</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="applies runtime add/remove overrides deterministically" name="Resolve-SandboxSessionSelection.applies runtime add/remove overrides deterministically" time="0.0096" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>ParameterBindingValidationException: Cannot bind argument to parameter 'Path' because it is null.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Session.Tests.ps1:90</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="resolves curated built-in expansion profiles to expected core tool IDs" name="Resolve-SandboxSessionSelection.resolves curated built-in expansion profiles to expected core tool IDs" time="0.0104" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>ParameterBindingValidationException: Cannot bind argument to parameter 'Path' because it is null.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Session.Tests.ps1:105</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="applies template deltas before runtime overrides" name="Resolve-SandboxSessionSelection.applies template deltas before runtime overrides" time="0.0092" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>ParameterBindingValidationException: Cannot bind argument to parameter 'Path' because it is null.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Session.Tests.ps1:158</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="fails clearly when runtime overrides reference unknown tool IDs" name="Resolve-SandboxSessionSelection.fails clearly when runtime overrides reference unknown tool IDs" time="0.0092" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>ParameterBindingValidationException: Cannot bind argument to parameter 'Path' because it is null.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Session.Tests.ps1:173</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="fails clearly when template deltas reference unknown tool IDs" name="Resolve-SandboxSessionSelection.fails clearly when template deltas reference unknown tool IDs" time="0.0092" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>ParameterBindingValidationException: Cannot bind argument to parameter 'Path' because it is null.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Session.Tests.ps1:186</stack-trace>
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+          <test-suite type="TestFixture" name="Resolve-SandboxEffectiveToolSelection" executed="True" result="Failure" success="False" time="0.2378" asserts="0" description="Resolve-SandboxEffectiveToolSelection">
+            <results>
+              <test-case description="deduplicates IDs and keeps deterministic install_order ordering" name="Resolve-SandboxEffectiveToolSelection.deduplicates IDs and keeps deterministic install_order ordering" time="0.0515" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Resolve-SandboxEffectiveToolSelection' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Session.Tests.ps1:209</stack-trace>
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+          <test-suite type="TestFixture" name="Invoke-SandboxSessionArtifactGeneration" executed="True" result="Failure" success="False" time="0.2636" asserts="0" description="Invoke-SandboxSessionArtifactGeneration">
+            <results>
+              <test-case description="writes host-interaction policy settings into generated sandbox.wsb" name="Invoke-SandboxSessionArtifactGeneration.writes host-interaction policy settings into generated sandbox.wsb" time="0.02" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>ParameterBindingValidationException: Cannot bind argument to parameter 'Path' because it is null.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Session.Tests.ps1:220</stack-trace>
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+        </results>
+      </test-suite>
+      <test-suite type="TestFixture" name="/tmp/workspace/incredincomp/sandbox-toolkit/tests/SharedFolderValidation.Tests.ps1" executed="True" result="Failure" success="False" time="0.9629" asserts="0" description="/tmp/workspace/incredincomp/sandbox-toolkit/tests/SharedFolderValidation.Tests.ps1">
+        <results>
+          <test-suite type="TestFixture" name="Resolve-SharedFolderRequest" executed="True" result="Failure" success="False" time="0.2692" asserts="0" description="Resolve-SharedFolderRequest">
+            <results>
+              <test-case description="uses repo-local shared folder with -UseDefaultSharedFolder" name="Resolve-SharedFolderRequest.uses repo-local shared folder with -UseDefaultSharedFolder" time="0.0457" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Resolve-SharedFolderRequest' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/SharedFolderValidation.Tests.ps1:26</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="accepts an explicit -SharedFolder path" name="Resolve-SharedFolderRequest.accepts an explicit -SharedFolder path" time="0.0412" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Resolve-SharedFolderRequest' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/SharedFolderValidation.Tests.ps1:45</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="keeps shared folder read-only unless -SharedFolderWritable is provided" name="Resolve-SharedFolderRequest.keeps shared folder read-only unless -SharedFolderWritable is provided" time="0.0418" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Resolve-SharedFolderRequest' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/SharedFolderValidation.Tests.ps1:62</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="fails clearly when -SharedFolderWritable is provided without a shared-folder selector" name="Resolve-SharedFolderRequest.fails clearly when -SharedFolderWritable is provided without a shared-folder selector" time="0.0399" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Invoke-AndCaptureErrorMessage' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/SharedFolderValidation.Tests.ps1:79</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="fails clearly when -SharedFolder and -UseDefaultSharedFolder are used together" name="Resolve-SharedFolderRequest.fails clearly when -SharedFolder and -UseDefaultSharedFolder are used together" time="0.0478" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Invoke-AndCaptureErrorMessage' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/SharedFolderValidation.Tests.ps1:98</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="rejects -UseDefaultSharedFolder when repo root traverses a junction ancestry" name="Resolve-SharedFolderRequest.rejects -UseDefaultSharedFolder when repo root traverses a junction ancestry" time="0.0439" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Invoke-AndCaptureErrorMessage' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/SharedFolderValidation.Tests.ps1:125</stack-trace>
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+          <test-suite type="TestFixture" name="Assert-SafeSharedFolderPath blocked-path policy" executed="True" result="Failure" success="False" time="0.5766" asserts="0" description="Assert-SafeSharedFolderPath blocked-path policy">
+            <results>
+              <test-case description="rejects repository root with clear error" name="Assert-SafeSharedFolderPath blocked-path policy.rejects repository root with clear error" time="0.0487" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Invoke-AndCaptureErrorMessage' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/SharedFolderValidation.Tests.ps1:145</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="rejects drive root with clear error" name="Assert-SafeSharedFolderPath blocked-path policy.rejects drive root with clear error" time="0.0413" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Invoke-AndCaptureErrorMessage' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/SharedFolderValidation.Tests.ps1:155</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="rejects Windows directory with clear error" name="Assert-SafeSharedFolderPath blocked-path policy.rejects Windows directory with clear error" time="0.037" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Invoke-AndCaptureErrorMessage' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/SharedFolderValidation.Tests.ps1:164</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="rejects Program Files with clear error" name="Assert-SafeSharedFolderPath blocked-path policy.rejects Program Files with clear error" time="0.0368" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Invoke-AndCaptureErrorMessage' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/SharedFolderValidation.Tests.ps1:173</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="rejects user profile root with clear error" name="Assert-SafeSharedFolderPath blocked-path policy.rejects user profile root with clear error" time="0.0367" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Invoke-AndCaptureErrorMessage' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/SharedFolderValidation.Tests.ps1:182</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="rejects Desktop root with clear error" name="Assert-SafeSharedFolderPath blocked-path policy.rejects Desktop root with clear error" time="0.0376" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Invoke-AndCaptureErrorMessage' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/SharedFolderValidation.Tests.ps1:192</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="rejects Documents root with clear error" name="Assert-SafeSharedFolderPath blocked-path policy.rejects Documents root with clear error" time="0.0361" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Invoke-AndCaptureErrorMessage' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/SharedFolderValidation.Tests.ps1:202</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="rejects Downloads root with clear error" name="Assert-SafeSharedFolderPath blocked-path policy.rejects Downloads root with clear error" time="0.0091" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>ParameterBindingValidationException: Cannot bind argument to parameter 'Path' because it is null.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/SharedFolderValidation.Tests.ps1:211</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="rejects non-existent paths with clear error" name="Assert-SafeSharedFolderPath blocked-path policy.rejects non-existent paths with clear error" time="0.0085" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>ParameterBindingValidationException: Cannot bind argument to parameter 'Path' because it is null.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/SharedFolderValidation.Tests.ps1:226</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="rejects file paths with clear error" name="Assert-SafeSharedFolderPath blocked-path policy.rejects file paths with clear error" time="0.0085" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>ParameterBindingValidationException: Cannot bind argument to parameter 'Path' because it is null.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/SharedFolderValidation.Tests.ps1:236</stack-trace>
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+          <test-suite type="TestFixture" name="Assert-SafeSharedFolderPath reparse-point rejection" executed="True" result="Failure" success="False" time="0.6656" asserts="0" description="Assert-SafeSharedFolderPath reparse-point rejection">
+            <results>
+              <test-case description="rejects junction-backed target path with clear error" name="Assert-SafeSharedFolderPath reparse-point rejection.rejects junction-backed target path with clear error" time="0.0436" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Invoke-AndCaptureErrorMessage' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/SharedFolderValidation.Tests.ps1:267</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="rejects an otherwise valid shared folder that contains a child junction" name="Assert-SafeSharedFolderPath reparse-point rejection.rejects an otherwise valid shared folder that contains a child junction" time="0.0399" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Invoke-AndCaptureErrorMessage' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/SharedFolderValidation.Tests.ps1:297</stack-trace>
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+          <test-suite type="TestFixture" name="Assert-SafeSharedFolderPath ancestry reparse traversal rejection" executed="True" result="Failure" success="False" time="0.8841" asserts="0" description="Assert-SafeSharedFolderPath ancestry reparse traversal rejection">
+            <results>
+              <test-case description="accepts a path with no reparse point in ancestry when otherwise valid" name="Assert-SafeSharedFolderPath ancestry reparse traversal rejection.accepts a path with no reparse point in ancestry when otherwise valid" time="0.05" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Assert-SafeSharedFolderPath' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/SharedFolderValidation.Tests.ps1:319</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="rejects a normal target path when parent chain traverses a junction" name="Assert-SafeSharedFolderPath ancestry reparse traversal rejection.rejects a normal target path when parent chain traverses a junction" time="0.0395" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Invoke-AndCaptureErrorMessage' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/SharedFolderValidation.Tests.ps1:345</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="rejects simulated synced/managed-style path when ancestry includes a junction" name="Assert-SafeSharedFolderPath ancestry reparse traversal rejection.rejects simulated synced/managed-style path when ancestry includes a junction" time="0.0399" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Invoke-AndCaptureErrorMessage' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/SharedFolderValidation.Tests.ps1:375</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="emits ancestry diagnostics when diagnostics mode is enabled" name="Assert-SafeSharedFolderPath ancestry reparse traversal rejection.emits ancestry diagnostics when diagnostics mode is enabled" time="0.0452" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Assert-SafeSharedFolderPath' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/SharedFolderValidation.Tests.ps1:395
+at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/SharedFolderValidation.Tests.ps1:394</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="conditionally validates provider-style reparse roots when present on host" name="Assert-SafeSharedFolderPath ancestry reparse traversal rejection.conditionally validates provider-style reparse roots when present on host" time="0.0391" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Set-TestInconclusive' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/SharedFolderValidation.Tests.ps1:409</stack-trace>
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+        </results>
+      </test-suite>
+      <test-suite type="TestFixture" name="/tmp/workspace/incredincomp/sandbox-toolkit/tests/StartSandboxAudit.Tests.ps1" executed="True" result="Failure" success="False" time="0.1806" asserts="0" description="/tmp/workspace/incredincomp/sandbox-toolkit/tests/StartSandboxAudit.Tests.ps1">
+        <results>
+          <test-suite type="TestFixture" name="Start-Sandbox audit mode" executed="True" result="Failure" success="False" time="0.1622" asserts="0" description="Start-Sandbox audit mode">
+            <results>
+              <test-case description="is non-destructive: no download queue run and no launch stage execution" name="Start-Sandbox audit mode.is non-destructive: no download queue run and no launch stage execution" time="0.0398" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Invoke-StartSandboxAuditRaw' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/StartSandboxAudit.Tests.ps1:71</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="returns parseable audit JSON with explicit trust-boundary wording" name="Start-Sandbox audit mode.returns parseable audit JSON with explicit trust-boundary wording" time="0.0413" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Invoke-StartSandboxAuditJson' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/StartSandboxAudit.Tests.ps1:88</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="reflects startup-command suppression request in audit checks and JSON" name="Start-Sandbox audit mode.reflects startup-command suppression request in audit checks and JSON" time="0.0389" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Invoke-StartSandboxAuditJson' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/StartSandboxAudit.Tests.ps1:116</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="rejects incompatible mode combinations for audit mode" name="Start-Sandbox audit mode.rejects incompatible mode combinations for audit mode" time="0.0386" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Invoke-StartSandboxAuditRaw' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/StartSandboxAudit.Tests.ps1:133</stack-trace>
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+        </results>
+      </test-suite>
+      <test-suite type="TestFixture" name="/tmp/workspace/incredincomp/sandbox-toolkit/tests/StartSandboxCliIntegration.Tests.ps1" executed="True" result="Failure" success="False" time="0.0395" asserts="0" description="/tmp/workspace/incredincomp/sandbox-toolkit/tests/StartSandboxCliIntegration.Tests.ps1">
+        <results>
+          <test-suite type="TestFixture" name="Start-Sandbox integrated command combinations" executed="True" result="Failure" success="False" time="0.0145" asserts="0" description="Start-Sandbox integrated command combinations">
+            <results>
+              <test-case description="supports -DryRun with a built-in profile" name="Start-Sandbox integrated command combinations.supports -DryRun with a built-in profile" time="0" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>This test should run but it did not. Most likely a setup in some parent block failed.</message>
+                  <stack-trace />
+                </failure>
+              </test-case>
+              <test-case description="applies profile precedence deterministically for custom profile plus runtime overrides" name="Start-Sandbox integrated command combinations.applies profile precedence deterministically for custom profile plus runtime overrides" time="0" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>This test should run but it did not. Most likely a setup in some parent block failed.</message>
+                  <stack-trace />
+                </failure>
+              </test-case>
+              <test-case description="supports -DryRun with runtime add/remove overrides on built-in profile" name="Start-Sandbox integrated command combinations.supports -DryRun with runtime add/remove overrides on built-in profile" time="0" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>This test should run but it did not. Most likely a setup in some parent block failed.</message>
+                  <stack-trace />
+                </failure>
+              </test-case>
+              <test-case description="supports -DryRun across new curated built-in profiles" name="Start-Sandbox integrated command combinations.supports -DryRun across new curated built-in profiles" time="0" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>This test should run but it did not. Most likely a setup in some parent block failed.</message>
+                  <stack-trace />
+                </failure>
+              </test-case>
+              <test-case description="supports -Validate with built-in profile selection" name="Start-Sandbox integrated command combinations.supports -Validate with built-in profile selection" time="0" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>This test should run but it did not. Most likely a setup in some parent block failed.</message>
+                  <stack-trace />
+                </failure>
+              </test-case>
+              <test-case description="supports -Validate with custom profile selection" name="Start-Sandbox integrated command combinations.supports -Validate with custom profile selection" time="0" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>This test should run but it did not. Most likely a setup in some parent block failed.</message>
+                  <stack-trace />
+                </failure>
+              </test-case>
+              <test-case description="fails -Validate for unknown profile/tool and malformed custom profile input" name="Start-Sandbox integrated command combinations.fails -Validate for unknown profile/tool and malformed custom profile input" time="0" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>This test should run but it did not. Most likely a setup in some parent block failed.</message>
+                  <stack-trace />
+                </failure>
+              </test-case>
+              <test-case description="fails clearly for invalid parameter combinations and unsafe shared-folder input" name="Start-Sandbox integrated command combinations.fails clearly for invalid parameter combinations and unsafe shared-folder input" time="0" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>This test should run but it did not. Most likely a setup in some parent block failed.</message>
+                  <stack-trace />
+                </failure>
+              </test-case>
+              <test-case description="keeps list output aligned to manifest/custom profile state" name="Start-Sandbox integrated command combinations.keeps list output aligned to manifest/custom profile state" time="0" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>This test should run but it did not. Most likely a setup in some parent block failed.</message>
+                  <stack-trace />
+                </failure>
+              </test-case>
+              <test-case description="supports save/list/show template workflows" name="Start-Sandbox integrated command combinations.supports save/list/show template workflows" time="0" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>This test should run but it did not. Most likely a setup in some parent block failed.</message>
+                  <stack-trace />
+                </failure>
+              </test-case>
+              <test-case description="executes template defaults through dry-run and allows runtime overrides to win" name="Start-Sandbox integrated command combinations.executes template defaults through dry-run and allows runtime overrides to win" time="0" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>This test should run but it did not. Most likely a setup in some parent block failed.</message>
+                  <stack-trace />
+                </failure>
+              </test-case>
+              <test-case description="supports validate mode from template defaults" name="Start-Sandbox integrated command combinations.supports validate mode from template defaults" time="0" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>This test should run but it did not. Most likely a setup in some parent block failed.</message>
+                  <stack-trace />
+                </failure>
+              </test-case>
+              <test-case description="fails clearly for bad template names and malformed/unknown template references" name="Start-Sandbox integrated command combinations.fails clearly for bad template names and malformed/unknown template references" time="0" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>This test should run but it did not. Most likely a setup in some parent block failed.</message>
+                  <stack-trace />
+                </failure>
+              </test-case>
+              <test-case description="keeps -CleanDownloads scoped to disposable cache/session surfaces" name="Start-Sandbox integrated command combinations.keeps -CleanDownloads scoped to disposable cache/session surfaces" time="0" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>This test should run but it did not. Most likely a setup in some parent block failed.</message>
+                  <stack-trace />
+                </failure>
+              </test-case>
+              <test-case description="supports read-only -CheckForUpdates reporting without mutating repo artifacts" name="Start-Sandbox integrated command combinations.supports read-only -CheckForUpdates reporting without mutating repo artifacts" time="0" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>This test should run but it did not. Most likely a setup in some parent block failed.</message>
+                  <stack-trace />
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+        </results>
+      </test-suite>
+      <test-suite type="TestFixture" name="/tmp/workspace/incredincomp/sandbox-toolkit/tests/StartSandboxDryRun.Tests.ps1" executed="True" result="Failure" success="False" time="0.083" asserts="0" description="/tmp/workspace/incredincomp/sandbox-toolkit/tests/StartSandboxDryRun.Tests.ps1">
+        <results>
+          <test-suite type="TestFixture" name="Start-Sandbox dry-run effective selection output" executed="True" result="Failure" success="False" time="0.0705" asserts="0" description="Start-Sandbox dry-run effective selection output">
+            <results>
+              <test-case description="shows final effective tool selection after runtime overrides" name="Start-Sandbox dry-run effective selection output.shows final effective tool selection after runtime overrides" time="0.0674" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'powershell' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/StartSandboxDryRun.Tests.ps1:12</stack-trace>
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+        </results>
+      </test-suite>
+      <test-suite type="TestFixture" name="/tmp/workspace/incredincomp/sandbox-toolkit/tests/StartSandboxJson.Tests.ps1" executed="True" result="Failure" success="False" time="0.356" asserts="0" description="/tmp/workspace/incredincomp/sandbox-toolkit/tests/StartSandboxJson.Tests.ps1">
+        <results>
+          <test-suite type="TestFixture" name="Start-Sandbox JSON output modes" executed="True" result="Failure" success="False" time="0.3379" asserts="0" description="Start-Sandbox JSON output modes">
+            <results>
+              <test-case description="returns parseable JSON for validate mode with deterministic status" name="Start-Sandbox JSON output modes.returns parseable JSON for validate mode with deterministic status" time="0.0427" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Invoke-StartSandboxJson' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/StartSandboxJson.Tests.ps1:50</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="returns validation failure JSON with exit code 1 and actionable check details" name="Start-Sandbox JSON output modes.returns validation failure JSON with exit code 1 and actionable check details" time="0.04" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Invoke-StartSandboxJson' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/StartSandboxJson.Tests.ps1:60</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="returns parseable dry-run JSON with effective final selection and skipped stages" name="Start-Sandbox JSON output modes.returns parseable dry-run JSON with effective final selection and skipped stages" time="0.0172" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>ParameterBindingValidationException: Cannot bind argument to parameter 'Path' because it is null.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/StartSandboxJson.Tests.ps1:71</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="surfaces invalid override failures as parseable dry-run JSON error output" name="Start-Sandbox JSON output modes.surfaces invalid override failures as parseable dry-run JSON error output" time="0.0427" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Invoke-StartSandboxJson' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/StartSandboxJson.Tests.ps1:114</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="returns parseable JSON for list-tools mode with stable catalog fields" name="Start-Sandbox JSON output modes.returns parseable JSON for list-tools mode with stable catalog fields" time="0.0419" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Invoke-StartSandboxJson' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/StartSandboxJson.Tests.ps1:128</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="returns parseable JSON for list-profiles mode with built-in and custom distinctions" name="Start-Sandbox JSON output modes.returns parseable JSON for list-profiles mode with built-in and custom distinctions" time="0.0164" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>ParameterBindingValidationException: Cannot bind argument to parameter 'Path' because it is null.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/StartSandboxJson.Tests.ps1:138</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="keeps JSON error mode consistent for list-profiles failures" name="Start-Sandbox JSON output modes.keeps JSON error mode consistent for list-profiles failures" time="0.0185" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>ParameterBindingValidationException: Cannot bind argument to parameter 'Path' because it is null.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/StartSandboxJson.Tests.ps1:164</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="preserves default human-readable list output when -OutputJson is not used" name="Start-Sandbox JSON output modes.preserves default human-readable list output when -OutputJson is not used" time="0.0628" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Invoke-StartSandboxRaw' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/StartSandboxJson.Tests.ps1:174</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="keeps a stable JSON error envelope for fatal failures in JSON-capable modes" name="Start-Sandbox JSON output modes.keeps a stable JSON error envelope for fatal failures in JSON-capable modes" time="0.0515" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Invoke-StartSandboxJson' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/StartSandboxJson.Tests.ps1:219</stack-trace>
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+        </results>
+      </test-suite>
+      <test-suite type="TestFixture" name="/tmp/workspace/incredincomp/sandbox-toolkit/tests/StartSandboxReleaseHardening.Tests.ps1" executed="True" result="Failure" success="False" time="0.0315" asserts="0" description="/tmp/workspace/incredincomp/sandbox-toolkit/tests/StartSandboxReleaseHardening.Tests.ps1">
+        <results>
+          <test-suite type="TestFixture" name="Release hardening command-surface characterization" executed="True" result="Failure" success="False" time="0.0134" asserts="0" description="Release hardening command-surface characterization">
+            <results>
+              <test-case description="covers required dry-run combinations for built-in/custom/add/remove flows" name="Release hardening command-surface characterization.covers required dry-run combinations for built-in/custom/add/remove flows" time="0" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>This test should run but it did not. Most likely a setup in some parent block failed.</message>
+                  <stack-trace />
+                </failure>
+              </test-case>
+              <test-case description="covers required validate combinations for built-in/custom/invalid profile/invalid tool flows" name="Release hardening command-surface characterization.covers required validate combinations for built-in/custom/invalid profile/invalid tool flows" time="0" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>This test should run but it did not. Most likely a setup in some parent block failed.</message>
+                  <stack-trace />
+                </failure>
+              </test-case>
+              <test-case description="keeps list state and cleanup scope aligned with actual config/runtime surfaces" name="Release hardening command-surface characterization.keeps list state and cleanup scope aligned with actual config/runtime surfaces" time="0" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>This test should run but it did not. Most likely a setup in some parent block failed.</message>
+                  <stack-trace />
+                </failure>
+              </test-case>
+              <test-case description="fails list modes for unsupported parameter combinations with consistent errors" name="Release hardening command-surface characterization.fails list modes for unsupported parameter combinations with consistent errors" time="0" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>This test should run but it did not. Most likely a setup in some parent block failed.</message>
+                  <stack-trace />
+                </failure>
+              </test-case>
+              <test-case description="keeps -CleanDownloads scoped away from local profile/template config surfaces" name="Release hardening command-surface characterization.keeps -CleanDownloads scoped away from local profile/template config surfaces" time="0" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>This test should run but it did not. Most likely a setup in some parent block failed.</message>
+                  <stack-trace />
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+        </results>
+      </test-suite>
+      <test-suite type="TestFixture" name="/tmp/workspace/incredincomp/sandbox-toolkit/tests/Templates.Tests.ps1" executed="True" result="Failure" success="False" time="0.4689" asserts="0" description="/tmp/workspace/incredincomp/sandbox-toolkit/tests/Templates.Tests.ps1">
+        <results>
+          <test-suite type="TestFixture" name="Template store helpers" executed="True" result="Failure" success="False" time="0.2018" asserts="0" description="Template store helpers">
+            <results>
+              <test-case description="returns default store when local store file does not exist" name="Template store helpers.returns default store when local store file does not exist" time="0.0388" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Import-SandboxTemplateStore' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Templates.Tests.ps1:18</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="fails on malformed template store shape" name="Template store helpers.fails on malformed template store shape" time="0.0127" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>RuntimeException: Legacy Should syntax (without dashes) is not supported in Pester 5. Please refer to migration guide at: https://pester.dev/docs/v5/migrations/v3-to-v4
+RuntimeException: Legacy Should syntax (without dashes) is not supported in Pester 5. Please refer to migration guide at: https://pester.dev/docs/v5/migrations/v3-to-v4
+ParameterBindingException: Cannot retrieve the dynamic parameters for the cmdlet. Legacy Should syntax (without dashes) is not supported in Pester 5. Please refer to migration guide at: https://pester.dev/docs/v5/migrations/v3-to-v4</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Templates.Tests.ps1:36</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="rejects string values for shared_folder_writable" name="Template store helpers.rejects string values for shared_folder_writable" time="0.0152" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>RuntimeException: Legacy Should syntax (without dashes) is not supported in Pester 5. Please refer to migration guide at: https://pester.dev/docs/v5/migrations/v3-to-v4
+RuntimeException: Legacy Should syntax (without dashes) is not supported in Pester 5. Please refer to migration guide at: https://pester.dev/docs/v5/migrations/v3-to-v4
+ParameterBindingException: Cannot retrieve the dynamic parameters for the cmdlet. Legacy Should syntax (without dashes) is not supported in Pester 5. Please refer to migration guide at: https://pester.dev/docs/v5/migrations/v3-to-v4</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Templates.Tests.ps1:53</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="rejects string values for use_wsl_helper" name="Template store helpers.rejects string values for use_wsl_helper" time="0.0118" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>RuntimeException: Legacy Should syntax (without dashes) is not supported in Pester 5. Please refer to migration guide at: https://pester.dev/docs/v5/migrations/v3-to-v4
+RuntimeException: Legacy Should syntax (without dashes) is not supported in Pester 5. Please refer to migration guide at: https://pester.dev/docs/v5/migrations/v3-to-v4
+ParameterBindingException: Cannot retrieve the dynamic parameters for the cmdlet. Legacy Should syntax (without dashes) is not supported in Pester 5. Please refer to migration guide at: https://pester.dev/docs/v5/migrations/v3-to-v4</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Templates.Tests.ps1:70</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="accepts JSON boolean false for shared_folder_writable and normalizes to $false" name="Template store helpers.accepts JSON boolean false for shared_folder_writable and normalizes to $false" time="0.0386" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Import-SandboxTemplateStore' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Templates.Tests.ps1:87</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="accepts JSON boolean true for shared_folder_writable and normalizes to $true" name="Template store helpers.accepts JSON boolean true for shared_folder_writable and normalizes to $true" time="0.0398" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Import-SandboxTemplateStore' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Templates.Tests.ps1:103</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="upserts templates and emits a sorted catalog" name="Template store helpers.upserts templates and emits a sorted catalog" time="0.0409" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-SandboxTemplateDefinition' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Templates.Tests.ps1:118</stack-trace>
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+          <test-suite type="TestFixture" name="Template definition and resolution" executed="True" result="Failure" success="False" time="0.3301" asserts="0" description="Template definition and resolution">
+            <results>
+              <test-case description="rejects invalid template names" name="Template definition and resolution.rejects invalid template names" time="0.0092" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>RuntimeException: Legacy Should syntax (without dashes) is not supported in Pester 5. Please refer to migration guide at: https://pester.dev/docs/v5/migrations/v3-to-v4
+RuntimeException: Legacy Should syntax (without dashes) is not supported in Pester 5. Please refer to migration guide at: https://pester.dev/docs/v5/migrations/v3-to-v4
+ParameterBindingException: Cannot retrieve the dynamic parameters for the cmdlet. Legacy Should syntax (without dashes) is not supported in Pester 5. Please refer to migration guide at: https://pester.dev/docs/v5/migrations/v3-to-v4</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Templates.Tests.ps1:139</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="resolves invocation defaults from template and runtime overrides explicitly" name="Template definition and resolution.resolves invocation defaults from template and runtime overrides explicitly" time="0.0386" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-SandboxTemplateDefinition' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Templates.Tests.ps1:145</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="resets template writable default when shared folder path is overridden without writable switch" name="Template definition and resolution.resets template writable default when shared folder path is overridden without writable switch" time="0.0362" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-SandboxTemplateDefinition' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Templates.Tests.ps1:178</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="keeps overridden shared folder writable only when writable switch is explicit" name="Template definition and resolution.keeps overridden shared folder writable only when writable switch is explicit" time="0.0408" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-SandboxTemplateDefinition' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Templates.Tests.ps1:195</stack-trace>
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+          <test-suite type="TestFixture" name="Template readiness validation" executed="True" result="Failure" success="False" time="0.4418" asserts="0" description="Template readiness validation">
+            <results>
+              <test-case description="fails clearly for unknown profile references" name="Template readiness validation.fails clearly for unknown profile references" time="0.0355" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-SandboxTemplateDefinition' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Templates.Tests.ps1:215</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="fails clearly for unknown tool references in template deltas" name="Template readiness validation.fails clearly for unknown tool references in template deltas" time="0.0359" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-SandboxTemplateDefinition' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Templates.Tests.ps1:227</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="fails clearly for unsafe shared-folder references" name="Template readiness validation.fails clearly for unsafe shared-folder references" time="0.0368" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-SandboxTemplateDefinition' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Templates.Tests.ps1:239</stack-trace>
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+        </results>
+      </test-suite>
+      <test-suite type="TestFixture" name="/tmp/workspace/incredincomp/sandbox-toolkit/tests/Updates.Tests.ps1" executed="True" result="Failure" success="False" time="0.4425" asserts="0" description="/tmp/workspace/incredincomp/sandbox-toolkit/tests/Updates.Tests.ps1">
+        <results>
+          <test-suite type="TestFixture" name="Compare-SandboxVersion" executed="True" result="Failure" success="False" time="0.0742" asserts="0" description="Compare-SandboxVersion">
+            <results>
+              <test-case description="treats configured latest as up-to-date by policy" name="Compare-SandboxVersion.treats configured latest as up-to-date by policy" time="0.0359" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Compare-SandboxVersion' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Updates.Tests.ps1:10</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="compares semantic-like versions with v-prefix support" name="Compare-SandboxVersion.compares semantic-like versions with v-prefix support" time="0.0352" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Compare-SandboxVersion' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Updates.Tests.ps1:14</stack-trace>
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+          <test-suite type="TestFixture" name="Invoke-SandboxToolUpdateCheck adapters" executed="True" result="Failure" success="False" time="0.3965" asserts="0" description="Invoke-SandboxToolUpdateCheck adapters">
+            <results>
+              <test-case description="checks github releases with mocked API response" name="Invoke-SandboxToolUpdateCheck adapters.checks github releases with mocked API response" time="0.1414" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Invoke-SandboxToolUpdateCheck' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Updates.Tests.ps1:43</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="resolves rss feed versions with mocked feed response" name="Invoke-SandboxToolUpdateCheck adapters.resolves rss feed versions with mocked feed response" time="0.0458" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Resolve-SandboxRssLatestVersion' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Updates.Tests.ps1:65</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="supports static version markers without network calls" name="Invoke-SandboxToolUpdateCheck adapters.supports static version markers without network calls" time="0.0445" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Invoke-SandboxToolUpdateCheck' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Updates.Tests.ps1:85</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="returns unsupported-for-checking when no metadata exists" name="Invoke-SandboxToolUpdateCheck adapters.returns unsupported-for-checking when no metadata exists" time="0.0442" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Invoke-SandboxToolUpdateCheck' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Updates.Tests.ps1:99</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="returns unknown when source lookup fails" name="Invoke-SandboxToolUpdateCheck adapters.returns unknown when source lookup fails" time="0.043" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Invoke-SandboxToolUpdateCheck' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Updates.Tests.ps1:117</stack-trace>
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+          <test-suite type="TestFixture" name="Manifest update metadata compatibility for curated tool expansion" executed="True" result="Failure" success="False" time="0.4094" asserts="0" description="Manifest update metadata compatibility for curated tool expansion">
+            <results>
+              <test-case description="keeps new update-enabled and manual tools compatible with update-check statuses" name="Manifest update metadata compatibility for curated tool expansion.keeps new update-enabled and manual tools compatible with update-check statuses" time="0.0092" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>ParameterBindingValidationException: Cannot bind argument to parameter 'Path' because it is null.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Updates.Tests.ps1:125</stack-trace>
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+        </results>
+      </test-suite>
+      <test-suite type="TestFixture" name="/tmp/workspace/incredincomp/sandbox-toolkit/tests/Validation.Tests.ps1" executed="True" result="Failure" success="False" time="0.5606" asserts="0" description="/tmp/workspace/incredincomp/sandbox-toolkit/tests/Validation.Tests.ps1">
+        <results>
+          <test-suite type="TestFixture" name="Test-SandboxHostPrerequisite" executed="True" result="Failure" success="False" time="0.1324" asserts="0" description="Test-SandboxHostPrerequisite">
+            <results>
+              <test-case description="returns PASS checks when feature is enabled" name="Test-SandboxHostPrerequisite.returns PASS checks when feature is enabled" time="0.0389" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: Could not find Command Get-WindowsOptionalFeature</message>
+                  <stack-trace />
+                </failure>
+              </test-case>
+              <test-case description="returns FAIL when sandbox feature is disabled" name="Test-SandboxHostPrerequisite.returns FAIL when sandbox feature is disabled" time="0.0381" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: Could not find Command Get-WindowsOptionalFeature</message>
+                  <stack-trace />
+                </failure>
+              </test-case>
+              <test-case description="returns WARN when feature check throws" name="Test-SandboxHostPrerequisite.returns WARN when feature check throws" time="0.0373" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: Could not find Command Get-WindowsOptionalFeature</message>
+                  <stack-trace />
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+          <test-suite type="TestFixture" name="Test-SandboxSharedFolderReadiness" executed="True" result="Failure" success="False" time="0.2116" asserts="0" description="Test-SandboxSharedFolderReadiness">
+            <results>
+              <test-case description="reuses Assert-SafeSharedFolderPath for explicit shared-folder validation" name="Test-SandboxSharedFolderReadiness.reuses Assert-SafeSharedFolderPath for explicit shared-folder validation" time="0.0389" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Test-SandboxSharedFolderReadiness' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Validation.Tests.ps1:57</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="does not create default shared folder during preflight" name="Test-SandboxSharedFolderReadiness.does not create default shared folder during preflight" time="0.0371" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Test-SandboxSharedFolderReadiness' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Validation.Tests.ps1:74</stack-trace>
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+          <test-suite type="TestFixture" name="Invoke-SandboxPreflightValidation" executed="True" result="Failure" success="False" time="0.2593" asserts="0" description="Invoke-SandboxPreflightValidation">
+            <results>
+              <test-case description="passes under healthy mocked prerequisites" name="Invoke-SandboxPreflightValidation.passes under healthy mocked prerequisites" time="0.0364" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: Could not find Command Get-WindowsOptionalFeature</message>
+                  <stack-trace />
+                </failure>
+              </test-case>
+              <test-case description="fails cleanly when selection prerequisites are invalid" name="Invoke-SandboxPreflightValidation.fails cleanly when selection prerequisites are invalid" time="0.0083" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>ParameterBindingValidationException: Cannot bind argument to parameter 'Path' because it is null.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Validation.Tests.ps1:120</stack-trace>
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+          <test-suite type="TestFixture" name="Test-SandboxHostInteractionPolicyReadiness" executed="True" result="Failure" success="False" time="0.2974" asserts="0" description="Test-SandboxHostInteractionPolicyReadiness">
+            <results>
+              <test-case description="returns warn when startup automation is explicitly disabled" name="Test-SandboxHostInteractionPolicyReadiness.returns warn when startup automation is explicitly disabled" time="0.0352" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-SandboxHostInteractionPolicy' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Validation.Tests.ps1:151</stack-trace>
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+          <test-suite type="TestFixture" name="Test-SandboxSessionLifecycleReadiness" executed="True" result="Failure" success="False" time="0.3726" asserts="0" description="Test-SandboxSessionLifecycleReadiness">
+            <results>
+              <test-case description="fails when warm mode is requested on unsupported host state" name="Test-SandboxSessionLifecycleReadiness.fails when warm mode is requested on unsupported host state" time="0.0348" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Test-SandboxSessionLifecycleReadiness' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Validation.Tests.ps1:161</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="warns when warm session discovery output cannot be parsed" name="Test-SandboxSessionLifecycleReadiness.warns when warm session discovery output cannot be parsed" time="0.0373" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Test-SandboxSessionLifecycleReadiness' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Validation.Tests.ps1:176</stack-trace>
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+          <test-suite type="TestFixture" name="Test-SandboxWslHelperReadiness" executed="True" result="Failure" success="False" time="0.4188" asserts="0" description="Test-SandboxWslHelperReadiness">
+            <results>
+              <test-case description="warns when helper hardening settings are missing expected values" name="Test-SandboxWslHelperReadiness.warns when helper hardening settings are missing expected values" time="0.0348" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Test-SandboxWslHelperReadiness' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Validation.Tests.ps1:194</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="keeps repository wsl helper sample aligned with expected hardening state" name="Test-SandboxWslHelperReadiness.keeps repository wsl helper sample aligned with expected hardening state" time="0.0083" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>ParameterBindingValidationException: Cannot bind argument to parameter 'Path' because it is null.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Validation.Tests.ps1:214</stack-trace>
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+          <test-suite type="TestFixture" name="Test-SandboxSelectionReadiness" executed="True" result="Failure" success="False" time="0.4447" asserts="0" description="Test-SandboxSelectionReadiness">
+            <results>
+              <test-case description="surfaces invalid profile references clearly" name="Test-SandboxSelectionReadiness.surfaces invalid profile references clearly" time="0.0075" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>ParameterBindingValidationException: Cannot bind argument to parameter 'Path' because it is null.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Validation.Tests.ps1:242</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="surfaces invalid custom profile config clearly" name="Test-SandboxSelectionReadiness.surfaces invalid custom profile config clearly" time="0.0076" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>ParameterBindingValidationException: Cannot bind argument to parameter 'Path' because it is null.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Validation.Tests.ps1:252</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="surfaces invalid runtime override tool names clearly" name="Test-SandboxSelectionReadiness.surfaces invalid runtime override tool names clearly" time="0.0076" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>ParameterBindingValidationException: Cannot bind argument to parameter 'Path' because it is null.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Validation.Tests.ps1:262</stack-trace>
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+          <test-suite type="TestFixture" name="Get-SandboxValidationExitCode" executed="True" result="Failure" success="False" time="0.5177" asserts="0" description="Get-SandboxValidationExitCode">
+            <results>
+              <test-case description="returns 0 when there are no failures" name="Get-SandboxValidationExitCode.returns 0 when there are no failures" time="0.0353" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-SandboxValidationExitCode' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Validation.Tests.ps1:276</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="returns 1 when failures are present" name="Get-SandboxValidationExitCode.returns 1 when failures are present" time="0.0347" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-SandboxValidationExitCode' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Validation.Tests.ps1:281</stack-trace>
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+        </results>
+      </test-suite>
+      <test-suite type="TestFixture" name="/tmp/workspace/incredincomp/sandbox-toolkit/tests/Workflow.Tests.ps1" executed="True" result="Failure" success="False" time="0.5114" asserts="0" description="/tmp/workspace/incredincomp/sandbox-toolkit/tests/Workflow.Tests.ps1">
+        <results>
+          <test-suite type="TestFixture" name="ConvertFrom-SandboxWsbRawSessionList" executed="True" result="Failure" success="False" time="0.1367" asserts="0" description="ConvertFrom-SandboxWsbRawSessionList">
+            <results>
+              <test-case description="normalizes supported raw array shape" name="ConvertFrom-SandboxWsbRawSessionList.normalizes supported raw array shape" time="0.0083" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>ParameterBindingValidationException: Cannot bind argument to parameter 'Path' because it is null.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Workflow.Tests.ps1:10</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="normalizes supported wrapped sessions shape" name="ConvertFrom-SandboxWsbRawSessionList.normalizes supported wrapped sessions shape" time="0.0077" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>ParameterBindingValidationException: Cannot bind argument to parameter 'Path' because it is null.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Workflow.Tests.ps1:20</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="returns deterministic empty list for blank raw output" name="ConvertFrom-SandboxWsbRawSessionList.returns deterministic empty list for blank raw output" time="0.0364" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'ConvertFrom-SandboxWsbRawSessionList' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Workflow.Tests.ps1:29</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="fails deterministically on malformed JSON" name="ConvertFrom-SandboxWsbRawSessionList.fails deterministically on malformed JSON" time="0.0371" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>RuntimeException: Legacy Should syntax (without dashes) is not supported in Pester 5. Please refer to migration guide at: https://pester.dev/docs/v5/migrations/v3-to-v4
+RuntimeException: Legacy Should syntax (without dashes) is not supported in Pester 5. Please refer to migration guide at: https://pester.dev/docs/v5/migrations/v3-to-v4
+ParameterBindingException: Cannot retrieve the dynamic parameters for the cmdlet. Legacy Should syntax (without dashes) is not supported in Pester 5. Please refer to migration guide at: https://pester.dev/docs/v5/migrations/v3-to-v4</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Workflow.Tests.ps1:41</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="fails deterministically when required session id is missing" name="ConvertFrom-SandboxWsbRawSessionList.fails deterministically when required session id is missing" time="0.0079" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>ParameterBindingValidationException: Cannot bind argument to parameter 'Path' because it is null.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Workflow.Tests.ps1:46</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="fails deterministically on unsupported JSON shape" name="ConvertFrom-SandboxWsbRawSessionList.fails deterministically on unsupported JSON shape" time="0.0357" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>RuntimeException: Legacy Should syntax (without dashes) is not supported in Pester 5. Please refer to migration guide at: https://pester.dev/docs/v5/migrations/v3-to-v4
+RuntimeException: Legacy Should syntax (without dashes) is not supported in Pester 5. Please refer to migration guide at: https://pester.dev/docs/v5/migrations/v3-to-v4
+ParameterBindingException: Cannot retrieve the dynamic parameters for the cmdlet. Legacy Should syntax (without dashes) is not supported in Pester 5. Please refer to migration guide at: https://pester.dev/docs/v5/migrations/v3-to-v4</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Workflow.Tests.ps1:66</stack-trace>
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+          <test-suite type="TestFixture" name="Get-SandboxWarmSessionInventory" executed="True" result="Failure" success="False" time="0.1749" asserts="0" description="Get-SandboxWarmSessionInventory">
+            <results>
+              <test-case description="uses normalized parser helper for wsb list raw output" name="Get-SandboxWarmSessionInventory.uses normalized parser helper for wsb list raw output" time="0.0353" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: Could not find Command Invoke-SandboxWsbCliCommand</message>
+                  <stack-trace />
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+          <test-suite type="TestFixture" name="Get-SandboxSessionLifecycleState" executed="True" result="Failure" success="False" time="0.2898" asserts="0" description="Get-SandboxSessionLifecycleState">
+            <results>
+              <test-case description="keeps fresh as default requested/effective mode" name="Get-SandboxSessionLifecycleState.keeps fresh as default requested/effective mode" time="0.0414" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-SandboxSessionLifecycleState' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Workflow.Tests.ps1:92</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="captures unsupported warm-session support state deterministically" name="Get-SandboxSessionLifecycleState.captures unsupported warm-session support state deterministically" time="0.0351" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: Could not find Command Test-SandboxWarmSessionSupport</message>
+                  <stack-trace />
+                </failure>
+              </test-case>
+              <test-case description="captures parser/discovery errors deterministically for warm mode" name="Get-SandboxSessionLifecycleState.captures parser/discovery errors deterministically for warm mode" time="0.0352" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: Could not find Command Test-SandboxWarmSessionSupport</message>
+                  <stack-trace />
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+          <test-suite type="TestFixture" name="Invoke-SandboxSessionLaunch" executed="True" result="Failure" success="False" time="0.3983" asserts="0" description="Invoke-SandboxSessionLaunch">
+            <results>
+              <test-case description="reuses running warm session when discovered" name="Invoke-SandboxSessionLaunch.reuses running warm session when discovered" time="0.0357" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: Could not find Command Get-SandboxWarmSessionInventory</message>
+                  <stack-trace />
+                </failure>
+              </test-case>
+              <test-case description="creates warm session when none are running" name="Invoke-SandboxSessionLaunch.creates warm session when none are running" time="0.0347" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: Could not find Command Get-SandboxWarmSessionInventory</message>
+                  <stack-trace />
+                </failure>
+              </test-case>
+              <test-case description="throws when warm mode is requested but unsupported" name="Invoke-SandboxSessionLaunch.throws when warm mode is requested but unsupported" time="0.0351" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>RuntimeException: Legacy Should syntax (without dashes) is not supported in Pester 5. Please refer to migration guide at: https://pester.dev/docs/v5/migrations/v3-to-v4
+RuntimeException: Legacy Should syntax (without dashes) is not supported in Pester 5. Please refer to migration guide at: https://pester.dev/docs/v5/migrations/v3-to-v4
+ParameterBindingException: Cannot retrieve the dynamic parameters for the cmdlet. Legacy Should syntax (without dashes) is not supported in Pester 5. Please refer to migration guide at: https://pester.dev/docs/v5/migrations/v3-to-v4</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Workflow.Tests.ps1:185</stack-trace>
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+          <test-suite type="TestFixture" name="Get-SandboxWslHelperState" executed="True" result="Failure" success="False" time="0.4817" asserts="0" description="Get-SandboxWslHelperState">
+            <results>
+              <test-case description="returns disabled state when helper is not requested" name="Get-SandboxWslHelperState.returns disabled state when helper is not requested" time="0.0356" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: The term 'Get-SandboxWslHelperState' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.</message>
+                  <stack-trace>at &lt;ScriptBlock&gt;, /tmp/workspace/incredincomp/sandbox-toolkit/tests/Workflow.Tests.ps1:192</stack-trace>
+                </failure>
+              </test-case>
+              <test-case description="returns unavailable state when requested distro does not exist" name="Get-SandboxWslHelperState.returns unavailable state when requested distro does not exist" time="0.0448" asserts="0" success="False" result="Failure" executed="True">
+                <failure>
+                  <message>CommandNotFoundException: Could not find Command Get-SandboxWslDistroCatalog</message>
+                  <stack-trace />
+                </failure>
+              </test-case>
+            </results>
+          </test-suite>
+        </results>
+      </test-suite>
+    </results>
+  </test-suite>
+</test-results>
