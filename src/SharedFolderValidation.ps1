@@ -283,20 +283,8 @@ function Assert-SafeSharedFolderPath {
         -Diagnostics:$Diagnostics `
         -Message "Shared-folder validation path normalized: input='$Path' normalized_input='$normalizedInputPath' resolved='$normalizedPath'"
 
-    if (Test-SharedFolderTargetIsReparsePoint -Path $normalizedPath) {
-        throw "Shared folder path is not allowed: '$normalizedPath' is a reparse point or junction. The toolkit blocks reparse/junction paths for safety. Choose a non-reparse local folder instead."
-    }
-
-    $reparseAncestorPath = Find-ReparsePointInPathAncestry -Path $normalizedInputPath -Diagnostics:$Diagnostics
-    if ($reparseAncestorPath) {
-        throw "Shared folder path is not allowed: '$normalizedInputPath' traverses a reparse point or junction at '$reparseAncestorPath' in its parent chain. The toolkit blocks reparse/junction ancestry traversal for safety. Choose a non-reparse local folder instead."
-    }
-
-    $reparseDescendantPath = Find-ReparsePointDescendant -Path $normalizedPath -Diagnostics:$Diagnostics
-    if ($reparseDescendantPath) {
-        throw "Shared folder path is not allowed: '$normalizedPath' contains a reparse point or junction at '$reparseDescendantPath'. The toolkit blocks reparse/junction descendants for safety. Remove the reparse point or choose a non-reparse local folder instead."
-    }
-
+    # Check explicit blocked-path policy first so broad/sensitive roots produce
+    # deterministic policy errors even if they contain junctions or inaccessible children.
     foreach ($entry in Get-ResolvedSharedFolderBlockedPathPolicy -RepoRoot $RepoRoot) {
         if ($entry.Kind -eq 'drive-root') {
             $pathRoot = [System.IO.Path]::GetPathRoot($normalizedPath).TrimEnd('\')
@@ -309,6 +297,20 @@ function Assert-SafeSharedFolderPath {
         if ($normalizedPath -ieq $entry.Path) {
             throw "Shared folder path is not allowed: '$normalizedPath' matches blocked category '$($entry.Category)' because $($entry.Rationale). Use a dedicated analysis ingress folder."
         }
+    }
+
+    if (Test-SharedFolderTargetIsReparsePoint -Path $normalizedPath) {
+        throw "Shared folder path is not allowed: '$normalizedPath' is a reparse point or junction. The toolkit blocks reparse/junction paths for safety. Choose a non-reparse local folder instead."
+    }
+
+    $reparseAncestorPath = Find-ReparsePointInPathAncestry -Path $normalizedInputPath -Diagnostics:$Diagnostics
+    if ($reparseAncestorPath) {
+        throw "Shared folder path is not allowed: '$normalizedInputPath' traverses a reparse point or junction at '$reparseAncestorPath' in its parent chain. The toolkit blocks reparse/junction ancestry traversal for safety. Choose a non-reparse local folder instead."
+    }
+
+    $reparseDescendantPath = Find-ReparsePointDescendant -Path $normalizedPath -Diagnostics:$Diagnostics
+    if ($reparseDescendantPath) {
+        throw "Shared folder path is not allowed: '$normalizedPath' contains a reparse point or junction at '$reparseDescendantPath'. The toolkit blocks reparse/junction descendants for safety. Remove the reparse point or choose a non-reparse local folder instead."
     }
 
     $relativeFromRoot = $normalizedPath.Substring([System.IO.Path]::GetPathRoot($normalizedPath).Length).Trim('\')
