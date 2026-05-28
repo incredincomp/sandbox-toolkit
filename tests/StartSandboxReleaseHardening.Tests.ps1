@@ -1,12 +1,17 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-$repoRoot = Split-Path -Path $PSScriptRoot -Parent
+$script:repoRoot = Split-Path -Path $PSScriptRoot -Parent
+$repoRoot = $script:repoRoot
 $scriptPath = Join-Path $repoRoot 'Start-Sandbox.ps1'
 $manifestOut = Join-Path $repoRoot 'scripts\install-manifest.json'
 $wsbOut = Join-Path $repoRoot 'sandbox.wsb'
-$customProfilesPath = Join-Path $repoRoot 'custom-profiles.local.json'
-$templateStorePath = Join-Path $repoRoot 'saved-sessions.local.json'
+$script:customProfilesPath = Join-Path $repoRoot 'custom-profiles.local.json'
+$customProfilesPath = $script:customProfilesPath
+$script:templateStorePath = Join-Path $repoRoot 'saved-sessions.local.json'
+$templateStorePath = $script:templateStorePath
+$script:setupCachePath = Join-Path $repoRoot 'scripts\setups'
+$setupCachePath = $script:setupCachePath
 
 function Invoke-StartSandboxJsonHardening {
     param(
@@ -35,6 +40,14 @@ function Invoke-StartSandboxRawHardening {
 
 Describe 'Release hardening command-surface characterization' {
     BeforeAll {
+        . (Join-Path $PSScriptRoot 'TestPathState.Helpers.ps1')
+        $script:testRepoRoot = Split-Path -Path $PSScriptRoot -Parent
+        $script:testCustomProfilesPath = Join-Path $script:testRepoRoot 'custom-profiles.local.json'
+        $script:testTemplateStorePath = Join-Path $script:testRepoRoot 'saved-sessions.local.json'
+        $script:customProfilesSnapshot = New-TestPathSnapshot -Path $script:testCustomProfilesPath
+        $script:templateStoreSnapshot = New-TestPathSnapshot -Path $script:testTemplateStorePath
+        Reset-TestPath -Path $script:testCustomProfilesPath
+        Reset-TestPath -Path $script:testTemplateStorePath
         @'
 {
   "schema_version": "1.0",
@@ -60,8 +73,11 @@ Describe 'Release hardening command-surface characterization' {
     }
 
     AfterAll {
-        if (Test-Path -LiteralPath $customProfilesPath -PathType Leaf) {
-            Remove-Item -LiteralPath $customProfilesPath -Force
+        if (Get-Variable -Name customProfilesSnapshot -Scope Script -ErrorAction SilentlyContinue) {
+            Restore-TestPathSnapshot -Snapshot $script:customProfilesSnapshot
+        }
+        if (Get-Variable -Name templateStoreSnapshot -Scope Script -ErrorAction SilentlyContinue) {
+            Restore-TestPathSnapshot -Snapshot $script:templateStoreSnapshot
         }
     }
 
@@ -175,6 +191,7 @@ Describe 'Release hardening command-surface characterization' {
     }
 
     It 'keeps -CleanDownloads scoped away from local profile/template config surfaces' {
+        $setupCacheSnapshot = New-TestPathSnapshot -Path $setupCachePath
         $setupCacheItem = Join-Path $repoRoot 'scripts\setups\release-hardening-cleanup-config-scope.tmp'
         New-Item -ItemType Directory -Path (Split-Path -Parent $setupCacheItem) -Force | Out-Null
         Set-Content -Path $setupCacheItem -Value 'cache'
@@ -192,9 +209,7 @@ Describe 'Release hardening command-surface characterization' {
             (Test-Path -LiteralPath $customProfilesPath -PathType Leaf) | Should Be $true
             (Test-Path -LiteralPath $templateStorePath -PathType Leaf) | Should Be $true
         } finally {
-            if (Test-Path -LiteralPath $templateStorePath -PathType Leaf) {
-                Remove-Item -LiteralPath $templateStorePath -Force
-            }
+            Restore-TestPathSnapshot -Snapshot $setupCacheSnapshot
         }
     }
 }

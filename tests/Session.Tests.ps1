@@ -86,6 +86,49 @@ Describe 'Resolve-SandboxSessionSelection' {
         (($selectionIds -contains 'ghidra')) | Should Be $false
     }
 
+    It 'accepts custom profiles when optional tool lists are omitted' {
+        $manifest = Import-ToolManifest -ManifestPath (Join-Path $repoRoot 'tools.json')
+        $config = [pscustomobject]@{
+            schema_version = '1.0'
+            profiles = @(
+                [pscustomobject]@{
+                    name = 'minimal-custom'
+                    base_profile = 'minimal'
+                }
+            )
+        }
+
+        $selection = Resolve-SandboxSessionSelection `
+            -Manifest $manifest `
+            -SandboxProfile 'minimal-custom' `
+            -CustomProfileConfig $config
+
+        $selection.ProfileType | Should Be 'custom'
+        $selection.BaseProfile | Should Be 'minimal'
+        (($selection.Tools | Select-Object -ExpandProperty id) -contains 'notepadpp') | Should Be $true
+    }
+
+    It 'accepts custom profiles when only one optional tool list is present' {
+        $manifest = Import-ToolManifest -ManifestPath (Join-Path $repoRoot 'tools.json')
+        $config = [pscustomobject]@{
+            schema_version = '1.0'
+            profiles = @(
+                [pscustomobject]@{
+                    name = 'remove-only-custom'
+                    base_profile = 'minimal'
+                    remove_tools = @('notepadpp')
+                }
+            )
+        }
+
+        $selection = Resolve-SandboxSessionSelection `
+            -Manifest $manifest `
+            -SandboxProfile 'remove-only-custom' `
+            -CustomProfileConfig $config
+
+        (($selection.Tools | Select-Object -ExpandProperty id) -contains 'notepadpp') | Should Be $false
+    }
+
     It 'applies runtime add/remove overrides deterministically' {
         $manifest = Import-ToolManifest -ManifestPath (Join-Path $repoRoot 'tools.json')
         $selection = Resolve-SandboxSessionSelection `

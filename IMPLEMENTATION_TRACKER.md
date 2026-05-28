@@ -614,6 +614,46 @@ Estimated size: Small (1–2 files)
 | Pester tests (full suite) | ✅ | `Invoke-Pester -Path tests` | 2026-03-14 |
 | PSScriptAnalyzer lint | ✅ | `Get-ChildItem -Recurse -Filter '*.ps1' | ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning }` | 2026-03-14 |
 
+---
+
+## 2026-05-28 Session log (audit and local-state hardening)
+
+### Scope
+- Fail generated-artifact audits when `.wsb` files contain unexpected host-folder mappings.
+- Accept empty warm-session CLI arrays and custom profiles that omit optional tool lists.
+- Keep cleanup planning and integration tests away from nested reparse points and repo-local saved state.
+- Repair the QUICKSTART anchor used by WSL helper troubleshooting docs.
+
+### Decisions made
+| Decision | Reason | Alternative considered |
+|----------|--------|----------------------|
+| Add a dedicated `wsb-extra-mappings` audit check | Preserves the existing scripts/shared-folder checks while making unexpected host mappings fail audit/exit status | Reclassify the shared-folder warning path as a failure for every unexpected mapping case |
+| Reuse one nested reparse-point walker in cleanup planning and deletion | Avoids `Get-ChildItem -Recurse` ambiguity around reparse traversal and keeps plan/runtime behavior aligned | Only guard deletion time and leave unsafe directories in the cleanup plan |
+| Snapshot and restore repo-local test files/directories around integration tests | Prevents tests from deleting developer-local templates, custom profiles, and cached downloads | Require a temporary clone or repo-root override for those CLI tests |
+
+### Files modified
+- `src/Audit.ps1`
+- `src/Maintenance.ps1`
+- `src/Session.ps1`
+- `src/Workflow.ps1`
+- `tests/Audit.Tests.ps1`
+- `tests/Maintenance.Tests.ps1`
+- `tests/Session.Tests.ps1`
+- `tests/Workflow.Tests.ps1`
+- `tests/StartSandboxJson.Tests.ps1`
+- `tests/StartSandboxCliIntegration.Tests.ps1`
+- `tests/StartSandboxReleaseHardening.Tests.ps1`
+- `tests/TestPathState.Helpers.ps1` (new)
+- `docs/QUICKSTART.md`
+- `IMPLEMENTATION_TRACKER.md`
+
+### Validation
+| Check | Result | Method | Date |
+|-------|--------|--------|------|
+| PSScriptAnalyzer on changed files | ✅ | `Invoke-ScriptAnalyzer` on modified source/test files | 2026-05-28 |
+| Workflow/session smoke checks | ✅ | Dot-source `src/Workflow.ps1`, `src/Manifest.ps1`, `src/Session.ps1`; verify `[]` parsing and custom-profile resolution | 2026-05-28 |
+| Full repo lint + tests | ⚠️ Environment-limited | `Invoke-Pester -Path tests -CI` still shows pre-existing Linux/Pester compatibility failures outside this scoped fix | 2026-05-28 |
+
 ### Scope (maintenance cleanup pass)
 - Add bounded `-CleanDownloads` mode for safe removal of repo-owned disposable download/session artifacts.
 

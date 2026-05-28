@@ -1,11 +1,13 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-$repoRoot = Split-Path -Path $PSScriptRoot -Parent
+$script:repoRoot = Split-Path -Path $PSScriptRoot -Parent
+$repoRoot = $script:repoRoot
 $scriptPath = Join-Path $repoRoot 'Start-Sandbox.ps1'
 $manifestOut = Join-Path $repoRoot 'scripts\install-manifest.json'
 $wsbOut = Join-Path $repoRoot 'sandbox.wsb'
-$customProfilesPath = Join-Path $repoRoot 'custom-profiles.local.json'
+$script:customProfilesPath = Join-Path $repoRoot 'custom-profiles.local.json'
+$customProfilesPath = $script:customProfilesPath
 
 function Invoke-StartSandboxJson {
     param(
@@ -34,6 +36,13 @@ function Invoke-StartSandboxRaw {
 }
 
 Describe 'Start-Sandbox JSON output modes' {
+    BeforeAll {
+        . (Join-Path $PSScriptRoot 'TestPathState.Helpers.ps1')
+        $script:testCustomProfilesPath = Join-Path (Split-Path -Path $PSScriptRoot -Parent) 'custom-profiles.local.json'
+        $script:customProfilesSnapshot = New-TestPathSnapshot -Path $script:testCustomProfilesPath
+        Reset-TestPath -Path $script:testCustomProfilesPath
+    }
+
     AfterEach {
         if (Test-Path -LiteralPath $manifestOut -PathType Leaf) {
             Remove-Item -LiteralPath $manifestOut -Force
@@ -43,6 +52,12 @@ Describe 'Start-Sandbox JSON output modes' {
         }
         if (Test-Path -LiteralPath $customProfilesPath -PathType Leaf) {
             Remove-Item -LiteralPath $customProfilesPath -Force
+        }
+    }
+
+    AfterAll {
+        if (Get-Variable -Name customProfilesSnapshot -Scope Script -ErrorAction SilentlyContinue) {
+            Restore-TestPathSnapshot -Snapshot $script:customProfilesSnapshot
         }
     }
 

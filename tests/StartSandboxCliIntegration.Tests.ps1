@@ -1,12 +1,17 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-$repoRoot = Split-Path -Path $PSScriptRoot -Parent
+$script:repoRoot = Split-Path -Path $PSScriptRoot -Parent
+$repoRoot = $script:repoRoot
 $scriptPath = Join-Path $repoRoot 'Start-Sandbox.ps1'
 $manifestOut = Join-Path $repoRoot 'scripts\install-manifest.json'
 $wsbOut = Join-Path $repoRoot 'sandbox.wsb'
-$customProfilesPath = Join-Path $repoRoot 'custom-profiles.local.json'
-$templateStorePath = Join-Path $repoRoot 'saved-sessions.local.json'
+$script:customProfilesPath = Join-Path $repoRoot 'custom-profiles.local.json'
+$customProfilesPath = $script:customProfilesPath
+$script:templateStorePath = Join-Path $repoRoot 'saved-sessions.local.json'
+$templateStorePath = $script:templateStorePath
+$script:setupCachePath = Join-Path $repoRoot 'scripts\setups'
+$setupCachePath = $script:setupCachePath
 
 function Invoke-StartSandboxJson {
     param(
@@ -35,7 +40,15 @@ function Invoke-StartSandboxRaw {
 
 Describe 'Start-Sandbox integrated command combinations' {
     BeforeAll {
-        $script:manifest = Get-Content -Raw -Path (Join-Path $repoRoot 'tools.json') | ConvertFrom-Json
+        . (Join-Path $PSScriptRoot 'TestPathState.Helpers.ps1')
+        $script:testRepoRoot = Split-Path -Path $PSScriptRoot -Parent
+        $script:testCustomProfilesPath = Join-Path $script:testRepoRoot 'custom-profiles.local.json'
+        $script:testTemplateStorePath = Join-Path $script:testRepoRoot 'saved-sessions.local.json'
+        $script:manifest = Get-Content -Raw -Path (Join-Path $script:testRepoRoot 'tools.json') | ConvertFrom-Json
+        $script:customProfilesSnapshot = New-TestPathSnapshot -Path $script:testCustomProfilesPath
+        $script:templateStoreSnapshot = New-TestPathSnapshot -Path $script:testTemplateStorePath
+        Reset-TestPath -Path $script:testCustomProfilesPath
+        Reset-TestPath -Path $script:testTemplateStorePath
     }
 
     AfterEach {
@@ -50,6 +63,15 @@ Describe 'Start-Sandbox integrated command combinations' {
         }
         if (Test-Path -LiteralPath $templateStorePath -PathType Leaf) {
             Remove-Item -LiteralPath $templateStorePath -Force
+        }
+    }
+
+    AfterAll {
+        if (Get-Variable -Name customProfilesSnapshot -Scope Script -ErrorAction SilentlyContinue) {
+            Restore-TestPathSnapshot -Snapshot $script:customProfilesSnapshot
+        }
+        if (Get-Variable -Name templateStoreSnapshot -Scope Script -ErrorAction SilentlyContinue) {
+            Restore-TestPathSnapshot -Snapshot $script:templateStoreSnapshot
         }
     }
 
@@ -356,6 +378,7 @@ Describe 'Start-Sandbox integrated command combinations' {
     }
 
     It 'keeps -CleanDownloads scoped to disposable cache/session surfaces' {
+        $setupCacheSnapshot = New-TestPathSnapshot -Path $setupCachePath
         $setupCacheItem = Join-Path $repoRoot 'scripts\setups\integration-cleanup-scope.tmp'
         $placeholderPath = Join-Path $repoRoot 'scripts\setups\.gitkeep'
         $placeholderExists = Test-Path -LiteralPath $placeholderPath -PathType Leaf
@@ -381,6 +404,7 @@ Describe 'Start-Sandbox integrated command combinations' {
             if (Test-Path -LiteralPath $sentinelPath -PathType Leaf) {
                 Remove-Item -LiteralPath $sentinelPath -Force
             }
+            Restore-TestPathSnapshot -Snapshot $setupCacheSnapshot
         }
     }
 

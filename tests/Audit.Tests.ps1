@@ -163,6 +163,61 @@ Describe 'Invoke-SandboxArtifactAudit' {
         }
     }
 
+    It 'fails when generated artifact contains unexpected extra host-folder mappings' {
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("sandbox-toolkit-audit-tests-" + [guid]::NewGuid().ToString())
+        $extraHostFolder = Join-Path $tempRoot 'extra-host'
+        New-Item -ItemType Directory -Path $extraHostFolder -Force | Out-Null
+
+        try {
+            $manifest = Import-ToolManifest -ManifestPath (Join-Path $repoRoot 'tools.json')
+            $selection = Resolve-SandboxSessionSelection -Manifest $manifest -SandboxProfile 'minimal'
+            $artifacts = Invoke-SandboxSessionArtifactGeneration `
+                -RepoRoot $repoRoot `
+                -SandboxProfile $selection.BaseProfile `
+                -Tools $selection.Tools `
+                -InstallManifestPath (Join-Path $tempRoot 'install-manifest.json') `
+                -WsbPath (Join-Path $tempRoot 'sandbox.wsb')
+
+            $extraMapping = @"
+    <MappedFolder>
+      <HostFolder>$extraHostFolder</HostFolder>
+      <SandboxFolder>C:\Users\WDAGUtilityAccount\Desktop\extra</SandboxFolder>
+      <ReadOnly>false</ReadOnly>
+    </MappedFolder>
+"@
+            (Get-Content -Raw -Path $artifacts.WsbPath).Replace('</MappedFolders>', "$extraMapping`r`n  </MappedFolders>") |
+                Set-Content -Path $artifacts.WsbPath -Encoding UTF8
+
+            $result = Invoke-SandboxArtifactAudit `
+                -RepoRoot $repoRoot `
+                -Selection $selection `
+                -NetworkingMode (Get-SandboxNetworkingMode -SandboxProfile $selection.BaseProfile) `
+                -SessionLifecycleState ([pscustomobject]@{
+                    RequestedMode = 'Fresh'
+                    EffectiveMode = 'Fresh'
+                    WarmSupport = [pscustomobject]@{ Supported = $false; Reason = 'not-required' }
+                    RunningSessionCount = 0
+                    InventoryError = $null
+                }) `
+                -WslHelperState ([pscustomobject]@{
+                    Enabled = $false
+                    WslCommandAvailable = $false
+                    DistroAvailable = $false
+                    SupportReason = 'not-requested'
+                    StagePath = '~/.sandbox-toolkit-helper'
+                }) `
+                -HostInteractionPolicy (Get-SandboxHostInteractionPolicy) `
+                -Artifacts $artifacts
+
+            $result.HasFailures | Should Be $true
+            @($result.Checks | Where-Object { $_.Name -eq 'wsb-extra-mappings' -and $_.Status -eq 'FAIL' }).Count | Should Be 1
+        } finally {
+            if (Test-Path -LiteralPath $tempRoot) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
     It 'uses explicit configured/requested wording in trust-boundary-sensitive checks' {
         $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("sandbox-toolkit-audit-tests-" + [guid]::NewGuid().ToString())
         New-Item -ItemType Directory -Path $tempRoot -Force | Out-Null

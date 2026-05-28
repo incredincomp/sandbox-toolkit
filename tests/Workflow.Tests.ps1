@@ -30,6 +30,11 @@ Describe 'ConvertFrom-SandboxWsbRawSessionList' {
         @($sessions).Count | Should Be 0
     }
 
+    It 'returns deterministic empty list for empty JSON array output' {
+        $sessions = ConvertFrom-SandboxWsbRawSessionList -RawOutput '[]'
+        @($sessions).Count | Should Be 0
+    }
+
     It 'fails deterministically on malformed JSON' {
         $thrown = $null
         try {
