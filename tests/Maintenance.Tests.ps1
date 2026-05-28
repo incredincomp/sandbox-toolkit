@@ -37,7 +37,7 @@ Describe 'Get-SandboxDownloadCleanupPlan' {
 
     It 'skips directory-contents location when cleanup root is a reparse point' {
         if (-not [System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform([System.Runtime.InteropServices.OSPlatform]::Windows)) {
-            Write-Host 'Skipped: junction creation requires Windows'
+            Write-Output 'Skipped: junction creation requires Windows'
             return
         }
         $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("sandbox-toolkit-reparse-root-" + [guid]::NewGuid().ToString())

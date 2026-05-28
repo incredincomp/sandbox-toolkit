@@ -277,6 +277,36 @@ Describe 'Assert-SafeSharedFolderPath reparse-point rejection' {
             }
         }
     }
+
+    It 'rejects an otherwise valid shared folder that contains a child junction' {
+        $reparseRepo = Join-Path ([System.IO.Path]::GetTempPath()) ("sandbox-toolkit-child-reparse-tests-" + [guid]::NewGuid().ToString())
+        $sharedFolderPath = Join-Path $reparseRepo 'lab\ingress'
+        $sensitiveTargetPath = Join-Path $reparseRepo 'sensitive-target'
+        $childJunctionPath = Join-Path $sharedFolderPath 'linked-sensitive'
+        New-Item -ItemType Directory -Path $sharedFolderPath -Force | Out-Null
+        New-Item -ItemType Directory -Path $sensitiveTargetPath -Force | Out-Null
+
+        try {
+            try {
+                New-Item -ItemType Junction -Path $childJunctionPath -Target $sensitiveTargetPath -ErrorAction Stop | Out-Null
+            } catch {
+                Set-TestInconclusive -Message "Could not create child junction for test: $($_.Exception.Message)"
+                return
+            }
+
+            $message = Invoke-AndCaptureErrorMessage {
+                Assert-SafeSharedFolderPath -Path $sharedFolderPath -RepoRoot $reparseRepo
+            }
+
+            $message | Should Not BeNullOrEmpty
+            $message | Should Match 'contains a reparse point or junction'
+            $message | Should Match 'blocks reparse/junction descendants for safety'
+        } finally {
+            if (Test-Path -LiteralPath $reparseRepo) {
+                Remove-Item -LiteralPath $reparseRepo -Recurse -Force
+            }
+        }
+    }
 }
 
 Describe 'Assert-SafeSharedFolderPath ancestry reparse traversal rejection' {
